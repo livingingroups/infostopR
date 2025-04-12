@@ -19,7 +19,7 @@
 #'   }
 #'
 #' @examples
-#' path <- rtravel_path(100)
+#' data <- rtravel_path(100, format = "matrix")
 #' @export
 rtravel_path <- function(size,
                          max_step = 0.001,
@@ -48,7 +48,8 @@ rtravel_path <- function(size,
   for (i in 2:size) {
     if (runif(1) < stay_prob) {
       path$lat[i] <- path$lat[i-1]
-      path$lon[i] <- path$lon[i-1]      
+      path$lon[i] <- path$lon[i-1]
+      path$datetime[i] <- path$datetime[i-1] + round(runif(1, 1, 30)) *  time_increment
     } else {
       dlat <- runif(1, -max_step, max_step)
       dlon <- runif(1, -max_step, max_step)
@@ -58,8 +59,8 @@ rtravel_path <- function(size,
       
       path$lat[i] <- new_lat
       path$lon[i] <- new_lon
+      path$datetime[i] <- path$datetime[i-1] + time_increment
     }    
-    path$datetime[i] <- path$datetime[i-1] + time_increment
   }
   
   if (format == "matrix") {

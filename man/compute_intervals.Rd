@@ -23,19 +23,9 @@ It identifies continuous periods when a user was at the same location (same labe
 }
 \examples{
 if (is_infostop_initialized()) {
-# Create and fit a model
-data <- matrix(c(
-  55.75259295, 12.34353885, 1581401760,
-  55.7525908, 12.34353145, 1581402760,
-  55.7525876, 12.3435386, 1581403760
-), ncol = 3, byrow = TRUE)
-
+data <- rtravel_path(100, format = "matrix")
 model <- infostop(data, r1 = 10, r2 = 10)
-
-# Extract times from the data
 times <- data[, 3]
-
-# Compute intervals
 intervals <- compute_intervals(model$labels, times)
 }
 }

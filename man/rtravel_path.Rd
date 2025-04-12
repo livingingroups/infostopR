@@ -42,5 +42,5 @@ This function generates a random travel path with longitude, latitude, and datet
 The path can include stationary periods and movements with configurable parameters.
 }
 \examples{
-path <- rtravel_path(100)
+data <- rtravel_path(100, format = "matrix")
 }

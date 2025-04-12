@@ -56,13 +56,13 @@ providing access to its methods for interactive map visualization.
 }
 \examples{
 if (is_infostop_initialized()) {
-  # Create a map using plot_map
+  data <- rtravel_path(100, format = "matrix")
+  model <- infostop(data, r1 = 10, r2 = 10)
   map <- plot_map(model, scatter = TRUE)
   
-  # Save the map to an HTML file
-  map$save("my_map.html")
-  
-  # Show the map in a browser
-  map$show_in_browser()
+  \dontrun{
+    map$save("my_map.html")
+    map$show_in_browser()
+  }
 }
 }

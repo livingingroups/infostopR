@@ -38,19 +38,16 @@ print.folium_map <- function(x, ...) {
 #'
 #' @examples
 #' if (is_infostop_initialized()) {
-#' data <- matrix(c(
-#'   55.75259295, 12.34353885, 1581401760,
-#'   55.7525908, 12.34353145, 1581402760,
-#'   55.7525876, 12.3435386, 1581403760
-#' ), ncol = 3, byrow = TRUE)
-#' 
-#' model <- infostop(r1 = 10, r2 = 10)
-#' 
-#' # Create a map with custom visualization settings
+#' data <- rtravel_path(100, format = "matrix")
+#' model <- infostop(data,r1 = 10, r2 = 10)
 #' map <- plot_map(model, 
 #'                 scatter = TRUE, 
 #'                 polygons_color = "#ff0000", 
 #'                 zoom_start = 10)
+#' \dontrun{
+#' map$show_in_browser()
+#' map$save("map.html")
+#' }
 #' }
 #' @export
 plot_map <- function(model,
@@ -155,14 +152,14 @@ plot_map <- function(model,
 #' 
 #' @examples
 #' if (is_infostop_initialized()) {
-#'   # Create a map using plot_map
+#'   data <- rtravel_path(100, format = "matrix")
+#'   model <- infostop(data, r1 = 10, r2 = 10)
 #'   map <- plot_map(model, scatter = TRUE)
 #'   
-#'   # Save the map to an HTML file
-#'   map$save("my_map.html")
-#'   
-#'   # Show the map in a browser
-#'   map$show_in_browser()
+#'   \dontrun{
+#'     map$save("my_map.html")
+#'     map$show_in_browser()
+#'   }
 #' }
 #' @export
 folium_map <- function(pointer) {
@@ -198,6 +195,7 @@ folium_map <- function(pointer) {
   class(env) <- "FoliumMap"
   return(env)
 }
+
 
 #' @export
 #' @noRd

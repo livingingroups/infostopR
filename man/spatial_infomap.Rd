@@ -43,14 +43,8 @@ It directly returns the cluster labels rather than a model object.
 }
 \examples{
 if (is_infostop_initialized()) {
-data <- matrix(c(
-  55.75259295, 12.34353885,
-  55.7525908, 12.34353145,
-  63.40379175, 10.40477095
-), ncol = 2, byrow = TRUE)
-
+data <- rtravel_path(100, format = "matrix")
 labels <- spatial_infomap(data, r2 = 15)
-
 unique(labels)
 }
 }

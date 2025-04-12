@@ -102,12 +102,7 @@ The returned object provides the following methods and properties:
 }
 \examples{
 if (is_infostop_initialized()) {
-data <- matrix(c(
-  55.75259295, 12.34353885, 1581401760,
-  55.7525908, 12.34353145, 1581402760,
-  55.7525876, 12.3435386, 1581403760
-), ncol = 3, byrow = TRUE)
-
+data <- rtravel_path(100, format = "matrix")
 model <- infostop(data, r1 = 10, r2 = 10)
 model$labels
 model$compute_label_medians()
