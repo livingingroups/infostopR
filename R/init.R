@@ -1,0 +1,132 @@
+
+
+#' Check if the Infostop is loaded
+#'
+#' @return Logical indicating if the Python module is imported.
+#'
+#' @examples
+#' is_infostop_initialized()
+#' @export
+is_infostop_initialized <- function() {
+  isTRUE(rpy("initialized"))
+}
+
+
+is_python_initialized <- function() {
+  tryCatch(getNamespace("reticulate")$is_python_initialized(), 
+            error = function(e) FALSE)
+}
+
+
+infostop_find_python <- function() {
+    spy <- Sys.getenv("INFOSTOP_PYTHON")
+    if (nchar(spy) > 0L) {
+        if (file.exists(spy)) {
+            return(spy)
+        } else {
+            msg <- "System variable 'INFOSTOP_PYTHON' set, but file '%s' does not exist."
+            stop(sprintf(msg, spy))
+        }
+    }
+
+    rpy <- Sys.getenv("RETICULATE_PYTHON")
+    if (nchar(rpy) > 0L) {
+        if (file.exists(rpy)) {
+            return(rpy)
+        } else {
+            msg <- "System variable 'RETICULATE_PYTHON' set, but file '%s' does not exist."
+            stop(sprintf(msg, rpy))
+        }
+    }
+
+    config <- reticulate::py_discover_config("infostop", "infostop")
+    if (!is.null(config)) {
+        python_path <- unlist(strsplit(config$pythonpath, ":", fixed = TRUE))
+        files <- unlist(lapply(python_path, dir, include.dirs = TRUE))
+        if (isTRUE("infostop" %in% files)) {
+            return(config$python)
+        }
+    }
+
+    venvpy <- file.path(reticulate::virtualenv_root(), "infostop", "bin", "python")
+    if (file.exists(venvpy)) {
+        return(venvpy)
+    }
+
+    condapy <- file.path(reticulate::miniconda_path(), "envs", "infostop", "bin", "python")
+    if (file.exists(condapy)) {
+        return(condapy)
+    }
+
+    msg <- "could not find module 'infostop', please set the environment variable 'INFOSTOP_PYTHON'!"
+    stop(msg)
+}
+
+
+set_python_version <- function(python = NULL, virtualenv = NULL, condaenv = NULL) {
+    if (!is.null(python)) {
+        reticulate::use_python(python, required = TRUE)
+    } else if (!is.null(virtualenv)) {
+        reticulate::use_virtualenv(virtualenv, required = TRUE)
+    } else if (!is.null(condaenv)) {
+        reticulate::use_condaenv(condaenv, required = TRUE)
+    } else {
+        python <- infostop_find_python()
+        reticulate::use_python(python, required = TRUE)
+    }
+    reticulate::py_config()
+}
+
+
+#' Initialize Infostop
+#'
+#' Initialize the \verb{Python} binding to infostop.
+#'
+#' @param python a character string giving the path to the \verb{Python}
+#'               binary (executeable) to be used.
+#'               The variable \code{python} is passed to \code{reticulate::use_python}.
+#' @param virtualenv a character string giving the name of the virtual environment,
+#'               or the path to the virtual environment, to be used.
+#'               The variable \code{virtualenv} is passed to \code{reticulate::use_virtualenv}.
+#' @param condaenv a character string giving the name of the \verb{Conda} environment to be used.
+#'               The variable \code{condaenv} is passed to \code{reticulate::use_condaenv}.
+#' @examples
+#' if (nchar(Sys.getenv("INFOSTOP_TESTING", "")) > 0L) {
+#' infostop_initialize()
+#' }
+#' @export
+infostop_initialize <- function(python = NULL,
+                                virtualenv = NULL,
+                                condaenv = NULL) {
+  assert(check_character(python, len = 1L, any.missing = FALSE, null.ok = TRUE),
+         check_character(virtualenv, len = 1L, any.missing = FALSE, null.ok = TRUE),
+         check_character(condaenv, len = 1L, any.missing = FALSE, null.ok = TRUE),
+         combine = "and")
+
+  if (is_infostop_initialized()) {
+    writeLines("infostop is already initialized!")
+    return(NULL)
+  }
+
+  python_config <- set_python_version(python, virtualenv, condaenv)
+  reticulate::py_run_string("import sys", convert = FALSE)
+  state <- try(rpy("infostop", reticulate::import("infostop")), silent = TRUE)
+  if (inherits(state, "try-error")) {
+      msg <- c("could not import module 'infostop', with ",
+                sprintf("python '%s'. ", python_config$python),
+                "Please install infostop and/or set the environment variable 'INFOSTOP_PYTHON'.")
+      stop(msg)
+  }
+  rpy("initialized", TRUE)
+}
+
+
+check_infostop_initialized <- function() {
+  if (!is_infostop_initialized()) {
+    caller_name <- deparse(sys.calls()[[sys.nframe() - 1]])
+    msg <- paste(sprintf("in '%s' infostop is not initialized,", caller_name),
+                 "use 'infostop_initialize' to initialize infostop!",
+                 collapse = " ")
+    stop(msg, call. = FALSE)
+  }
+}

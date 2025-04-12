@@ -1,0 +1,11 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.Rprofile
+*.Rproj
+.Renviron
+.DS_Store
+inst/doc
+/doc/
+/Meta/

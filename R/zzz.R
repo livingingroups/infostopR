@@ -1,0 +1,19 @@
+
+rpy_db <- new.env(parent = emptyenv())
+
+
+rpy <- function(key, value) {
+  if (missing(value)) {
+    rpy_db[[key]]
+  } else {
+    rpy_db[[key]] <- value
+  }
+}
+
+
+.onLoad <- function(libname, pkgname) {
+  # infostop <- reticulate::import("infostop", delay_load = TRUE)
+  rpy("initialized", NULL)
+  env <- getNamespace("infostop")
+  makeActiveBinding("py_infostop", function() rpy("infostop"), env)
+}

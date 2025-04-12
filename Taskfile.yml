@@ -1,0 +1,64 @@
+version: '3'
+
+tasks:
+  default:
+    desc: Display available tasks
+    cmds:
+      - task --list
+
+  manual:
+    desc: Generate manual
+    deps: [docs]
+    cmds:
+      - rm -f ../Manual.pdf
+      - R CMD Rd2pdf . -o ../Manual.pdf
+
+  docs:
+    desc: Generate documentation with roxygen2
+    cmds:
+      - R -e 'library("roxygen2"); roxygenize(".", c("rd", "namespace"))'
+      - sed -i '/RoxygenNote:.*/d' DESCRIPTION
+
+  build:
+    desc: Build the R package
+    deps: [docs]
+    cmds:
+      - R CMD build .
+
+  inst:
+    desc: Install the R package
+    deps: [build]
+    cmds:
+      - R CMD INSTALL infostop_*.tar.gz
+
+  check:
+    desc: Run R CMD check on the package
+    deps: [build]
+    cmds:
+      - R CMD check infostop_*.tar.gz
+
+  cran_check:
+    desc: Run R CMD check on the package
+    deps: [build]
+    cmds:
+      - R CMD check --as-cran infostop_*.tar.gz
+
+  test:
+    desc: Run tests with testthat
+    cmds:
+      - Rscript -e "if (!require('devtools')) install.packages('devtools', repos = 'https://cran.r-project.org'); devtools::test()"
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - rm -f infostop_*.tar.gz
+      - rm -rf .Rhistory .RData infostop.Rcheck
+      - rm -rf inst/doc
+      - rm -rf Meta
+
+  vignettes:
+    desc: Build package vignettes
+    deps: [document]
+    cmds:
+      - Rscript -e "if (!require('devtools')) install.packages('devtools', repos = 'https://cran.r-project.org'); devtools::build_vignettes()"
+
