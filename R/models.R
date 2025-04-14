@@ -10,7 +10,7 @@ NULL
 #' The algorithm works by first identifying stationary events in the trace, then clustering
 #' these events into stop locations using a network-based approach. Dynamic (moving) points are labeled -1.
 #'
-#' @param data A numeric matrix with 2 or 3 columns. The first two columns must contain spatial
+#' @param data Either an object of class \code{track_frame} or a numeric matrix with 2 or 3 columns. The first two columns must contain spatial
 #'   coordinates (latitude, longitude). The optional third column contains timestamps.
 #' @param r1 A numeric vector giving the maximum distance between time-consecutive points to label them as stationary.
 #'   Higher values will result in more points being considered stationary.
@@ -94,6 +94,12 @@ infostop <- function(data,
                      weight_exponent = 1,
                      verbose = FALSE) {
   check_infostop_initialized()
+  
+  # transform from track.frame
+  if(inherits(data, "track_frame")) {
+    data[[attr(tf, "index")]] <- as.integer(data[[attr(tf, "index")]])
+    data <- as.matrix(data[, c(attr(tf, "lat_col"), attr(tf, "lon_col"), attr(tf, "index"))])
+  }
 
   checkmate::assert_matrix(data, "numeric", any.missing = FALSE, min.cols = 2, max.cols = 3)
   checkmate::assert_numeric(r1, lower = 0, len = 1, finite = TRUE, any.missing = FALSE)
@@ -183,6 +189,10 @@ spatial_infomap <- function(data,
                             weight_exponent = 1,
                             verbose = FALSE) {
   check_infostop_initialized()
+  
+  if(inherits(data, "track_frame")) {
+    data <- as.matrix(data[, c(attr(tf, "lat_col"), attr(tf, "lon_col"))])
+  }
 
   checkmate::assert_matrix(data, "numeric", any.missing = FALSE, min.cols = 2, max.cols = 3)
   checkmate::assert_numeric(r2, lower = 0, len = 1, any.missing = FALSE)

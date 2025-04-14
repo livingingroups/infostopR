@@ -19,3 +19,4 @@ Imports:
 Suggests: 
     rmarkdown, knitr
 VignetteBuilder: knitr
+RoxygenNote: 7.3.2
