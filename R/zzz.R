@@ -16,4 +16,5 @@ rpy <- function(key, value) {
   rpy("initialized", NULL)
   env <- getNamespace("infostop")
   makeActiveBinding("py_infostop", function() rpy("infostop"), env)
+  makeActiveBinding("py_cpputils", function() rpy("cpputils"), env)
 }

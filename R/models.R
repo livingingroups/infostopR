@@ -154,6 +154,48 @@ print.Infostop <- function(x, ...) {
   writeLines("  - labels")
 }
 
+#' Find based on distance and time threshold
+#'
+#' @param data A numeric matrix with 2 or 3 columns. Columns 1 and 2 are spatial coordinates.
+#'   Column 3 is optional and represents time.
+#' @param r1 A numeric vector giving the maximum distance between time-consecutive points to label them as stationary.
+#'   Higher values will result in more points being considered stationary.
+#' @param label_singleton A logical, if \code{TRUE}, give stationary locations that were only visited once their own label.
+#'   If FALSE, label them as non-stationary (-1).
+#' @param min_staying_time An integer giving the minimum duration (in seconds) that can constitute a stop.
+#'   Only relevant if timestamps are provided in the data.
+#' @param max_time_between An integer giving the maximum duration (in seconds) between consecutive points
+#'   to consider them part of the same stop. Only relevant if timestamps are provided.
+#' @param min_size An integer giving the minimum number of points required to consider a group stationary.
+#' @param distance_metric A character string, either 'haversine' (for geographic coordinates) or 'euclidean'
+#'   (for Cartesian coordinates).
+#' @export
+find_stops <- function(data,
+                       r1 = 10,
+                       min_staying_time = 300L,
+                       max_time_between = 86400L,
+                       min_size = 2L,
+                       distance_metric = c("haversine", "euclidean")) {
+
+  checkmate::assert_matrix(data, "numeric", any.missing = FALSE, min.cols = 2, max.cols = 3)
+  checkmate::assert_numeric(r1, lower = 0, len = 1, finite = TRUE, any.missing = FALSE)
+  checkmate::assert_integerish(min_staying_time, lower = 0, len = 1, any.missing = FALSE)
+  checkmate::assert_integerish(max_time_between, lower = 0, len = 1, any.missing = FALSE)
+  checkmate::assert_integerish(min_size, lower = 0, len = 1, any.missing = FALSE)
+
+  distance_metric <- match.arg(distance_metric)
+  stops <- py_cpputils$get_stationary_events(
+    data[,1:2],
+    r1,
+    as.integer(min_size),
+    min_staying_time,
+    max_time_between,
+    distance_metric
+  )
+  stops[[1]] <- do.call(rbind, stops[[1]])
+  names(stops) <- c("coordinates", "labels")
+  stops
+}
 
 #' Spatial Infomap Cluster a Collection of Points Using Infomap
 #'

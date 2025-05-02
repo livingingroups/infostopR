@@ -20,7 +20,7 @@ infostop(
 )
 }
 \arguments{
-\item{data}{A numeric matrix with 2 or 3 columns. The first two columns must contain spatial
+\item{data}{Either an object of class \code{track_frame} or a numeric matrix with 2 or 3 columns. The first two columns must contain spatial
 coordinates (latitude, longitude). The optional third column contains timestamps.}
 
 \item{r1}{A numeric vector giving the maximum distance between time-consecutive points to label them as stationary.

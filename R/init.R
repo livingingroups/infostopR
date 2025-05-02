@@ -110,12 +110,16 @@ infostop_initialize <- function(python = NULL,
 
   python_config <- set_python_version(python, virtualenv, condaenv)
   reticulate::py_run_string("import sys", convert = FALSE)
-  state <- try(rpy("infostop", reticulate::import("infostop")), silent = TRUE)
-  if (inherits(state, "try-error")) {
-      msg <- c("could not import module 'infostop', with ",
-                sprintf("python '%s'. ", python_config$python),
-                "Please install infostop and/or set the environment variable 'INFOSTOP_PYTHON'.")
+  for(mod in c("infostop", "cpputils")){
+    state <- try(rpy(mod, reticulate::import(mod)), silent = TRUE)
+    if (inherits(state, "try-error")) {
+      msg <- c(sprintf("could not import module '%s', with ", mod),
+               sprintf("python '%s'. ", python_config$python),
+               if(mod == "infostop")
+                 "Please install infostop and/or set the environment variable 'INFOSTOP_PYTHON'."
+               else "")
       stop(msg)
+    }
   }
   rpy("initialized", TRUE)
 }
