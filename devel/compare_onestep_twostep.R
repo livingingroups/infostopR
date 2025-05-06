@@ -1,7 +1,6 @@
 devtools::load_all('pkgs/infostop'); infostop_initialize()
 
 library(sf)
-library(reticulate)
 
 abby_4652 <- read.csv("./data/FFT.csv") |>
   dplyr::filter(
@@ -25,7 +24,7 @@ data_arr <- data_arr[order(data_arr[,3]),]
 onestep <- infostop(data_arr, r1 = 10, r2 = 15, min_staying_time = 12*60, max_time_between = 60*60)
 
 # twostep
-stops <- find_stops(data_arr, r1 = 10)
+stops <- find_stops(data_arr, r1 = 10, min_staying_time = 12*60, max_time_between = 60*60)
 twostep <- spatial_infomap(stops[['coordinates']], r2 = 15)
 
 all.equal(twostep$`_stat_labels`, onestep$`_stat_labels`)

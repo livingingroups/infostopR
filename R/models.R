@@ -257,7 +257,7 @@ spatial_infomap <- function(data,
     verbose = verbose
   )
 
-  env$labels <- as.integer(env$model$fit_predict(data))
+  env$labels <- as.integer(env$model$fit_predict(data[,1:2]))
   
   class(env) <- "SpatialInfomap"
   return(env)
