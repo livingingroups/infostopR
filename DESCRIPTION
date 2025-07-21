@@ -14,6 +14,7 @@ Description: An R wrapper for the Python 'infostop' package which implements
     Aslak et al. (2020) <arXiv:2003.14370>.
 License: MIT + file LICENSE
 Encoding: UTF-8
+Depends: sf
 Imports: 
     reticulate, checkmate
 Suggests: 
