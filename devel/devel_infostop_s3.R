@@ -19,7 +19,8 @@ x$labels
 stops_matrix <- find_stops(data = travel_path_matrix[, c("latitude", "longitude", "time")], distance_metric = "haversine")
 twostep <- spatial_infomap(data = stops_matrix$coordinates, distance_metric = "haversine")
 
-
+dim(onestep$labels)
+dim(twostep$labels)
 onestep$labels
 twostep$labels
 onestep$compute_label_medians()
