@@ -6,7 +6,7 @@
 # - examples
 # - multiple IDs?
 # - check as.integer in time input
-# - create test.data for data.frame, track_frame, move2, sftrack
+# - create test.data for data.frame, trackframe, move2, sftrack
 
 
 #' @importFrom checkmate assert check_list check_character check_logical
@@ -21,7 +21,7 @@ NULL
 #' The algorithm works by first identifying stationary events in the trace, then clustering
 #' these events into stop locations using a network-based approach. Dynamic (moving) points are labeled -1.
 #'
-#' @param data Either an object of class \code{track_frame} or a numeric matrix with 2 or 3 columns. The first two columns must contain spatial
+#' @param data Either an object of class \code{trackframe} or a numeric matrix with 2 or 3 columns. The first two columns must contain spatial
 #'   coordinates (latitude, longitude). The optional third column contains timestamps.
 #' @param r1 A numeric vector giving the maximum distance between time-consecutive points to label them as stationary.
 #'   Higher values will result in more points being considered stationary.
@@ -210,7 +210,7 @@ infostop.data.frame <- function(data,
 
 #' @noRd
 #' @export
-infostop.track_frame <- function(data,
+infostop.trackframe <- function(data,
                                 r1 = 10,
                                 r2 = 10,
                                 label_singleton = TRUE,
@@ -223,7 +223,7 @@ infostop.track_frame <- function(data,
                                 weight_exponent = 1,
                                 verbose = FALSE) {
 
-  stopifnot("Only distance_metric = 'euclidean' is available for objects of class track_frame" = distance_metric == "euclidean")
+  stopifnot("Only distance_metric = 'euclidean' is available for objects of class trackframe" = distance_metric == "euclidean")
   # transform from track.frame
   data[[attr(data, "time")]] <- as.integer(data[[attr(data, "time")]])
   data <- as.matrix(data[, c(attr(data, "easting"), attr(data, "northing"), attr(data, "time"))])
@@ -393,13 +393,13 @@ find_stops.data.frame <- function(data,
 
 #' @noRd
 #' @export
-find_stops.track_frame <- function(data,
+find_stops.trackframe <- function(data,
                                  r1 = 10,
                                  min_staying_time = 300L,
                                  max_time_between = 86400L,
                                  min_size = 2L,
                                  distance_metric = "euclidean") {
-  stopifnot("Only distance_metric = 'euclidean' is available for objects of class track_frame" = distance_metric == "euclidean")
+  stopifnot("Only distance_metric = 'euclidean' is available for objects of class trackframe" = distance_metric == "euclidean")
   # transform from track.frame
   data[[attr(data, "time")]] <- as.integer(data[[attr(data, "time")]])
   data <- as.matrix(data[, c(attr(data, "easting"), attr(data, "northing"), attr(data, "time"))])
@@ -573,7 +573,7 @@ spatial_infomap.data.frame <- function(data,
 
 #' @noRd
 #' @export
-spatial_infomap.track_frame <- function(data,
+spatial_infomap.trackframe <- function(data,
                                         r2 = 10,
                                         label_singleton = TRUE,
                                         min_spacial_resolution = 0,
@@ -581,7 +581,7 @@ spatial_infomap.track_frame <- function(data,
                                         weighted = FALSE,
                                         weight_exponent = 1,
                                         verbose = FALSE) {
-  stopifnot("Only distance_metric = 'euclidean' is available for objects of class track_frame" = distance_metric == "euclidean")
+  stopifnot("Only distance_metric = 'euclidean' is available for objects of class trackframe" = distance_metric == "euclidean")
   # transform from track.frame
   data[[attr(data, "time")]] <- as.integer(data[[attr(data, "time")]])
   data <- as.matrix(data[, c(attr(data, "easting"), attr(data, "northing"), attr(data, "time"))])
