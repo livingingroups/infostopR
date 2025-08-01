@@ -2,9 +2,62 @@
 % Please edit documentation in R/models.R
 \name{find_stops}
 \alias{find_stops}
+\alias{find_stops.matrix}
+\alias{find_stops.data.frame}
+\alias{find_stops.trackframe}
+\alias{find_stops.move2}
+\alias{find_stops.sftrack}
 \title{Find based on distance and time threshold}
 \usage{
 find_stops(
+  data,
+  r1 = 10,
+  min_staying_time = 300L,
+  max_time_between = 86400L,
+  min_size = 2L,
+  distance_metric = c("haversine", "euclidean"),
+  ...
+)
+
+\method{find_stops}{matrix}(
+  data,
+  r1 = 10,
+  min_staying_time = 300L,
+  max_time_between = 86400L,
+  min_size = 2L,
+  distance_metric = "euclidean",
+  ...
+)
+
+\method{find_stops}{data.frame}(
+  data,
+  r1 = 10,
+  min_staying_time = 300L,
+  max_time_between = 86400L,
+  min_size = 2L,
+  distance_metric = "euclidean",
+  ...
+)
+
+\method{find_stops}{trackframe}(
+  data,
+  r1 = 10,
+  min_staying_time = 300L,
+  max_time_between = 86400L,
+  min_size = 2L,
+  distance_metric = "euclidean"
+)
+
+\method{find_stops}{move2}(
+  data,
+  r1 = 10,
+  min_staying_time = 300L,
+  max_time_between = 86400L,
+  min_size = 2L,
+  distance_metric = c("haversine", "euclidean")
+)
+
+\method{find_stops}{sftrack}(
   data,
   r1 = 10,
   min_staying_time = 300L,
@@ -30,6 +83,8 @@ to consider them part of the same stop. Only relevant if timestamps are provided
 
 \item{distance_metric}{A character string, either 'haversine' (for geographic coordinates) or 'euclidean'
 (for Cartesian coordinates).}
+
+\item{...}{other arguments passed to `as.trackframe()`}
 
 \item{label_singleton}{A logical, if \code{TRUE}, give stationary locations that were only visited once their own label.
 If FALSE, label them as non-stationary (-1).}

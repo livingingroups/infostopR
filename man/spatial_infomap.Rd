@@ -2,9 +2,72 @@
 % Please edit documentation in R/models.R
 \name{spatial_infomap}
 \alias{spatial_infomap}
+\alias{spatial_infomap.matrix}
+\alias{spatial_infomap.data.frame}
+\alias{spatial_infomap.trackframe}
+\alias{spatial_infomap.move2}
+\alias{spatial_infomap.sftrack}
 \title{Spatial Infomap Cluster a Collection of Points Using Infomap}
 \usage{
 spatial_infomap(
+  data,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_spacial_resolution = 0,
+  distance_metric = c("haversine", "euclidean"),
+  weighted = FALSE,
+  weight_exponent = 1,
+  verbose = FALSE,
+  ...
+)
+
+\method{spatial_infomap}{matrix}(
+  data,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_spacial_resolution = 0,
+  distance_metric = c("haversine", "euclidean"),
+  weighted = FALSE,
+  weight_exponent = 1,
+  verbose = FALSE,
+  ...
+)
+
+\method{spatial_infomap}{data.frame}(
+  data,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_spacial_resolution = 0,
+  distance_metric = c("haversine", "euclidean"),
+  weighted = FALSE,
+  weight_exponent = 1,
+  verbose = FALSE,
+  ...
+)
+
+\method{spatial_infomap}{trackframe}(
+  data,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_spacial_resolution = 0,
+  distance_metric = "euclidean",
+  weighted = FALSE,
+  weight_exponent = 1,
+  verbose = FALSE
+)
+
+\method{spatial_infomap}{move2}(
+  data,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_spacial_resolution = 0,
+  distance_metric = c("haversine", "euclidean"),
+  weighted = FALSE,
+  weight_exponent = 1,
+  verbose = FALSE
+)
+
+\method{spatial_infomap}{sftrack}(
   data,
   r2 = 10,
   label_singleton = TRUE,
@@ -33,6 +96,8 @@ If FALSE, label them as non-stationary (-1).}
 \item{weight_exponent}{Numeric. Exponent used when weighting edges in the network.}
 
 \item{verbose}{Logical. Print output during the fitting procedure.}
+
+\item{...}{other arguments passed to `as.trackframe()`}
 }
 \value{
 A numeric vector of cluster labels for each input point. Points labeled -1 are considered non-stationary.

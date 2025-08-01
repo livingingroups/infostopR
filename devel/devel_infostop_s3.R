@@ -6,9 +6,11 @@ infostop_initialize()
 # matrix
 data("travel_path_matrix", package = "travelpaths")
 travel_path_matrix
+as.trackframe(travel_path_matrix)
 class(travel_path_matrix)
 onestep <- infostop(data = travel_path_matrix[, c("latitude", "longitude", "time")], distance_metric = "haversine")
 infostop(data = travel_path_matrix[, c("latitude", "longitude", "time")], distance_metric = "euclidean") #FIXME: wrong distance metric: can we have a warning?
+infostop(data = travel_path_matrix[, c("latitude", "longitude", "time")], distance_metric = "euclidean", crs_input = 4326) #FIXME: wrong distance metric: can we have a warning?
 
 find_stops(data = travel_path_matrix[, c("latitude", "longitude", "time")], distance_metric = "haversine")
 find_stops(data = travel_path_matrix[, c("latitude", "longitude", "time")], distance_metric = "euclidean") #FIXME: wrong distance metric: can we have a warning?

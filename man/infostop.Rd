@@ -2,6 +2,11 @@
 % Please edit documentation in R/models.R
 \name{infostop}
 \alias{infostop}
+\alias{infostop.matrix}
+\alias{infostop.data.frame}
+\alias{infostop.trackframe}
+\alias{infostop.move2}
+\alias{infostop.sftrack}
 \title{Detect Stop Locations in Mobility Data}
 \usage{
 infostop(
@@ -16,11 +21,89 @@ infostop(
   distance_metric = c("haversine", "euclidean"),
   weighted = FALSE,
   weight_exponent = 1,
+  verbose = FALSE,
+  ...
+)
+
+\method{infostop}{matrix}(
+  data,
+  r1 = 10,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_staying_time = 300L,
+  max_time_between = 86400L,
+  min_size = 2L,
+  min_spacial_resolution = 0,
+  distance_metric = "euclidean",
+  weighted = FALSE,
+  weight_exponent = 1,
+  verbose = FALSE,
+  ...
+)
+
+\method{infostop}{data.frame}(
+  data,
+  r1 = 10,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_staying_time = 300L,
+  max_time_between = 86400L,
+  min_size = 2L,
+  min_spacial_resolution = 0,
+  distance_metric = "euclidean",
+  weighted = FALSE,
+  weight_exponent = 1,
+  verbose = FALSE,
+  ...
+)
+
+\method{infostop}{trackframe}(
+  data,
+  r1 = 10,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_staying_time = 300L,
+  max_time_between = 86400L,
+  min_size = 2L,
+  min_spacial_resolution = 0,
+  distance_metric = "euclidean",
+  weighted = FALSE,
+  weight_exponent = 1,
+  verbose = FALSE
+)
+
+\method{infostop}{move2}(
+  data,
+  r1 = 10,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_staying_time = 300L,
+  max_time_between = 86400L,
+  min_size = 2L,
+  min_spacial_resolution = 0,
+  distance_metric = "euclidean",
+  weighted = FALSE,
+  weight_exponent = 1,
+  verbose = FALSE
+)
+
+\method{infostop}{sftrack}(
+  data,
+  r1 = 10,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_staying_time = 300L,
+  max_time_between = 86400L,
+  min_size = 2L,
+  min_spacial_resolution = 0,
+  distance_metric = "euclidean",
+  weighted = FALSE,
+  weight_exponent = 1,
   verbose = FALSE
 )
 }
 \arguments{
-\item{data}{Either an object of class \code{track_frame} or a numeric matrix with 2 or 3 columns. The first two columns must contain spatial
+\item{data}{Either an object of class \code{trackframe} or a numeric matrix with 2 or 3 columns. The first two columns must contain spatial
 coordinates (latitude, longitude). The optional third column contains timestamps.}
 
 \item{r1}{A numeric vector giving the maximum distance between time-consecutive points to label them as stationary.
@@ -53,6 +136,8 @@ to closer points.}
 Higher values give more importance to distance.}
 
 \item{verbose}{A logical, if \code{TRUE}, print progress information during computation.}
+
+\item{...}{other arguments passed to `as.trackframe()`}
 }
 \value{
 An Infostop model object with the following methods and properties:
