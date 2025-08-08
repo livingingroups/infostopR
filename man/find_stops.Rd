@@ -45,7 +45,8 @@ find_stops(
   min_staying_time = 300L,
   max_time_between = 86400L,
   min_size = 2L,
-  distance_metric = "euclidean"
+  distance_metric = "euclidean",
+  ...
 )
 
 \method{find_stops}{move2}(
@@ -54,7 +55,8 @@ find_stops(
   min_staying_time = 300L,
   max_time_between = 86400L,
   min_size = 2L,
-  distance_metric = c("haversine", "euclidean")
+  distance_metric = c("haversine", "euclidean"),
+  ...
 )
 
 \method{find_stops}{sftrack}(
@@ -63,7 +65,8 @@ find_stops(
   min_staying_time = 300L,
   max_time_between = 86400L,
   min_size = 2L,
-  distance_metric = c("haversine", "euclidean")
+  distance_metric = c("haversine", "euclidean"),
+  ...
 )
 }
 \arguments{
@@ -85,9 +88,6 @@ to consider them part of the same stop. Only relevant if timestamps are provided
 (for Cartesian coordinates).}
 
 \item{...}{other arguments passed to `as.trackframe()`}
-
-\item{label_singleton}{A logical, if \code{TRUE}, give stationary locations that were only visited once their own label.
-If FALSE, label them as non-stationary (-1).}
 }
 \description{
 Find based on distance and time threshold

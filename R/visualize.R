@@ -39,7 +39,7 @@ print.folium_map <- function(x, ...) {
 #' @examples
 #' if (is_infostop_initialized()) {
 #' data <- rtravel_path(100, format = "matrix")
-#' model <- infostop(data,r1 = 10, r2 = 10)
+#' model <- infostop(data,r1 = 10, r2 = 10, distance_metric = "haversine")
 #' map <- plot_map(model, 
 #'                 scatter = TRUE, 
 #'                 polygons_color = "#ff0000", 
@@ -153,7 +153,7 @@ plot_map <- function(model,
 #' @examples
 #' if (is_infostop_initialized()) {
 #'   data <- rtravel_path(100, format = "matrix")
-#'   model <- infostop(data, r1 = 10, r2 = 10)
+#'   model <- infostop(data, r1 = 10, r2 = 10, distance_metric = "haversine")
 #'   map <- plot_map(model, scatter = TRUE)
 #'   
 #'   \dontrun{

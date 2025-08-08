@@ -9,11 +9,6 @@
 # - create test.data for data.frame, trackframe, move2, sftrack
 
 
-#' @importFrom checkmate assert check_list check_character check_logical
-#' @importFrom reticulate import conda_create conda_install conda_list miniconda_path py_eval virtualenv_list virtualenv_create virtualenv_install
-#' @importFrom stats runif
-NULL
-
 
 #' Detect Stop Locations in Mobility Data
 #'
@@ -111,6 +106,16 @@ infostop <- function(data,
 }
 
 
+refine_labels <- function(labels) {
+  if (length(labels) == 0) {
+    return(labels)
+  }
+  labels <- as.integer(labels)
+  labels[labels == -1L] <- NA_integer_
+  return(labels)
+}
+
+
 infostop_internal <- function(data,
                      r1 = 10,
                      r2 = 10,
@@ -158,13 +163,14 @@ infostop_internal <- function(data,
     env$model$compute_label_medians()[[1]]
   }
 
-  makeActiveBinding('labels', function() as.integer(env$model$labels[[1]]), env)
+  makeActiveBinding('labels', function() refine_labels(env$model$labels[[1]]), env)
 
   . = env$model$fit_predict(data)
   class(env) <- "Infostop"
 
   return(env)
 }
+
 
 #' @export
 #' @rdname infostop
@@ -181,18 +187,11 @@ infostop.matrix <- function(data,
                             weight_exponent = 1,
                             verbose = FALSE,
                             ...) {
-  infostop(data = as.trackframe(data, ...),
-           r1 = r1, r2 = r2, label_singleton = label_singleton,
-           min_staying_time = min_staying_time, max_time_between = max_time_between,
-           min_size = min_size, min_spacial_resolution = min_spacial_resolution,
-           distance_metric = distance_metric, weighted = weighted,
-           weight_exponent = weight_exponent, verbose = verbose)
-  # # data #check format and order
-  # infostop_internal(data = data, r1 = r1, r2 = r2, label_singleton = label_singleton,
-  #                   min_staying_time = min_staying_time, max_time_between = max_time_between,
-  #                   min_size = min_size, min_spacial_resolution = min_spacial_resolution,
-  #                   distance_metric = distance_metric, weighted = weighted,
-  #                   weight_exponent = weight_exponent, verbose = verbose)
+  infostop_internal(data = data, r1 = r1, r2 = r2, label_singleton = label_singleton,
+                    min_staying_time = min_staying_time, max_time_between = max_time_between,
+                    min_size = min_size, min_spacial_resolution = min_spacial_resolution,
+                    distance_metric = distance_metric, weighted = weighted,
+                    weight_exponent = weight_exponent, verbose = verbose)
 }
 
 
@@ -212,17 +211,10 @@ infostop.data.frame <- function(data,
                                 verbose = FALSE,
                                 ...) {
   infostop(data = as.trackframe(data, ...), r1 = r1, r2 = r2, label_singleton = label_singleton,
-                    min_staying_time = min_staying_time, max_time_between = max_time_between,
-                    min_size = min_size, min_spacial_resolution = min_spacial_resolution,
-                    distance_metric = distance_metric, weighted = weighted,
-                    weight_exponent = weight_exponent, verbose = verbose)
-  # # data #check format and order
-  # data[,3] <- as.numeric(data[,3])
-  # infostop_internal(data = as.matrix(data), r1 = r1, r2 = r2, label_singleton = label_singleton,
-  #                   min_staying_time = min_staying_time, max_time_between = max_time_between,
-  #                   min_size = min_size, min_spacial_resolution = min_spacial_resolution,
-  #                   distance_metric = distance_metric, weighted = weighted,
-  #                   weight_exponent = weight_exponent, verbose = verbose)
+           min_staying_time = min_staying_time, max_time_between = max_time_between,
+           min_size = min_size, min_spacial_resolution = min_spacial_resolution,
+           distance_metric = distance_metric, weighted = weighted,
+           weight_exponent = weight_exponent, verbose = verbose)
 }
 
 
@@ -239,7 +231,8 @@ infostop.trackframe <- function(data,
                                 distance_metric = "euclidean", #c("haversine", "euclidean"),
                                 weighted = FALSE,
                                 weight_exponent = 1,
-                                verbose = FALSE) {
+                                verbose = FALSE,
+                                ...) {
 
   stopifnot("Only distance_metric = 'euclidean' is available for objects of class trackframe" = distance_metric == "euclidean")
   # transform from track.frame
@@ -266,7 +259,8 @@ infostop.move2 <- function(data,
                            distance_metric = "euclidean", #c("haversine", "euclidean"),
                            weighted = FALSE,
                            weight_exponent = 1,
-                           verbose = FALSE) {
+                           verbose = FALSE,
+                           ...) {
 
   # transform from move2
   data <- cbind(st_coordinates(data[[attr(data, "sf_column")]]),
@@ -292,7 +286,8 @@ infostop.sftrack <- function(data,
                              distance_metric = "euclidean", #c("haversine", "euclidean"),
                              weighted = FALSE,
                              weight_exponent = 1,
-                             verbose = FALSE) {
+                             verbose = FALSE,
+                             ...) {
   #FIXME check if distance_metric fits to crs
   # transform from sftrack
   data <- cbind(st_coordinates(data[[attr(data, "sf_column")]]),
@@ -322,8 +317,6 @@ print.Infostop <- function(x, ...) {
 #'   Column 3 is optional and represents time.
 #' @param r1 A numeric vector giving the maximum distance between time-consecutive points to label them as stationary.
 #'   Higher values will result in more points being considered stationary.
-#' @param label_singleton A logical, if \code{TRUE}, give stationary locations that were only visited once their own label.
-#'   If FALSE, label them as non-stationary (-1).
 #' @param min_staying_time An integer giving the minimum duration (in seconds) that can constitute a stop.
 #'   Only relevant if timestamps are provided in the data.
 #' @param max_time_between An integer giving the maximum duration (in seconds) between consecutive points
@@ -346,11 +339,11 @@ find_stops <- function(data,
 
 
 find_stops_internal <- function(data,
-                                 r1 = 10,
-                                 min_staying_time = 300L,
-                                 max_time_between = 86400L,
-                                 min_size = 2L,
-                                 distance_metric = c("haversine", "euclidean")) {
+                                r1 = 10,
+                                min_staying_time = 300L,
+                                max_time_between = 86400L,
+                                min_size = 2L,
+                                distance_metric = c("haversine", "euclidean")) {
   check_infostop_initialized()
   
   # checkmate::assert_matrix(data, "numeric", any.missing = FALSE, min.cols = 2, max.cols = 3)
@@ -361,19 +354,21 @@ find_stops_internal <- function(data,
 
   distance_metric <- match.arg(distance_metric)
   stops <- py_cpputils$get_stationary_events(
-    data[,1:2],
+    data,
     r1,
     as.integer(min_size),
     min_staying_time,
     max_time_between,
     distance_metric
   )
-  stops[[1]] <- do.call(rbind, stops[[1]])
-  names(stops) <- c("coordinates", "labels")
+  stops[[1]] <- as.matrix(do.call(rbind, stops[[1]]))
+  names(stops) <- c("stop_events", "event_map")
   
-  if(abs(max(data[,1:2])) <= 180 & sum(stops$labels != 0) == 0) {
+  if(abs(max(data[, 1:2])) <= 180 & sum(stops[["event_map"]] != 0) == 0) {
     warning("Seems that coordinate reference system and distance_metric do not coincide.")
   }
+
+  stops[[2]] <- refine_labels(stops[[2]])
   
   return(stops)
 }
@@ -388,12 +383,12 @@ find_stops.matrix <- function(data,
                               min_size = 2L,
                               distance_metric = "euclidean",
                               ...) {
-  find_stops(data = as.trackframe(data, ...),
-             r1 = r1,
-             min_staying_time = min_staying_time,
-             max_time_between = max_time_between,
-             min_size = min_size,
-             distance_metric = distance_metric)
+  find_stops_internal(data = data,
+                      r1 = r1,
+                      min_staying_time = min_staying_time,
+                      max_time_between = max_time_between,
+                      min_size = min_size,
+                      distance_metric = distance_metric)
 }
 
 
@@ -407,11 +402,11 @@ find_stops.data.frame <- function(data,
                                 distance_metric = "euclidean",
                                 ...) {
   find_stops(data = as.trackframe(data, ...),
-             r1 = r1,
-             min_staying_time = min_staying_time,
-             max_time_between = max_time_between,
-             min_size = min_size,
-             distance_metric = distance_metric)
+                              r1 = r1,
+                              min_staying_time = min_staying_time,
+                              max_time_between = max_time_between,
+                              min_size = min_size,
+                              distance_metric = distance_metric)
 }
 
 
@@ -422,7 +417,8 @@ find_stops.trackframe <- function(data,
                                  min_staying_time = 300L,
                                  max_time_between = 86400L,
                                  min_size = 2L,
-                                 distance_metric = "euclidean") {
+                                 distance_metric = "euclidean",
+                                 ...) {
   stopifnot("Only distance_metric = 'euclidean' is available for objects of class trackframe" = distance_metric == "euclidean")
   # transform from track.frame
   data[[attr(data, "time")]] <- as.integer(data[[attr(data, "time")]])
@@ -443,7 +439,8 @@ find_stops.move2 <- function(data,
                            min_staying_time = 300L,
                            max_time_between = 86400L,
                            min_size = 2L,
-                           distance_metric = c("haversine", "euclidean")) {
+                           distance_metric = c("haversine", "euclidean"),
+                           ...) {
   
   # transform from move2
   data <- cbind(st_coordinates(data[[attr(data, "sf_column")]]),
@@ -464,7 +461,8 @@ find_stops.sftrack <- function(data,
                              min_staying_time = 300L,
                              max_time_between = 86400L,
                              min_size = 2L,
-                             distance_metric = c("haversine", "euclidean")) {
+                             distance_metric = c("haversine", "euclidean"),
+                             ...) {
   #FIXME check if distance_metric fits to crs
   # transform from sftrack
   data <- cbind(st_coordinates(data[[attr(data, "sf_column")]]),
@@ -476,6 +474,48 @@ find_stops.sftrack <- function(data,
                       min_size = min_size,
                       distance_metric = distance_metric)
 }
+
+
+#' Revert the downsampling of \code{find\_stops}
+#'
+#' For performance reasons, \code{find\_stops} returns a downsampled version of the
+#' stop events. This function helps to revert that downsampling by matching the
+#' labels obtained from \code{spatial_infomap} to the original data points.
+#'
+#' @param labels Either a numeric vector of cluster labels or a SpatialInfomap object.
+#'   If a SpatialInfomap object is provided, the labels will be extracted automatically.
+#' @param event_map A numeric vector mapping each data point to its corresponding
+#'   stationary event. Typically obtained from \code{find_stops()$event_map}.
+#'
+#' @return A numeric vector of the same length as nuber of rows in the data
+#' given to \code{find_stops()}.
+#'
+#' @examples
+#' if (is_infostop_initialized()) {
+#' data <- infostop:::example_data()
+#' stops <- find_stops(data, r1 = 100, min_staying_time = 300,
+#'                     max_time_between = 86400, min_size = 2,
+#'                     distance_metric = "haversine")
+#' clusters <- spatial_infomap(stops$stop_events, r2 = 50)
+#' two_step_labels <- match_labels(clusters, stops$event_map)
+#'
+#' one_step_labels <- infostop(data, r1 = 100, r2 = 50, min_staying_time = 300,
+#'                             max_time_between = 86400, min_size = 2,
+#'                             distance_metric = "haversine")
+#'
+#' cbind(one_step_labels$labels, two_step_labels)
+#' }
+#'
+#' @seealso \code{\link{find_stops}}, \code{\link{spatial_infomap}}
+#' @export
+match_labels <- function(labels, event_map) {
+    if (class(labels) == "SpatialInfomap") {
+        labels <- labels$labels
+    }
+    m <- match(event_map, labels)
+    labels[m]
+}
+
 
 #' Spatial Infomap Cluster a Collection of Points Using Infomap
 #'
@@ -498,9 +538,12 @@ find_stops.sftrack <- function(data,
 #'
 #' @examples
 #' if (is_infostop_initialized()) {
-#' data <- rtravel_path(100, format = "matrix")
-#' labels <- spatial_infomap(data, r2 = 15)
-#' unique(labels)
+#' data <- infostop:::example_data()
+#' stops <- find_stops(data, r1 = 100, min_staying_time = 300,
+#'                     max_time_between = 86400, min_size = 2,
+#'                     distance_metric = "haversine")
+#' clusters <- spatial_infomap(stops$stop_events, r2 = 50)
+#' labels <- match_labels(clusters, stops$event_map)
 #' }
 #' @export
 #' @rdname spatial_infomap
@@ -518,16 +561,16 @@ spatial_infomap <- function(data,
 
 
 spatial_infomap_internal <- function(data,
-                                      r2 = 10,
-                                      label_singleton = TRUE,
-                                      min_spacial_resolution = 0,
-                                      distance_metric = c("haversine", "euclidean"),
-                                      weighted = FALSE,
-                                      weight_exponent = 1,
-                                      verbose = FALSE) {
+                                     r2 = 10,
+                                     label_singleton = TRUE,
+                                     min_spacial_resolution = 0,
+                                     distance_metric = c("haversine", "euclidean"),
+                                     weighted = FALSE,
+                                     weight_exponent = 1,
+                                     verbose = FALSE) {
   check_infostop_initialized()
   
-  checkmate::assert_matrix(data, "numeric", any.missing = FALSE, min.cols = 2, max.cols = 3)
+  checkmate::assert_matrix(data, "numeric", any.missing = FALSE, min.cols = 2, max.cols = 2)
   checkmate::assert_numeric(r2, lower = 0, len = 1, any.missing = FALSE)
   checkmate::assert_logical(label_singleton, len = 1, any.missing = FALSE)
   checkmate::assert_numeric(min_spacial_resolution, lower = 0, len = 1, any.missing = FALSE)
@@ -548,7 +591,7 @@ spatial_infomap_internal <- function(data,
     verbose = verbose
   )
 
-  env$labels <- as.integer(env$model$fit_predict(data[,1:2]))
+  env$labels <- refine_labels(env$model$fit_predict(data))
   
   class(env) <- "SpatialInfomap"
   return(env)
@@ -566,15 +609,14 @@ spatial_infomap.matrix <- function(data,
                                    weight_exponent = 1,
                                    verbose = FALSE,
                                    ...) {
-  # data #check format and order
-  spatial_infomap(as.trackfram(data, ...),
-                  r2 = r2,
-                  label_singleton = label_singleton,
-                  min_spacial_resolution = min_spacial_resolution,
-                  distance_metric = distance_metric,
-                  weighted = weighted,
-                  weight_exponent = weight_exponent,
-                  verbose = verbose)
+  spatial_infomap_internal(data,
+                           r2 = r2,
+                           label_singleton = label_singleton,
+                           min_spacial_resolution = min_spacial_resolution,
+                           distance_metric = distance_metric,
+                           weighted = weighted,
+                           weight_exponent = weight_exponent,
+                           verbose = verbose)
 }
 
 
@@ -589,7 +631,7 @@ spatial_infomap.data.frame <- function(data,
                                        weight_exponent = 1,
                                        verbose = FALSE,
                                        ...) {
-  spatial_infomap(as.trackfram(data, ...),
+  spatial_infomap(as.trackframe(data, ...),
                   r2 = r2,
                   label_singleton = label_singleton,
                   min_spacial_resolution = min_spacial_resolution,
@@ -609,7 +651,8 @@ spatial_infomap.trackframe <- function(data,
                                         distance_metric = "euclidean",
                                         weighted = FALSE,
                                         weight_exponent = 1,
-                                        verbose = FALSE) {
+                                        verbose = FALSE,
+                                        ...) {
   stopifnot("Only distance_metric = 'euclidean' is available for objects of class trackframe" = distance_metric == "euclidean")
   # transform from track.frame
   data[[attr(data, "time")]] <- as.integer(data[[attr(data, "time")]])
@@ -634,7 +677,8 @@ spatial_infomap.move2 <- function(data,
                                   distance_metric = c("haversine", "euclidean"),
                                   weighted = FALSE,
                                   weight_exponent = 1,
-                                  verbose = FALSE) {
+                                  verbose = FALSE,
+                                  ...) {
   
   # transform from move2
   data <- cbind(st_coordinates(data[[attr(data, "sf_column")]]),
@@ -659,7 +703,8 @@ spatial_infomap.sftrack <- function(data,
                                     distance_metric = c("haversine", "euclidean"),
                                     weighted = FALSE,
                                     weight_exponent = 1,
-                                    verbose = FALSE) {
+                                    verbose = FALSE,
+                                    ...) {
   #FIXME check if distance_metric fits to crs
   # transform from sftrack
   data <- cbind(st_coordinates(data[[attr(data, "sf_column")]]),
@@ -673,6 +718,7 @@ spatial_infomap.sftrack <- function(data,
                            weight_exponent = weight_exponent,
                            verbose = verbose)
 }
+
 
 #' @noRd
 #' @export

@@ -16,8 +16,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Depends: sf
 Imports: 
-    reticulate, checkmate
+    reticulate, checkmate, trackframe
 Suggests: 
     rmarkdown, knitr
 VignetteBuilder: knitr
-RoxygenNote: 7.3.2

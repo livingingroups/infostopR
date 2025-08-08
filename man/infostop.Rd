@@ -69,7 +69,8 @@ infostop(
   distance_metric = "euclidean",
   weighted = FALSE,
   weight_exponent = 1,
-  verbose = FALSE
+  verbose = FALSE,
+  ...
 )
 
 \method{infostop}{move2}(
@@ -84,7 +85,8 @@ infostop(
   distance_metric = "euclidean",
   weighted = FALSE,
   weight_exponent = 1,
-  verbose = FALSE
+  verbose = FALSE,
+  ...
 )
 
 \method{infostop}{sftrack}(
@@ -99,7 +101,8 @@ infostop(
   distance_metric = "euclidean",
   weighted = FALSE,
   weight_exponent = 1,
-  verbose = FALSE
+  verbose = FALSE,
+  ...
 )
 }
 \arguments{

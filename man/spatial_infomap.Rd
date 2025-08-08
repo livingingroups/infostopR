@@ -53,7 +53,8 @@ spatial_infomap(
   distance_metric = "euclidean",
   weighted = FALSE,
   weight_exponent = 1,
-  verbose = FALSE
+  verbose = FALSE,
+  ...
 )
 
 \method{spatial_infomap}{move2}(
@@ -64,7 +65,8 @@ spatial_infomap(
   distance_metric = c("haversine", "euclidean"),
   weighted = FALSE,
   weight_exponent = 1,
-  verbose = FALSE
+  verbose = FALSE,
+  ...
 )
 
 \method{spatial_infomap}{sftrack}(
@@ -75,7 +77,8 @@ spatial_infomap(
   distance_metric = c("haversine", "euclidean"),
   weighted = FALSE,
   weight_exponent = 1,
-  verbose = FALSE
+  verbose = FALSE,
+  ...
 )
 }
 \arguments{
@@ -108,8 +111,11 @@ It directly returns the cluster labels rather than a model object.
 }
 \examples{
 if (is_infostop_initialized()) {
-data <- rtravel_path(100, format = "matrix")
-labels <- spatial_infomap(data, r2 = 15)
-unique(labels)
+data <- infostop:::example_data()
+stops <- find_stops(data, r1 = 100, min_staying_time = 300,
+                    max_time_between = 86400, min_size = 2,
+                    distance_metric = "haversine")
+clusters <- spatial_infomap(stops$stop_events, r2 = 50)
+labels <- match_labels(clusters, stops$event_map)
 }
 }

@@ -57,7 +57,7 @@ providing access to its methods for interactive map visualization.
 \examples{
 if (is_infostop_initialized()) {
   data <- rtravel_path(100, format = "matrix")
-  model <- infostop(data, r1 = 10, r2 = 10)
+  model <- infostop(data, r1 = 10, r2 = 10, distance_metric = "haversine")
   map <- plot_map(model, scatter = TRUE)
   
   \dontrun{
