@@ -512,8 +512,7 @@ match_labels <- function(labels, event_map) {
     if (class(labels) == "SpatialInfomap") {
         labels <- labels$labels
     }
-    m <- match(event_map, labels)
-    labels[m]
+  labels[event_map + 1L]
 }
 
 
