@@ -9,6 +9,117 @@
 # - create test.data for data.frame, trackframe, move2, sftrack
 
 
+#' Detect Stop Locations in Mobility Data
+#'
+#' This function creates an Infostop model to infer stop-location labels from mobility trace.
+#' The algorithm works by first identifying stationary events in the trace, then clustering
+#' these events into stop locations using a network-based approach. Dynamic (moving) points are labeled -1.
+#'
+#' @param easting a numeric vector of x-coordinates (easting).
+#' @param northing a numeric vector of y-coordinates (northing).
+#' @param time a vecor inheriting from \code{numeric} or \code{POSIXt} or \code{Date}
+#'        containing the timestamps corresponding to the easting and northing coordinates.
+#' @param r1 A numeric vector giving the maximum distance between time-consecutive points to label them as stationary.
+#'   Higher values will result in more points being considered stationary.
+#' @param r2 A numeric vector giving the maximum distance between stationary points to form an edge in the network.
+#'   Higher values will connect more distant stationary points, potentially merging stop locations.
+#' @param label_singleton A logical, if \code{TRUE}, give stationary locations that were only visited once their own label.
+#'   If FALSE, label them as non-stationary (-1).
+#' @param min_staying_time An integer giving the minimum duration (in seconds) that can constitute a stop.
+#'   Only relevant if timestamps are provided in the data.
+#' @param max_time_between An integer giving the maximum duration (in seconds) between consecutive points
+#'   to consider them part of the same stop. Only relevant if timestamps are provided.
+#' @param min_size An integer giving the minimum number of points required to consider a group stationary.
+#' @param min_spacial_resolution A numeric giving the minimum difference allowed between points before they
+#'   are considered the same points. Useful for dealing with GPS jitter.
+#' @param distance_metric A character string, either 'haversine' (for geographic coordinates) or 'euclidean'
+#'   (for Cartesian coordinates).
+#' @param weighted A logical, if \code{TRUE}, weight edges in the network by distance, giving more importance
+#'   to closer points.
+#' @param weight_exponent A numeric, exponent used when weighting edges in the network.
+#'   Higher values give more importance to distance.
+#' @param verbose A logical, if \code{TRUE}, print progress information during computation.
+#' @param ... other arguments passed to `as.trackframe()`
+#'
+#' @return An Infostop model object with the following methods and properties:
+#'   \itemize{
+#'     \item \code{compute_label_medians()}
+#'     \item \code{labels}
+#'   }
+#' 
+#' @details
+#' The Infostop algorithm works in two main steps:
+#' 
+#' 1. It first identifies stationary events by grouping consecutive points that are close in space and time.
+#' 2. Then it clusters these stationary events into stop locations using a network-based approach.
+#' 
+#' The main parameters that control the algorithm's behavior are:
+#' 
+#' \describe{
+#'   \item{\code{r1}}{The critical radius (in the same units as your coordinates) that determines
+#'     whether consecutive points are part of the same stationary event. For geographic coordinates,
+#'     this is typically in meters. Larger values will identify more points as stationary.}
+#'   \item{\code{r2}}{The maximum distance between stationary events to consider them connected in the
+#'     network. Larger values will result in more connections and potentially fewer, larger clusters.}
+#'   \item{\code{min_staying_time}}{The minimum time (in seconds) required for a sequence of points to
+#'     be considered a stationary event. Increase this value to ignore brief stops.}
+#'   \item{\code{max_time_between}}{The maximum time gap (in seconds) between consecutive points to
+#'     still consider them part of the same stationary event. Useful for handling missing data.}
+#'   \item{\code{min_size}}{The minimum number of points required to form a stationary event.
+#'     Increase this to filter out very short stops.}
+#' }
+#' 
+#' The returned object provides the following methods and properties:
+#' 
+#'   \itemize{
+#'     \item \code{compute_label_medians()} \cr
+#'       Compute the median coordinates for each label. Returns a matrix where each row
+#'       corresponds to a unique label and contains the median latitude and longitude.
+#'     \item \code{labels} \cr
+#'       Access the labels from the fitted model. Returns a vector of integer labels where
+#'       each element corresponds to a point in the input data. Points labeled -1 are
+#'       considered dynamic (not part of any stop location).
+#'   }
+#'
+#' @examples
+#' if (is_infostop_initialized()) {
+#' data <- rtravel_path(100, format = "matrix")
+#' model <- infostop(data, r1 = 10, r2 = 10)
+#' model$labels
+#' model$compute_label_medians()
+#' }
+#' @export
+#' @rdname infostop
+infostop_xyt <- function(easting,
+                         northing,
+                         time,
+                         r1 = 10,
+                         r2 = 10,
+                         label_singleton = TRUE,
+                         min_staying_time = 300L,
+                         max_time_between = 86400L,
+                         min_size = 2L,
+                         min_spacial_resolution = 0,
+                         distance_metric = c("haversine", "euclidean"),
+                         weighted = FALSE,
+                         weight_exponent = 1,
+                         verbose = FALSE) {
+  check_infostop_initialized()
+
+  checkmate::assert_numeric(easting, min.len = 3L, any.missing = FALSE)
+  checkmate::assert_numeric(northing, len = length(easting), any.missing = FALSE)
+  checkmate::assert_numeric(time, len = length(easting), any.missing = FALSE)
+  distance_metric <- match.arg(distance_metric)
+  
+  data <- cbind(x = easting, y = northing, t = time)
+  infostop_internal(data = data, r1 = r1, r2 = r2, label_singleton = label_singleton,
+                    min_staying_time = min_staying_time, max_time_between = max_time_between,
+                    min_size = min_size, min_spacial_resolution = min_spacial_resolution,
+                    distance_metric = distance_metric, weighted = weighted,
+                    weight_exponent = weight_exponent, verbose = verbose)
+}
+
+
 
 #' Detect Stop Locations in Mobility Data
 #'
@@ -130,7 +241,13 @@ infostop_internal <- function(data,
                      verbose = FALSE) {
   check_infostop_initialized()
 
+  if (is.list(data)) {
+    for (i in seq_along(data)) {
+      checkmate::assert_matrix(data[[i]], "numeric", any.missing = FALSE, min.cols = 2, max.cols = 3)
+    }
+  } else {
   checkmate::assert_matrix(data, "numeric", any.missing = FALSE, min.cols = 2, max.cols = 3)
+  }
   checkmate::assert_numeric(r1, lower = 0, len = 1, finite = TRUE, any.missing = FALSE)
   checkmate::assert_numeric(r2, lower = 0, len = 1, finite = TRUE, any.missing = FALSE)
   checkmate::assert_logical(label_singleton, len = 1, any.missing = FALSE)
@@ -163,7 +280,11 @@ infostop_internal <- function(data,
     env$model$compute_label_medians()[[1]]
   }
 
+  if (is.list(data)) {
+    makeActiveBinding('labels', function() lapply(env$model$labels, refine_labels), env)
+  } else {
   makeActiveBinding('labels', function() refine_labels(env$model$labels[[1]]), env)
+  }
 
   . = env$model$fit_predict(data)
   class(env) <- "Infostop"
@@ -236,8 +357,18 @@ infostop.trackframe <- function(data,
 
   stopifnot("Only distance_metric = 'euclidean' is available for objects of class trackframe" = distance_metric == "euclidean")
   # transform from track.frame
+
+  id_col <- attr(data, "id")
+  ids <- if (is.null(id_col)) NULL else data[[id_col]]
+  
   data[[attr(data, "time")]] <- as.integer(data[[attr(data, "time")]])
-  data <- as.matrix(data[, c(attr(data, "easting"), attr(data, "northing"), attr(data, "time"))])
+  cols <- c(attr(data, "easting"), attr(data, "northing"), attr(data, "time"))
+  data <- as.matrix(data[, cols])
+
+  if (!is.null(ids)) {
+    data <- split(data, ids)
+  }
+
   infostop_internal(data = data, r1 = r1, r2 = r2, label_singleton = label_singleton,
                     min_staying_time = min_staying_time, max_time_between = max_time_between,
                     min_size = min_size, min_spacial_resolution = min_spacial_resolution,
@@ -310,6 +441,49 @@ print.Infostop <- function(x, ...) {
   writeLines("  - predict(data)")
   writeLines("  - labels")
 }
+
+
+#' Find based on distance and time threshold
+#'
+#' @param easting a numeric vector of x-coordinates (easting).
+#' @param northing a numeric vector of y-coordinates (northing).
+#' @param time a vecor inheriting from \code{numeric} or \code{POSIXt} or \code{Date}
+#'        containing the timestamps corresponding to the easting and northing coordinates.
+#' @param r1 A numeric vector giving the maximum distance between time-consecutive points to label them as stationary.
+#'   Higher values will result in more points being considered stationary.
+#' @param min_staying_time An integer giving the minimum duration (in seconds) that can constitute a stop.
+#'   Only relevant if timestamps are provided in the data.
+#' @param max_time_between An integer giving the maximum duration (in seconds) between consecutive points
+#'   to consider them part of the same stop. Only relevant if timestamps are provided.
+#' @param min_size An integer giving the minimum number of points required to consider a group stationary.
+#' @param distance_metric A character string, either 'haversine' (for geographic coordinates) or 'euclidean'
+#'   (for Cartesian coordinates).
+#' @param ... other arguments passed to `as.trackframe()`
+#' @export
+#' @rdname find_stops
+find_stops_xyt <- function(easting,
+                           northing,
+                           time = NULL,
+                           r1 = 10,
+                           min_staying_time = 300L,
+                           max_time_between = 86400L,
+                           min_size = 2L,
+                           distance_metric = c("haversine", "euclidean")) {
+  check_infostop_initialized()
+  
+  checkmate::assert_numeric(easting, min.len = 3L, any.missing = FALSE)
+  checkmate::assert_numeric(northing, len = length(easting), any.missing = FALSE)
+  checkmate::assert_numeric(time, len = length(easting), any.missing = FALSE, null.ok = TRUE)
+  distance_metric <- match.arg(distance_metric)
+  data <- cbind(x = easting, y = northing, t = time)
+  find_stops_internal(data = data,
+                      r1 = r1,
+                      min_staying_time = min_staying_time,
+                      max_time_between = max_time_between,
+                      min_size = min_size,
+                      distance_metric = distance_metric)
+}
+
 
 #' Find based on distance and time threshold
 #'
@@ -513,6 +687,62 @@ match_labels <- function(labels, event_map) {
         labels <- labels$labels
     }
   labels[event_map + 1L]
+}
+
+
+#' Spatial Infomap Cluster a Collection of Points Using Infomap
+#'
+#' This function applies the SpatialInfomap algorithm to cluster a collection of points.
+#' It directly returns the cluster labels rather than a model object.
+#'
+#' @param easting a numeric vector of x-coordinates (easting).
+#' @param northing a numeric vector of y-coordinates (northing).
+#' @param r2 Numeric. Max distance between stationary points to form an edge.
+#' @param label_singleton Logical. If TRUE, give stationary locations that were only visited once their own label.
+#'   If FALSE, label them as non-stationary (-1).
+#' @param min_spacial_resolution Numeric. The minimal difference allowed between points before they are considered the same points.
+#' @param distance_metric Character. Either 'haversine' (for geo data) or 'euclidean'.
+#' @param weighted Logical. Weight edges in the network representation by distance.
+#' @param weight_exponent Numeric. Exponent used when weighting edges in the network.
+#' @param verbose Logical. Print output during the fitting procedure.
+#' @param ... other arguments passed to `as.trackframe()`
+#'
+#' @return A numeric vector of cluster labels for each input point. Points labeled -1 are considered non-stationary.
+#'
+#' @examples
+#' if (is_infostop_initialized()) {
+#' data <- infostop:::example_data()
+#' stops <- find_stops(data, r1 = 100, min_staying_time = 300,
+#'                     max_time_between = 86400, min_size = 2,
+#'                     distance_metric = "haversine")
+#' clusters <- spatial_infomap(stops$stop_events, r2 = 50)
+#' labels <- match_labels(clusters, stops$event_map)
+#' }
+#' @export
+#' @rdname spatial_infomap
+spatial_infomap_xyt <- function(easting,
+                                northing,
+                                r2 = 10,
+                                label_singleton = TRUE,
+                                min_spacial_resolution = 0,
+                                distance_metric = c("haversine", "euclidean"),
+                                weighted = FALSE,
+                                weight_exponent = 1,
+                                verbose = FALSE) {
+  check_infostop_initialized()
+  
+  checkmate::assert_numeric(easting, min.len = 3L, any.missing = FALSE)
+  checkmate::assert_numeric(northing, len = length(easting), any.missing = FALSE)
+  distance_metric <- match.arg(distance_metric)
+  data <- cbind(x = easting, y = northing)
+  spatial_infomap_internal(data,
+                           r2 = r2,
+                           label_singleton = label_singleton,
+                           min_spacial_resolution = min_spacial_resolution,
+                           distance_metric = distance_metric,
+                           weighted = weighted,
+                           weight_exponent = weight_exponent,
+                           verbose = verbose)
 }
 
 
