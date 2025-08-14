@@ -45,18 +45,18 @@ find_stops(data = travel_path_data_frame[, c("latitude", "longitude", "time")], 
 
 spatial_infomap(data = travel_path_data_frame[, c("latitude", "longitude", "time")], distance_metric = "haversine")
 
-# track_frame
-data("travel_path_track_frame", package = "travelpaths")
-travel_path_track_frame
-class(travel_path_track_frame)
-infostop(data = travel_path_track_frame, distance_metric = "haversine") # ERROR: wrong distance metric
-infostop(data = travel_path_track_frame, distance_metric = "euclidean")
+# trackframe
+data("travel_path_trackframe", package = "travelpaths")
+travel_path_trackframe
+class(travel_path_trackframe)
+infostop(data = travel_path_trackframe, distance_metric = "haversine") # ERROR: wrong distance metric
+infostop(data = travel_path_trackframe, distance_metric = "euclidean")
 
-find_stops(data = travel_path_track_frame, distance_metric = "haversine") # ERROR: wrong distance metric
-find_stops(data = travel_path_track_frame, distance_metric = "euclidean")
+find_stops(data = travel_path_trackframe, distance_metric = "haversine") # ERROR: wrong distance metric
+find_stops(data = travel_path_trackframe, distance_metric = "euclidean")
 
-spatial_infomap(data = travel_path_track_frame, distance_metric = "haversine")
-spatial_infomap(data = travel_path_track_frame, distance_metric = "euclidean")
+spatial_infomap(data = travel_path_trackframe, distance_metric = "haversine")
+spatial_infomap(data = travel_path_trackframe, distance_metric = "euclidean")
 
 # sftrack
 data("travel_path_sftrack", package = "travelpaths")

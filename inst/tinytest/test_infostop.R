@@ -44,27 +44,27 @@ expect_equal(onestep_data_frame$labels, onestep_matrix$labels)
 expect_equal(stops_data_frame$labels, stops_matrix$labels)
 expect_equal(twostep_data_frame$labels, twostep_matrix$labels)
 
-# track_frame
-data("travel_path_track_frame", package = "travelpaths")
+# trackframe
+data("travel_path_trackframe", package = "travelpaths")
 
-expect_inherits(travel_path_track_frame, "track_frame")
-expect_error(infostop(data = travel_path_track_frame, distance_metric = "haversine"))
-onestep_track_frame <- infostop(data = travel_path_track_frame, distance_metric = "euclidean")
+expect_inherits(travel_path_trackframe, "trackframe")
+expect_error(infostop(data = travel_path_trackframe, distance_metric = "haversine"))
+onestep_trackframe <- infostop(data = travel_path_trackframe, distance_metric = "euclidean")
 
-expect_equal(onestep_track_frame$compute_label_medians(), c(602351.3, 5340094.6), tolerance = 1e-06)
+expect_equal(onestep_trackframe$compute_label_medians(), c(602351.3, 5340094.6), tolerance = 1e-06)
 
-stops_track_frame <- find_stops(data = travel_path_track_frame, distance_metric = "euclidean")
-expect_error(find_stops(data = travel_path_track_frame, distance_metric = "haversine"))
+stops_trackframe <- find_stops(data = travel_path_trackframe, distance_metric = "euclidean")
+expect_error(find_stops(data = travel_path_trackframe, distance_metric = "haversine"))
 
-twostep_track_frame <- spatial_infomap(data = stops_track_frame$coordinates, distance_metric = "euclidean")
-expect_error(spatial_infomap(data = stops_track_frame$coordinates, distance_metric = "haversine"))
+twostep_trackframe <- spatial_infomap(data = stops_trackframe$coordinates, distance_metric = "euclidean")
+expect_error(spatial_infomap(data = stops_trackframe$coordinates, distance_metric = "haversine"))
 
-expect_equal(length(onestep_track_frame$labels), length(twostep_track_frame$labels))
-expect_equal(onestep_track_frame$labels, twostep_track_frame$labels)
+expect_equal(length(onestep_trackframe$labels), length(twostep_trackframe$labels))
+expect_equal(onestep_trackframe$labels, twostep_trackframe$labels)
 
-# expect_equal(onestep_track_frame$labels, onestep_matrix$labels)
-# expect_equal(stops_track_frame$labels, stops_matrix$labels)
-# expect_equal(twostep_track_frame$labels, twostep_matrix$labels)
+# expect_equal(onestep_trackframe$labels, onestep_matrix$labels)
+# expect_equal(stops_trackframe$labels, stops_matrix$labels)
+# expect_equal(twostep_trackframe$labels, twostep_matrix$labels)
 
 # sftrack
 data("travel_path_sftrack", package = "travelpaths")
