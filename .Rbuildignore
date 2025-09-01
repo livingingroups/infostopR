@@ -3,3 +3,6 @@ Taskfile.yml
 infostop_*.tar.gz
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
