@@ -104,13 +104,15 @@ infostop_initialize <- function(python = NULL,
          combine = "and")
 
   if (is_infostop_initialized()) {
-    writeLines("infostop is already initialized!")
-    return(NULL)
+    writeLines("Info: Package infostop is already initialized!")
+    return(invisible(NULL))
   }
 
   python_config <- set_python_version(python, virtualenv, condaenv)
   reticulate::py_run_string("import sys", convert = FALSE)
-  for(mod in c("infostop", "cpputils")){
+  py_depends <- c("infostop", "cpputils")
+  reticulate::py_require(py_depends)
+  for (mod in py_depends) {
     state <- try(rpy(mod, reticulate::import(mod)), silent = TRUE)
     if (inherits(state, "try-error")) {
       msg <- c(sprintf("could not import module '%s', with ", mod),
@@ -127,10 +129,10 @@ infostop_initialize <- function(python = NULL,
 
 check_infostop_initialized <- function() {
   if (!is_infostop_initialized()) {
-    caller_name <- deparse(sys.calls()[[sys.nframe() - 1]])
-    msg <- paste(sprintf("in '%s' infostop is not initialized,", caller_name),
-                 "use 'infostop_initialize' to initialize infostop!",
-                 collapse = " ")
+    max_allowed_cutoff <- 500L  # any number bigger than 500 triggers a warning and the default is used.
+    caller_name <- deparse(sys.calls()[[sys.nframe() - 1]], width.cutoff = max_allowed_cutoff)
+    msg <- sprintf("in '%s' infostop is not initialized, %s ", caller_name,
+                   "use 'infostop_initialize' to initialize infostop!")
     stop(msg, call. = FALSE)
   }
 }

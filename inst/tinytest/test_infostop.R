@@ -1,108 +1,210 @@
-if (FALSE) {
-  library("tinytest")
-}
+# Test Inofstop
+#
+library("tinytest")
+library("checkmate")
+using("checkmate")
 
-
-library("travelpaths")
 library("infostop")
-
+# Note:
+# On debian in the terminal the automatic init works as expected.
+# However using Positiron 
 infostop_initialize()
 
-# matrix
-data("travel_path_matrix", package = "travelpaths")
-expect_inherits(travel_path_matrix, "matrix")
-onestep_matrix <- infostop(data = travel_path_matrix[, c("latitude", "longitude", "time")], distance_metric = "haversine")
-expect_equal(onestep_matrix$compute_label_medians(), c(16.37759, 48.20582), tolerance = 1e-06)
-expect_warning(infostop(data = travel_path_matrix[, c("latitude", "longitude", "time")], distance_metric = "euclidean"))
+# FIXME: Add function with arg coerce_to?
 
-stops_matrix <- find_stops(data = travel_path_matrix[, c("latitude", "longitude", "time")], distance_metric = "haversine")
-expect_warning(find_stops(data = travel_path_matrix[, c("latitude", "longitude", "time")], distance_metric = "euclidean"))
+#
+#
+# Test a single path
+#
+#
 
-twostep_matrix <- spatial_infomap(data = stops_matrix$coordinates, distance_metric = "haversine")
+#
+# Vector input haversine
+#
+data("path_matrix", package = "trackframe")
+expect_inherits(path_matrix, "matrix")
+infostop_xyt_h <- infostop_xyt(
+  x = path_matrix[, "longitude"],
+  y = path_matrix[, "latitude"],
+  t = path_matrix[, "time"],
+  distance_metric = "haversine"
+)
+expect_equal(
+  NROW(infostop_xyt_h$compute_label_medians()), 145L
+)
 
-expect_equal(length(onestep_matrix$labels), length(twostep_matrix$labels))
-expect_equal(onestep_matrix$labels, twostep_matrix$labels)
+
+#
+# Vector input euclidean
+#
+coords <- c("longitude", "latitude")
+data_sf <- sf::st_as_sf(x = as.data.frame(path_matrix), crs = 4326, coords = coords)
+new_data_sf <- sf::st_transform(data_sf, 32633)
+x_y <- st_coordinates(new_data_sf[[attr(new_data_sf, "sf_column")]])
+colnames(x_y) <- c("easting", "northing")
+path_matrix2 <- cbind(path_matrix, x_y)
+
+data("path_trackframe", package = "trackframe")
+expect_equal(path_trackframe[, "longitude"], path_matrix2[, "longitude"])
+expect_equal(path_trackframe[, "latitude"], path_matrix2[, "latitude"])
+
+# FIXME: This does not pass the checks, should it?
+expect_equal(path_trackframe[, "easting"], path_matrix2[, "easting"])
+expect_equal(path_trackframe[, "northing"], path_matrix2[, "northing"])
+
+infostop_xyt_e <- infostop_xyt(x = path_matrix2[, "easting"],
+                               y = path_matrix2[, "northing"],
+                               t = path_matrix2[, "time"],
+                               distance_metric = "euclidean")
+expect_equal(
+  NROW(infostop_xyt_e$compute_label_medians()),
+  length(infostop_xyt_e$model$compute_label_medians())
+)
 
 
+#
 # data.frame
-data("travel_path_data_frame", package = "travelpaths")
+#
+data("path_data_frame", package = "trackframe")
 
-expect_inherits(travel_path_data_frame, "data.frame")
-onestep_data_frame <- infostop(data = travel_path_data_frame[, c("latitude", "longitude", "time")], distance_metric = "haversine")
-expect_equal(onestep_data_frame$compute_label_medians(), c(16.37759, 48.20582), tolerance = 1e-06)
-expect_warning(infostop(data = travel_path_data_frame[, c("latitude", "longitude", "time")], distance_metric = "euclidean"))
+expect_silent(infostop(data = path_data_frame,
+                        distance_metric = "euclidean"))
 
-stops_data_frame <- find_stops(data = travel_path_data_frame[, c("latitude", "longitude", "time")], distance_metric = "haversine")
-expect_warning(find_stops(data = travel_path_data_frame[, c("latitude", "longitude", "time")], distance_metric = "euclidean"))
+infostop_df_h <- infostop(data = path_data_frame,
+                        distance_metric = "haversine")
 
-twostep_data_frame <- spatial_infomap(data = stops_data_frame$coordinates, distance_metric = "haversine")
+expect_equal(path_data_frame[, "longitude"], path_matrix[, "longitude"])
+expect_equal(path_data_frame[, "latitude"], path_matrix[, "latitude"])
+# cbind(infostop_df$labels, infostop_xyt_e$labels)
+expect_equal(infostop_df_h$labels, infostop_xyt_h$labels)
+expect_equal(infostop_df_h$compute_label_medians(), infostop_xyt_h$compute_label_medians())
 
-expect_equal(length(onestep_data_frame$labels), length(twostep_data_frame$labels))
-expect_equal(onestep_data_frame$labels, twostep_data_frame$labels)
-
-expect_equal(onestep_data_frame$labels, onestep_matrix$labels)
-expect_equal(stops_data_frame$labels, stops_matrix$labels)
-expect_equal(twostep_data_frame$labels, twostep_matrix$labels)
-
+#
 # trackframe
-data("travel_path_trackframe", package = "travelpaths")
+#
+# data("path_trackframe", package = "trackframe")
+expect_error(infostop(data = path_trackframe,
+                      distance_metric = "haversine"))
 
-expect_inherits(travel_path_trackframe, "trackframe")
-expect_error(infostop(data = travel_path_trackframe, distance_metric = "haversine"))
-onestep_trackframe <- infostop(data = travel_path_trackframe, distance_metric = "euclidean")
+infostop_tf <- infostop(data = path_trackframe,
+                        distance_metric = "euclidean")
 
-expect_equal(onestep_trackframe$compute_label_medians(), c(602351.3, 5340094.6), tolerance = 1e-06)
+# cbind(infostop_tf$labels, infostop_xyt_e$labels)
+expect_equal(infostop_tf$labels, infostop_xyt_e$labels)
+expect_equal(infostop_tf$compute_label_medians(), infostop_xyt_e$compute_label_medians())
 
-stops_trackframe <- find_stops(data = travel_path_trackframe, distance_metric = "euclidean")
-expect_error(find_stops(data = travel_path_trackframe, distance_metric = "haversine"))
-
-twostep_trackframe <- spatial_infomap(data = stops_trackframe$coordinates, distance_metric = "euclidean")
-expect_error(spatial_infomap(data = stops_trackframe$coordinates, distance_metric = "haversine"))
-
-expect_equal(length(onestep_trackframe$labels), length(twostep_trackframe$labels))
-expect_equal(onestep_trackframe$labels, twostep_trackframe$labels)
-
-# expect_equal(onestep_trackframe$labels, onestep_matrix$labels)
-# expect_equal(stops_trackframe$labels, stops_matrix$labels)
-# expect_equal(twostep_trackframe$labels, twostep_matrix$labels)
-
+#
 # sftrack
-data("travel_path_sftrack", package = "travelpaths")
+#
+data("path_sftrack", package = "trackframe")
+path_sftrack <- path_sftrack
+infostop_sftrack_h <- infostop(data = path_sftrack,
+                               distance_metric = "haversine")
+expect_error(infostop(data = path_sftrack,
+                      distance_metric = "euclidean"))
 
-onestep_sftrack <- infostop(data = travel_path_sftrack, distance_metric = "haversine")
-expect_equal(onestep_sftrack$compute_label_medians(), c(16.37759, 48.20582), tolerance = 1e-06)
-expect_warning(infostop(data = travel_path_sftrack, distance_metric = "euclidean"))
+# cbind(infostop_sftrack$labels, infostop_xyt_h$labels)
+expect_equal(infostop_sftrack_h$labels, infostop_xyt_h$labels)
+expect_equal(infostop_sftrack_h$compute_label_medians(), infostop_xyt_h$compute_label_medians())
 
-stops_sftrack <- find_stops(data = travel_path_sftrack, distance_metric = "haversine") 
-expect_warning(find_stops(data = travel_path_sftrack, distance_metric = "euclidean"))
+path_sftrack_e <- sf::st_transform(path_sftrack, 32633)
+infostop_sftrack_e <- infostop(data = path_sftrack_e,
+                               distance_metric = "euclidean")
+expect_equal(infostop_sftrack_e$labels, infostop_xyt_e$labels)
+expect_equal(infostop_sftrack_e$compute_label_medians(), infostop_xyt_e$compute_label_medians())
+expect_error(infostop(data = path_sftrack_e,
+                      distance_metric = "haversine"))
 
-twostep_sftrack <- spatial_infomap(data = travel_path_sftrack, distance_metric = "haversine")
-expect_warning(spatial_infomap(data = travel_path_sftrack, distance_metric = "euclidean"))
+path_sftrack_n <- path_sftrack_e
+path_sftrack_n <- st_set_crs(path_sftrack_n, NA_crs_)
+expect_error(infostop(data = path_sftrack_n))
+expect_error(infostop(data = path_sftrack_n,
+                      distance_metric = "haversine"))
+infostop_sftrack_n <- infostop(data = path_sftrack_n,
+         distance_metric = "euclidean")
+expect_equal(infostop_sftrack_n$labels, infostop_sftrack_e$labels)
 
-expect_equal(length(onestep_sftrack$labels), length(twostep_sftrack$labels))
-expect_equal(onestep_sftrack$labels, twostep_sftrack$labels)
-
-expect_equal(onestep_sftrack$labels, onestep_matrix$labels)
-expect_equal(stops_sftrack$labels, stops_matrix$labels)
-expect_equal(twostep_sftrack$labels, twostep_matrix$labels)
-
+#
 # move2
-data("travel_path_move2", package = "travelpaths")
+#
+data("path_move2", package = "trackframe")
+expect_error(infostop(data = path_move2,
+                      distance_metric = "euclidean"))
 
-onestep_move2 <- infostop(data = travel_path_move2, distance_metric = "haversine")
-expect_equal(onestep_move2$compute_label_medians(), c(16.37759, 48.20582), tolerance = 1e-06)
-expect_warning(infostop(data = travel_path_move2, distance_metric = "euclidean"))
+infostop_move2_h <- infostop(data = path_move2,
+                             distance_metric = "haversine")
+infostop_move2_a <- infostop(data = path_move2)
 
-stops_move2 <- find_stops(data = travel_path_move2, distance_metric = "haversine") 
-expect_warning(find_stops(data = travel_path_move2, distance_metric = "euclidean"))
+# cbind(infostop_move2$labels, infostop_xyt_e$labels)
+expect_equal(infostop_move2_h$labels, infostop_xyt_h$labels)
+expect_equal(infostop_move2_h$compute_label_medians(), infostop_xyt_h$compute_label_medians())
+expect_equal(infostop_move2_a$labels, infostop_move2_h$labels)
 
-twostep_move2 <- spatial_infomap(data = travel_path_move2, distance_metric = "haversine")
-expect_warning(spatial_infomap(data = travel_path_move2, distance_metric = "euclidean"))
 
-expect_equal(length(onestep_move2$labels), length(twostep_move2$labels))
-expect_equal(onestep_move2$labels, twostep_move2$labels)
+#
+#
+# Test multiple paths
+#
+#
 
-expect_equal(onestep_move2$labels, onestep_matrix$labels)
-expect_equal(stops_move2$labels, stops_matrix$labels)
-expect_equal(twostep_move2$labels, twostep_matrix$labels)
+# 
+# data.frame #FIXME: should this be supported?
+#
+data("paths_data_frame", package = "trackframe")
+expect_silent(infostop(data = paths_data_frame,
+                      distance_metric = "euclidean"))
+
+infostop_df <- infostop(data = paths_data_frame,
+                        distance_metric = "haversine")
+expect_equal(length(infostop_df$labels), length(unique(paths_data_frame$id)))
+
+#
+# trackframe
+#
+data("paths_trackframe", package = "trackframe")
+expect_error(infostop(data = paths_trackframe,
+                      distance_metric = "haversine"))
+
+infostop_mtf <- infostop(data = paths_trackframe,
+                        distance_metric = "euclidean")
+
+tf1 <- trackframe::split_by_id(paths_trackframe)[[1]]
+infostop_mtf1 <- infostop(data = tf1,
+                         distance_metric = "euclidean")
+
+# expect_equal(infostop_mtf$labels[[1]], infostop_mtf1$labels) #numbers are different - rest looks good
+x <- infostop_mtf$labels[[1]]
+matching_table <- cbind(na.omit(unique(x)), 1:length(unique(na.omit(x))))
+infostop_mtf_labels <- matching_table[,2][match(x, matching_table[,1])]
+x <- infostop_mtf1$labels
+matching_table <- cbind(na.omit(unique(x)), 1:length(unique(na.omit(x))))
+infostop_mtf1_labels <- matching_table[,2][match(x, matching_table[,1])]
+expect_equal(infostop_mtf_labels, infostop_mtf1_labels)
+
+expect_equal(infostop_mtf$compute_label_medians()[infostop_mtf$labels[[1]]],
+      infostop_mtf1$compute_label_medians()[infostop_mtf1$labels],
+      tolerance = 1e-04)
+expect_equal(length(infostop_mtf$labels), length(unique(paths_trackframe$id)))
+
+
+#
+# sftrack
+#
+data("paths_sftrack", package = "trackframe")
+expect_error(infostop(data = paths_sftrack,
+                      distance_metric = "euclidean"))
+
+infostop_msftrack <- infostop(data = paths_sftrack,
+                         distance_metric = "haversine")
+
+#
+# trackframe:::sf_to_utm_epsg(paths_sftrack) #32633
+#
+paths_sftrack_e <- sf::st_transform(paths_sftrack, 32633)
+infostop_msftrack_e <- infostop(data = paths_sftrack_e,
+                               distance_metric = "euclidean")
+expect_equal(infostop_msftrack_e$labels, infostop_mtf$labels)
+expect_equal(infostop_msftrack_e$compute_label_medians(), infostop_mtf$compute_label_medians())
+expect_equal(length(infostop_msftrack$labels), length(unique(paths_sftrack$id)))
+
 

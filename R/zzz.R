@@ -1,3 +1,7 @@
+# This simple wrapper allows that we allways use with = FALSE
+"[.data.frame" <- function(x, i, j, drop = FALSE, ...)  {
+  base::`[.data.frame`(x, i, j, drop = drop)
+}
 
 rpy_db <- new.env(parent = emptyenv())
 
@@ -8,6 +12,11 @@ rpy <- function(key, value) {
   } else {
     rpy_db[[key]] <- value
   }
+}
+
+
+`%||%` <- function(x, y) {
+  if (is.null(x)) y else x
 }
 
 

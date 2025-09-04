@@ -13,9 +13,9 @@
 #'
 #' @examples
 #' if (is_infostop_initialized()) {
-#' data <- rtravel_path(100, format = "matrix")
-#' model <- infostop(data, r1 = 10, r2 = 10)
-#' times <- data[, 3]
+#' data("path_data_frame", package = "trackframe")
+#' model <- infostop(path_data_frame, r1 = 10, r2 = 10, distance_metric = "haversine")
+#' times <- as.integer(path_data_frame[["time"]])
 #' intervals <- compute_intervals(model$labels, times)
 #' }
 #' @export
@@ -24,7 +24,7 @@ compute_intervals <- function(labels,
                               max_time_between = 86400) {
   check_infostop_initialized()
 
-  checkmate::assert_integerish(labels, any.missing = FALSE)
+  checkmate::assert_integerish(labels, any.missing = TRUE) #FIXME: are NAs ok?
   checkmate::assert_integerish(times, len = length(labels), any.missing = FALSE)
   checkmate::assert_numeric(max_time_between, lower = 0, len = 1, any.missing = FALSE)
   

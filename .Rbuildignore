@@ -6,3 +6,5 @@ infostop_*.tar.gz
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+^devel$
+

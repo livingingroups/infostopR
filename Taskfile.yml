@@ -62,3 +62,6 @@ tasks:
     cmds:
       - Rscript -e "if (!require('devtools')) install.packages('devtools', repos = 'https://cran.r-project.org'); devtools::build_vignettes()"
 
+  tinytest-infostop:
+    cmds:
+      - R -e "tinytest::run_test_file('inst/tinytest/test_infostop.R')"

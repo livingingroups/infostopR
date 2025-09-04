@@ -1,6 +1,6 @@
 Package: infostop
 Title: R Interface to the Python 'infostop' Package for Detecting Stop Locations in Mobility Data
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: 
     person(given = "Florian",
            family = "Schwendinger",
@@ -18,5 +18,6 @@ Depends: sf
 Imports: 
     reticulate, checkmate, trackframe
 Suggests: 
-    rmarkdown, knitr
+    rmarkdown, knitr, tinytest
 VignetteBuilder: knitr
+RoxygenNote: 7.3.2

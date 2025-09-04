@@ -1,31 +1,59 @@
-devtools::load_all('pkgs/infostop'); infostop_initialize()
+library(travelpaths)
+library(infostop)
 
-library(sf)
+infostop_initialize()
 
-abby_4652 <- read.csv("./data/FFT.csv") |>
-  dplyr::filter(
-    individual.local.identifier == "Abby",
-    tag.local.identifier == 4652
-  ) |>
-  dplyr::mutate(timestamp = as.POSIXct(timestamp)) |>
-  sf::st_as_sf(crs = 4326, coords = c("location.long", "location.lat"))
-
-data_arr <- array(cbind(
-  # TODO: doublecheck this
-  sf::st_coordinates(abby_4652)[, 2:1],
-  abby_4652$timestamp
-), c(dim(abby_4652)[1], 3))
-
-# sort by timestamp
-data_arr <- data_arr[order(data_arr[,3]),]
+data <- infostop:::example_data()
+stops <- find_stops(data, r1 = 100, min_staying_time = 300,
+                    max_time_between = 86400, min_size = 2,
+                    distance_metric = "haversine")
+clusters <- spatial_infomap(stops$stop_events, r2 = 50)
+two_step_labels <- match_labels(clusters, stops$event_map)
+one_step_labels <- infostop(data, r1 = 100, r2 = 50, min_staying_time = 300,
+                            max_time_between = 86400, min_size = 2,
+                            distance_metric = "haversine")
+all.equal(one_step_labels$labels, two_step_labels)
 
 
+
+
+
+# data_frame
+data("travel_path_data_frame", package = "travelpaths")
+class(travel_path_data_frame)
 # onestep
-onestep <- infostop(data_arr, r1 = 10, r2 = 15, min_staying_time = 12*60, max_time_between = 60*60)
-
+onestep_labels <- infostop(data = travel_path_data_frame,
+                           r1 = 100, r2 = 50, min_staying_time = 300,
+                           max_time_between = 86400, min_size = 2,
+                           distance_metric = "euclidean")
 # twostep
-stops <- find_stops(data_arr, r1 = 10, min_staying_time = 12*60, max_time_between = 60*60)
-twostep <- spatial_infomap(stops[['coordinates']], r2 = 15)
+stops <- find_stops(data = travel_path_data_frame,
+                    r1 = 100, min_staying_time = 300,
+                    max_time_between = 86400, min_size = 2,
+                    distance_metric = "euclidean")
+clusters <- spatial_infomap(data = stops$stop_events, r2 = 50, distance_metric = "euclidean")
+twostep_labels <- match_labels(clusters, stops$event_map)
+# comparison
+cbind(onestep_labels$labels, twostep_labels)
+all.equal(onestep_labels$labels, twostep_labels)
 
-all.equal(twostep$`_stat_labels`, onestep$`_stat_labels`)
-all.equal(twostep$`_stat_coords`, onestep$`_stat_coords`)
+
+# trackframe
+data("travel_path_trackframe", package = "travelpaths")
+class(travel_path_trackframe)
+# onestep
+onestep_labels <- infostop(data = travel_path_trackframe,
+                           r1 = 100, r2 = 50, min_staying_time = 300,
+                           max_time_between = 86400, min_size = 2,
+                           distance_metric = "euclidean")
+
+
+stops <- find_stops(data = travel_path_trackframe,
+                    r1 = 100, min_staying_time = 300,
+                    max_time_between = 86400, min_size = 2,
+                    distance_metric = "euclidean")
+clusters <- spatial_infomap(data = stops$stop_events, r2 = 50, distance_metric = "euclidean")
+twostep_labels <- match_labels(clusters, stops$event_map)
+# comparison
+cbind(onestep_labels$labels, twostep_labels)
+all.equal(onestep_labels$labels, twostep_labels)
