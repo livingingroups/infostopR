@@ -187,3 +187,38 @@ The returned object provides the following methods and properties:
       considered dynamic (not part of any stop location).
   }
 }
+\examples{
+library(trackframe)
+# with trackframe
+if (is_infostop_initialized()) {
+ data("path_matrix", package = "trackframe")
+ tf <- as.trackframe(path_matrix, crs_input = 4326)
+ infostop_tf <- infostop(tf, distance_metric = "euclidean")
+ 
+ # with data.frame
+ 
+ # coerce to trackframe
+ data("path_data_frame", package = "trackframe")
+ tf <- as.trackframe(path_data_frame)
+ infostop_df1 <- infostop(data = tf, distance_metric = "euclidean")
+ 
+ # or use infostop.data.frame method with col specification           
+ infostop_df2 <- infostop(path_data_frame, distance_metric = "euclidean",
+                         time_col = "time",
+                         easting_col = "longitude", 
+                         northing_col = "latitude",
+                         id_col = "id")
+ # or use automated col guessing if applicable
+ infostop_df3 <- infostop(df, distance_metric = "euclidean") #automated col guessing
+ 
+ # with sftrack
+ data("path_sftrack", package = "trackframe")
+ class(path_sftrack)
+ infostop_sftrack <- infostop(path_sftrack, distance_metric = "haversine")
+ 
+ # with move2
+ data("path_move2", package = "trackframe")
+ class(path_move2)
+ infostop_move2 <- infostop(path_move2, distance_metric = "haversine")
+}
+}

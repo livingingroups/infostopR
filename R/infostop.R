@@ -215,7 +215,6 @@ infostop_xyt <- function(x,
 #'  class(path_move2)
 #'  infostop_move2 <- infostop(path_move2, distance_metric = "haversine")
 #' }
-#' }
 #' @export
 #' @rdname infostop
 infostop <- function(data,
