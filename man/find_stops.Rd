@@ -82,36 +82,44 @@ find_stops(
 \item{t}{a vecor inheriting from \code{numeric} or \code{POSIXt} or \code{Date}
 containing the timestamps corresponding to the x and y coordinates.}
 
-\item{r1}{A numeric vector giving the maximum distance between time-consecutive points to label them as stationary.
-Higher values will result in more points being considered stationary.}
+\item{r1}{A numeric vector giving the maximum distance between time-consecutive points
+to label them as stationary. Higher values will result in more points being considered
+stationary.}
 
-\item{min_staying_time}{An integer giving the minimum duration (in seconds) that can constitute a stop.
-Only relevant if timestamps are provided in the data.}
+\item{min_staying_time}{An integer giving the minimum duration (in seconds) that can constitute
+a stop. Only relevant if timestamps are provided in the data.}
 
-\item{max_time_between}{An integer giving the maximum duration (in seconds) between consecutive points
-to consider them part of the same stop. Only relevant if timestamps are provided.}
+\item{max_time_between}{An integer giving the maximum duration (in seconds) between consecutive
+points to consider them part of the same stop. Only relevant if timestamps are provided.}
 
-\item{min_size}{An integer giving the minimum number of points required to consider a group stationary.}
+\item{min_size}{An integer giving the minimum number of points required to consider a group
+stationary.}
 
-\item{distance_metric}{A character string, either 'haversine' (for geographic coordinates) or 'euclidean'
-(for Cartesian coordinates).}
+\item{distance_metric}{A character string, either 'haversine' (for geographic coordinates)
+or 'euclidean' (for Cartesian coordinates).}
 
 \item{data}{A numeric matrix with 2 or 3 columns. Columns 1 and 2 are spatial coordinates.
 Column 3 is optional and represents time.}
 
 \item{...}{other arguments passed to `as.trackframe()`}
 
-\item{time_col}{a character string specifying the column name of the time column. If no column is specified, 
-the `time_col` is tried to be matched by possible names provided in `tf_options("time_col")`. In case of multiple matches, the first match is chosen.}
+\item{time_col}{a character string specifying the column name of the time column.
+If no column is specified, the `time_col` is tried to be matched by possible names provided
+in `tf_options("time_col")`. In case of multiple matches, the first match is chosen.}
 
-\item{easting_col}{a character string specifying the column name of the easting column. If no column is specified, 
-the `easting_col` is tried to be matched by possible names provided in `tf_options("easting_col")`. In case of multiple matches, the first match is chosen.}
+\item{easting_col}{a character string specifying the column name of the easting column.
+If no column is specified, the `easting_col` is tried to be matched by possible names
+provided in `tf_options("easting_col")`. In case of multiple matches,
+the first match is chosen.}
 
-\item{northing_col}{a character string specifying the column name of the northing column. If no column is specified, 
-the `northing_col` is tried to be matched by possible names provided in `tf_options("northing_col")`. In case of multiple matches, the first match is chosen.}
+\item{northing_col}{a character string specifying the column name of the northing column.
+If no column is specified, the `northing_col` is tried to be matched by possible names
+provided in `tf_options("northing_col")`. In case of multiple matches,
+the first match is chosen.}
 
-\item{id_col}{optional character vector specifying identifier column names. If no column is specified, 
-the `id_col` is tried to be matched by possible names provided in `tf_options("id_col")`. In case of multiple matches, the first match is chosen.}
+\item{id_col}{optional character vector specifying identifier column names.
+If no column is specified, the `id_col` is tried to be matched by possible names provided
+in `tf_options("id_col")`. In case of multiple matches, the first match is chosen.}
 }
 \description{
 Find based on distance and time threshold
@@ -123,13 +131,13 @@ library(trackframe)
 data("path_trackframe", package = "trackframe")
 stops <- find_stops(data = path_trackframe,
                     distance_metric = "euclidean")
-                    
+
 # data.frame
 data("path_data_frame", package = "trackframe")
 tf <- as.trackframe(path_data_frame)
 stops <- find_stops(data = tf,
                     distance_metric = "euclidean")
-                    
+
 # with sftrack
 data("path_sftrack", package = "trackframe")
 class(path_sftrack)
@@ -139,5 +147,5 @@ stops_sftrack <- find_stops(path_sftrack, distance_metric = "haversine")
 data("path_move2", package = "trackframe")
 class(path_move2)
 stops_move2 <- find_stops(path_move2, distance_metric = "haversine")
- 
+
 }

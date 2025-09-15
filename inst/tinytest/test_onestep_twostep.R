@@ -1,4 +1,4 @@
-# library("tinytest")
+library("tinytest")
 library("infostop")
 
 infostop_initialize()

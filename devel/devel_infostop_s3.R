@@ -50,8 +50,7 @@ twostep$labels
 onestep$compute_label_medians()
 twostep$model
 onestep$model
-i1_matrix$compute_label_medians()
-
+# i1_matrix$compute_label_medians()
 
 # data.frame
 data("travel_path_data_frame", package = "travelpaths")

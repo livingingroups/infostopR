@@ -93,34 +93,37 @@ infostop(
 )
 }
 \arguments{
-\item{data}{Either an object of class \code{trackframe} or a numeric matrix with 2 or 3 columns. The first two columns must contain spatial
-coordinates (latitude, longitude). The optional third column contains timestamps.}
+\item{data}{Either an object of class \code{trackframe} or a numeric matrix with 2 or 3 columns.
+The first two columns must contain spatial coordinates (latitude, longitude).
+The optional third column contains timestamps.}
 
-\item{r1}{A numeric vector giving the maximum distance between time-consecutive points to label them as stationary.
-Higher values will result in more points being considered stationary.}
+\item{r1}{A numeric vector giving the maximum distance between time-consecutive points to label
+them as stationary. Higher values will result in more points being considered stationary.}
 
-\item{r2}{A numeric vector giving the maximum distance between stationary points to form an edge in the network.
-Higher values will connect more distant stationary points, potentially merging stop locations.}
+\item{r2}{A numeric vector giving the maximum distance between stationary points to form an edge
+in the network. Higher values will connect more distant stationary points, potentially merging
+stop locations.}
 
-\item{label_singleton}{A logical, if \code{TRUE}, give stationary locations that were only visited once their own label.
-If FALSE, label them as non-stationary (-1).}
+\item{label_singleton}{A logical, if \code{TRUE}, give stationary locations that were only
+visited once their own label. If FALSE, label them as non-stationary (-1).}
 
-\item{min_staying_time}{An integer giving the minimum duration (in seconds) that can constitute a stop.
-Only relevant if timestamps are provided in the data.}
+\item{min_staying_time}{An integer giving the minimum duration (in seconds) that can constitute
+a stop. Only relevant if timestamps are provided in the data.}
 
-\item{max_time_between}{An integer giving the maximum duration (in seconds) between consecutive points
-to consider them part of the same stop. Only relevant if timestamps are provided.}
+\item{max_time_between}{An integer giving the maximum duration (in seconds) between consecutive
+points to consider them part of the same stop. Only relevant if timestamps are provided.}
 
-\item{min_size}{An integer giving the minimum number of points required to consider a group stationary.}
+\item{min_size}{An integer giving the minimum number of points required to consider a group
+stationary.}
 
-\item{min_spacial_resolution}{A numeric giving the minimum difference allowed between points before they
-are considered the same points. Useful for dealing with GPS jitter.}
+\item{min_spacial_resolution}{A numeric giving the minimum difference allowed between points
+before they are considered the same points. Useful for dealing with GPS jitter.}
 
-\item{distance_metric}{A character string, either 'haversine' (for geographic coordinates) or 'euclidean'
-(for Cartesian coordinates).}
+\item{distance_metric}{A character string, either 'haversine' (for geographic coordinates) or
+'euclidean' (for Cartesian coordinates).}
 
-\item{weighted}{A logical, if \code{TRUE}, weight edges in the network by distance, giving more importance
-to closer points.}
+\item{weighted}{A logical, if \code{TRUE}, weight edges in the network by distance,
+giving more importance to closer points.}
 
 \item{weight_exponent}{A numeric, exponent used when weighting edges in the network.
 Higher values give more importance to distance.}
@@ -129,17 +132,21 @@ Higher values give more importance to distance.}
 
 \item{...}{other arguments passed to `as.trackframe()`}
 
-\item{time_col}{a character string specifying the column name of the time column. If no column is specified, 
-the `time_col` is tried to be matched by possible names provided in `tf_options("time_col")`. In case of multiple matches, the first match is chosen.}
+\item{time_col}{a character string specifying the column name of the time column. If no column is
+specified, the `time_col` is tried to be matched by possible names provided in
+`tf_options("time_col")`. In case of multiple matches, the first match is chosen.}
 
-\item{easting_col}{a character string specifying the column name of the easting column. If no column is specified, 
-the `easting_col` is tried to be matched by possible names provided in `tf_options("easting_col")`. In case of multiple matches, the first match is chosen.}
+\item{easting_col}{a character string specifying the column name of the easting column. If no
+column is specified, the `easting_col` is tried to be matched by possible names provided in
+`tf_options("easting_col")`. In case of multiple matches, the first match is chosen.}
 
-\item{northing_col}{a character string specifying the column name of the northing column. If no column is specified, 
-the `northing_col` is tried to be matched by possible names provided in `tf_options("northing_col")`. In case of multiple matches, the first match is chosen.}
+\item{northing_col}{a character string specifying the column name of the northing column. If no
+column is specified, the `northing_col` is tried to be matched by possible names provided in
+`tf_options("northing_col")`. In case of multiple matches, the first match is chosen.}
 
-\item{id_col}{optional character vector specifying identifier column names. If no column is specified, 
-the `id_col` is tried to be matched by possible names provided in `tf_options("id_col")`. In case of multiple matches, the first match is chosen.}
+\item{id_col}{optional character vector specifying identifier column names. If no column is
+specified, the `id_col` is tried to be matched by possible names provided in
+`tf_options("id_col")`. In case of multiple matches, the first match is chosen.}
 }
 \value{
 An Infostop model object with the following methods and properties:
@@ -151,12 +158,14 @@ An Infostop model object with the following methods and properties:
 \description{
 This function creates an Infostop model to infer stop-location labels from mobility trace.
 The algorithm works by first identifying stationary events in the trace, then clustering
-these events into stop locations using a network-based approach. Dynamic (moving) points are labeled -1.
+these events into stop locations using a network-based approach.
+Dynamic (moving) points are labeled -1.
 }
 \details{
 The Infostop algorithm works in two main steps:
 
-1. It first identifies stationary events by grouping consecutive points that are close in space and time.
+1. It first identifies stationary events by grouping consecutive points that are close in space
+   and time.
 2. Then it clusters these stationary events into stop locations using a network-based approach.
 
 The main parameters that control the algorithm's behavior are:
@@ -165,10 +174,11 @@ The main parameters that control the algorithm's behavior are:
   \item{\code{r1}}{The critical radius (in the same units as your coordinates) that determines
     whether consecutive points are part of the same stationary event. For geographic coordinates,
     this is typically in meters. Larger values will identify more points as stationary.}
-  \item{\code{r2}}{The maximum distance between stationary events to consider them connected in the
-    network. Larger values will result in more connections and potentially fewer, larger clusters.}
-  \item{\code{min_staying_time}}{The minimum time (in seconds) required for a sequence of points to
-    be considered a stationary event. Increase this value to ignore brief stops.}
+  \item{\code{r2}}{The maximum distance between stationary events to consider them connected in
+    the network. Larger values will result in more connections and potentially fewer,
+    larger clusters.}
+  \item{\code{min_staying_time}}{The minimum time (in seconds) required for a sequence of points
+    to be considered a stationary event. Increase this value to ignore brief stops.}
   \item{\code{max_time_between}}{The maximum time gap (in seconds) between consecutive points to
     still consider them part of the same stationary event. Useful for handling missing data.}
   \item{\code{min_size}}{The minimum number of points required to form a stationary event.
@@ -194,28 +204,31 @@ if (is_infostop_initialized()) {
  data("path_matrix", package = "trackframe")
  tf <- as.trackframe(path_matrix, crs_input = 4326)
  infostop_tf <- infostop(tf, distance_metric = "euclidean")
- 
+
  # with data.frame
- 
+
  # coerce to trackframe
  data("path_data_frame", package = "trackframe")
  tf <- as.trackframe(path_data_frame)
  infostop_df1 <- infostop(data = tf, distance_metric = "euclidean")
- 
- # or use infostop.data.frame method with col specification           
- infostop_df2 <- infostop(path_data_frame, distance_metric = "euclidean",
+
+ # or use infostop.data.frame method with col specification
+  infostop_df2 <- infostop(path_data_frame,
+    distance_metric = "euclidean",
                          time_col = "time",
-                         easting_col = "longitude", 
+                         easting_col = "longitude",
                          northing_col = "latitude",
-                         id_col = "id")
+    id_col = "id"
+  )
  # or use automated col guessing if applicable
- infostop_df3 <- infostop(df, distance_metric = "euclidean") #automated col guessing
- 
+  # FIXME: @RH df is a function since not defined here.
+  # infostop_df3 <- infostop(df, distance_metric = "euclidean") # automated col guessing
+
  # with sftrack
  data("path_sftrack", package = "trackframe")
  class(path_sftrack)
  infostop_sftrack <- infostop(path_sftrack, distance_metric = "haversine")
- 
+
  # with move2
  data("path_move2", package = "trackframe")
  class(path_move2)

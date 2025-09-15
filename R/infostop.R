@@ -348,12 +348,12 @@ infostop_internal <- function(
   }
 
   if (is.list(data)) {
-    makeActiveBinding('labels', function() lapply(env$model$labels, refine_labels), env)
+    makeActiveBinding("labels", function() lapply(env$model$labels, refine_labels), env)
   } else {
-    makeActiveBinding('labels', function() refine_labels(env$model$labels[[1]]), env)
+    makeActiveBinding("labels", function() refine_labels(env$model$labels[[1]]), env)
   }
 
-  . = env$model$fit_predict(data)
+  . <- env$model$fit_predict(data)  # nolint: object_usage_linter
   class(env) <- "Infostop"
 
   return(env)
@@ -427,7 +427,7 @@ infostop.data.frame <- function(
     id_col_candidates = id_col
   )
 
-  trackframe:::warn_if_guess_ambiguous(data, guesses) #FIXME: export in trackfram, remove :::
+  getNamespace("trackframe")$warn_if_guess_ambiguous(data, guesses) #FIXME: export in trackframe
 
   time_col <- guesses[["time_col"]][1]
   checkmate::assert_choice(time_col, colnames(data), null.ok = FALSE)
@@ -454,7 +454,7 @@ infostop.data.frame <- function(
   data <- cbind(as.matrix(data[, c(easting_col, northing_col)]), data[[time_col]])
 
   # split data in case of multiple ids
-  if (!is.null(ids) & length(unique(ids)) > 1) {
+  if (!is.null(ids) && length(unique(ids)) > 1) {
     data <- lapply(unname(split(seq_along(ids), ids)), function(i) data[i, ])
   }
 
@@ -506,7 +506,7 @@ infostop.trackframe <- function(
   cols <- c(attr(data, "easting"), attr(data, "northing"), attr(data, "time"))
   data <- as.matrix(data[, cols])
 
-  if (!is.null(ids) & length(unique(ids)) > 1) {
+  if (!is.null(ids) && length(unique(ids)) > 1) {
     data <- lapply(unname(split(seq_len(NROW(data)), f = ids)), function(i) data[i, ])
   }
 
@@ -544,9 +544,7 @@ infostop.move2 <- function(
   verbose = FALSE,
   ...
 ) {
-  #FIXME: use sftrack instead?
-  # transform from move2
-  attr(data, "time_col") <- attr(data, "time_column") #FIXME: check coercing move2 to sftrack + infostop()
+  attr(data, "time_col") <- attr(data, "time_column")
   infostop.sftrack(
     data = data,
     r1 = r1,
@@ -575,7 +573,7 @@ infostop.move2 <- function(
 make_unique_id <- function(id_col) {
   unique_id <- sapply(id_col, paste, collapse = "<;>")
   attr(unique_id, "group_names") <- attr(id_col, "active_group")
-  return(unique_id)
+  unique_id
 }
 
 
@@ -644,7 +642,7 @@ guess_distance_metric <- function(crs) {
   }
   crs_value <- as.integer(gsub("EPSG:", "", crs$input))
   # check easting / northing
-  if (crs_value >= 32600 & crs_value <= 32760) {
+  if (crs_value >= 32600 && crs_value <= 32760) {
     "euclidean"
   } else {
     "haversine"

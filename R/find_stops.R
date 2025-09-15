@@ -125,11 +125,11 @@ find_stops_internal <- function(
     min_staying_time,
     max_time_between,
     distance_metric
-  )
+  )  # nolint: object_usage_linter
   stops[[1]] <- as.matrix(do.call(rbind, stops[[1]]))
   names(stops) <- c("stop_events", "event_map")
 
-  if (abs(max(data[, 1:2])) <= 180 & sum(stops[["event_map"]] != 0) == 0) {
+  if (abs(max(data[, 1:2])) <= 180 && sum(stops[["event_map"]] != 0) == 0) {
     warning("Seems that coordinate reference system and distance_metric do not coincide.")
   }
 
@@ -177,7 +177,7 @@ find_stops.data.frame <- function(
     id_col_candidates = id_col
   )
 
-  trackframe:::warn_if_guess_ambiguous(data, guesses) #FIXME: export in trackfram, remove :::
+  getNamespace("trackframe")$warn_if_guess_ambiguous(data, guesses) #FIXME: export in trackframe
 
   time_col <- guesses[["time_col"]][1]
   assert_choice(time_col, colnames(data), null.ok = FALSE)
@@ -204,7 +204,7 @@ find_stops.data.frame <- function(
   data <- cbind(as.matrix(data[, c(easting_col, northing_col)]), data[[time_col]])
 
   # split data in case of multiple ids
-  if (!is.null(ids) & length(unique(ids)) > 1) {
+  if (!is.null(ids) && length(unique(ids)) > 1) {
     data <- lapply(unname(split(seq_along(ids), ids)), function(i) data[i, ])
     # uids <- unique(ids)
     # data <- lapply(uids, function(id) data[which(ids == id),])
@@ -235,7 +235,8 @@ find_stops.trackframe <- function(
   if (distance_metric != "euclidean") {
     stop(
       "Only distance_metric = 'euclidean' is available for objects of class trackframe"
-  )
+    )
+  }
   id_col <- attr(data, "id")
   ids <- if (is.null(id_col)) NULL else data[[id_col]]
 
@@ -243,7 +244,7 @@ find_stops.trackframe <- function(
   cols <- c(attr(data, "easting"), attr(data, "northing"), attr(data, "time"))
   data <- as.matrix(data[, cols])
 
-  if (!is.null(ids) & length(unique(ids)) > 1) {
+  if (!is.null(ids) && length(unique(ids)) > 1) {
     stop(
       "Multiple tracks are not supported. Please use infostop() instead in case of multiple tracks."
     )

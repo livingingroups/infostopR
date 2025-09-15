@@ -22,38 +22,42 @@ infostop_xyt(
 )
 }
 \arguments{
-\item{x}{a numeric vector of x-coordinates (easting for distance_metric euclidean - longitude for distance_metric "haversine").}
+\item{x}{a numeric vector of x-coordinates (easting for distance_metric euclidean - longitude for
+distance_metric "haversine").}
 
-\item{y}{a numeric vector of y-coordinates (northing for distance_metric euclidean - latitude for distance_metric "haversine").}
+\item{y}{a numeric vector of y-coordinates (northing for distance_metric euclidean - latitude for
+distance_metric "haversine").}
 
-\item{time}{a vecor inheriting from \code{numeric} or \code{POSIXt} or \code{Date}
-containing the timestamps corresponding to the x and y coordinates.}
+\item{time}{a vecor inheriting from \code{numeric} or \code{POSIXt} or \code{Date} containing the
+timestamps corresponding to the x and y coordinates.}
 
-\item{r1}{A numeric vector giving the maximum distance between time-consecutive points to label them as stationary.
-Higher values will result in more points being considered stationary.}
+\item{r1}{A numeric vector giving the maximum distance between time-consecutive points to label
+them as stationary. Higher values will result in more points being considered stationary.}
 
-\item{r2}{A numeric vector giving the maximum distance between stationary points to form an edge in the network.
-Higher values will connect more distant stationary points, potentially merging stop locations.}
+\item{r2}{A numeric vector giving the maximum distance between stationary points to form an edge
+in the network. Higher values will connect more distant stationary points,
+potentially merging stop locations.}
 
-\item{label_singleton}{A logical, if \code{TRUE}, give stationary locations that were only visited once their own label.
-If FALSE, label them as non-stationary (-1).}
+\item{label_singleton}{A logical, if \code{TRUE}, give stationary locations that
+were only visited once their own label. If FALSE, label them as non-stationary (-1).}
 
-\item{min_staying_time}{An integer giving the minimum duration (in seconds) that can constitute a stop.
-Only relevant if timestamps are provided in the data.}
+\item{min_staying_time}{An integer giving the minimum duration (in seconds) that can constitute a
+stop. Only relevant if timestamps are provided in the data.}
 
-\item{max_time_between}{An integer giving the maximum duration (in seconds) between consecutive points
-to consider them part of the same stop. Only relevant if timestamps are provided.}
+\item{max_time_between}{An integer giving the maximum duration (in seconds) between consecutive
+points to consider them part of the same stop. Only relevant if timestamps are provided.}
 
-\item{min_size}{An integer giving the minimum number of points required to consider a group stationary.}
+\item{min_size}{An integer giving the minimum number of points required to consider a group
+stationary.}
 
-\item{min_spacial_resolution}{A numeric giving the minimum difference allowed between points before they
-are considered the same points. Useful for dealing with GPS jitter.}
+\item{min_spacial_resolution}{A numeric giving the minimum difference allowed between points
+before they are considered the same points. Useful for dealing with GPS jitter.}
 
-\item{distance_metric}{A character string, either 'haversine' (for geographic coordinates) or 'euclidean'
-(for Cartesian coordinates).}
+\item{distance_metric}{A character string, either 'haversine' (for geographic coordinates) or
+'euclidean' (for Cartesian coordinates).}
 
-\item{weighted}{A logical, if \code{TRUE}, weight edges in the network by distance, giving more importance
-to closer points.}
+\item{weighted}{A logical, if \code{TRUE}, weight edges in the network by distance, giving more
+importance to closer points.}
 
 \item{weight_exponent}{A numeric, exponent used when weighting edges in the network.
 Higher values give more importance to distance.}
@@ -69,13 +73,15 @@ An Infostop model object with the following methods and properties:
 }
 \description{
 This function creates an Infostop model to infer stop-location labels from mobility trace.
-The algorithm works by first identifying stationary events in the trace, then clustering
-these events into stop locations using a network-based approach. Dynamic (moving) points are labeled -1.
+The algorithm works by first identifying stationary events in the trace, then clustering these
+events into stop locations using a network-based approach.
+Dynamic (moving) points are labeled -1.
 }
 \details{
 The Infostop algorithm works in two main steps:
 
-1. It first identifies stationary events by grouping consecutive points that are close in space and time.
+1. It first identifies stationary events by grouping consecutive points that are close in space
+   and time.
 2. Then it clusters these stationary events into stop locations using a network-based approach.
 
 The main parameters that control the algorithm's behavior are:
@@ -84,10 +90,11 @@ The main parameters that control the algorithm's behavior are:
   \item{\code{r1}}{The critical radius (in the same units as your coordinates) that determines
     whether consecutive points are part of the same stationary event. For geographic coordinates,
     this is typically in meters. Larger values will identify more points as stationary.}
-  \item{\code{r2}}{The maximum distance between stationary events to consider them connected in the
-    network. Larger values will result in more connections and potentially fewer, larger clusters.}
-  \item{\code{min_staying_time}}{The minimum time (in seconds) required for a sequence of points to
-    be considered a stationary event. Increase this value to ignore brief stops.}
+  \item{\code{r2}}{The maximum distance between stationary events to consider them connected
+    in the network. Larger values will result in more connections and potentially fewer,
+    larger clusters.}
+  \item{\code{min_staying_time}}{The minimum time (in seconds) required for a sequence of points
+    to be considered a stationary event. Increase this value to ignore brief stops.}
   \item{\code{max_time_between}}{The maximum time gap (in seconds) between consecutive points to
     still consider them part of the same stationary event. Useful for handling missing data.}
   \item{\code{min_size}}{The minimum number of points required to form a stationary event.

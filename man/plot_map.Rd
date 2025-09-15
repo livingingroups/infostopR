@@ -19,39 +19,48 @@ plot_map(
   heatmap_subsampling = 1,
   zoom_start = 12,
   tiles = "OpenStreetMap",
-  API_key = NULL
+  api_key = NULL
 )
 }
 \arguments{
 \item{model}{An Infostop model object created by the infostop() function.}
 
-\item{display_data}{A character string specifying what data to display. Default is "unique_stationary".}
+\item{display_data}{A character string specifying what data to display.
+Default is "unique_stationary".}
 
-\item{polygons}{A logical indicating whether to display polygon areas for clusters. Default is TRUE.}
+\item{polygons}{A logical indicating whether to display polygon areas for clusters.
+Default is TRUE.}
 
 \item{scatter}{A logical indicating whether to scatter points on the map. Default is FALSE.}
 
 \item{heatmap}{A logical indicating whether to add a heatmap layer to the map. Default is TRUE.}
 
-\item{polygons_color}{A character string giving the color for polygons in hex format or named color. Default is "#ee9999".}
+\item{polygons_color}{A character string giving the color for polygons in hex format or
+named color. Default is "#ee9999".}
 
-\item{polygons_opacity}{A numeric between 0 and 1 specifying the transparency of polygons. Default is 0.3.}
+\item{polygons_opacity}{A numeric between 0 and 1 specifying the transparency of polygons.
+Default is 0.3.}
 
 \item{scatter_color}{A character string giving the color for scattered points. Default is "k".}
 
-\item{scatter_opacity}{A numeric between 0 and 1 specifying the transparency of points. Default is 0.3.}
+\item{scatter_opacity}{A numeric between 0 and 1 specifying the transparency of points.
+Default is 0.3.}
 
-\item{scatter_subsampling}{A numeric between 0 and 1 specifying the fraction of points to display. Default is 1.}
+\item{scatter_subsampling}{A numeric between 0 and 1 specifying the fraction of points to
+display. Default is 1.}
 
-\item{heatmap_radius}{A numeric specifying the radius of influence for each point in the heatmap. Default is 8.}
+\item{heatmap_radius}{A numeric specifying the radius of influence for each point in the heatmap.
+Default is 8.}
 
-\item{heatmap_subsampling}{A numeric between 0 and 1 specifying the fraction of points to include in the heatmap. Default is 1.}
+\item{heatmap_subsampling}{A numeric between 0 and 1 specifying the fraction of points
+to include in the heatmap. Default is 1.}
 
 \item{zoom_start}{A numeric giving the initial zoom level for the map. Default is 12.}
 
 \item{tiles}{A character string giving the map tile provider. Default is "OpenStreetMap".}
 
-\item{API_key}{A character string giving the API key for tile providers that require authentication. Default is NULL.}
+\item{api_key}{A character string giving the API key for tile providers that
+require authentication. Default is NULL.}
 }
 \value{
 A FoliumMap object with the visualization of stop locations.
@@ -65,9 +74,9 @@ function that works directly with an Infostop model object.
 if (is_infostop_initialized()) {
  data("path_data_frame", package = "trackframe")
  model <- infostop(path_data_frame, r1 = 10, r2 = 10, distance_metric = "haversine")
-  map <- plot_map(model, 
-                scatter = TRUE, 
-                polygons_color = "#ff0000", 
+  map <- plot_map(model,
+                scatter = TRUE,
+                polygons_color = "#ff0000",
                 zoom_start = 10)
  \dontrun{
   map$show_in_browser()

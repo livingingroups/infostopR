@@ -11,8 +11,9 @@ compute_intervals(labels, times, max_time_between = 86400)
 
 \item{times}{A vector of integer timestamps corresponding to each point in the mobility trace.}
 
-\item{max_time_between}{Maximum time (in seconds) between consecutive points to consider them part of the same interval.
-If the time between points exceeds this value, a new interval is created.}
+\item{max_time_between}{Maximum time (in seconds) between consecutive points to consider
+them part of the same interval. If the time between points exceeds this value,
+a new interval is created.}
 }
 \value{
 A data frame with columns for label, start time, end time, and duration of each interval.

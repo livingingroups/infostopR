@@ -130,7 +130,8 @@ infostop_initialize <- function(python = NULL, virtualenv = NULL, condaenv = NUL
 
 check_infostop_initialized <- function() {
   if (!is_infostop_initialized()) {
-    max_allowed_cutoff <- 500L # any number bigger than 500 triggers a warning and the default is used.
+    # any number bigger than 500 triggers a warning and the default is used.
+    max_allowed_cutoff <- 500L
     caller_name <- deparse(sys.calls()[[sys.nframe() - 1]], width.cutoff = max_allowed_cutoff)
     msg <- sprintf(
       "in '%s' infostop is not initialized, %s ",

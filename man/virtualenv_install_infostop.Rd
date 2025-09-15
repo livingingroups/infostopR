@@ -17,7 +17,7 @@ to be used or created for the installation.}
 
 \item{packages}{a character vector giving the packages to be installed.}
 
-\item{python}{a string giving the name or path of the python version to be used 
+\item{python}{a string giving the name or path of the python version to be used
 (e.g., \code{"python3"}).}
 
 \item{...}{additional arguments passed to \code{conda_install}.}

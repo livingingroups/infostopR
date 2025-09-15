@@ -14,7 +14,7 @@ A FoliumMap R object with the following methods:
   \itemize{
     \item \code{show_in_browser()}
     \item \code{fit_bounds(bounds, padding_top_left = NULL,
-                           padding_bottom_right = NULL, 
+                           padding_bottom_right = NULL,
                            padding = NULL, max_zoom = NULL)}
     \item \code{save(outfile, close_file = TRUE, ...)}
   }
@@ -29,28 +29,46 @@ providing access to its methods for interactive map visualization.
       Display the map in the default web browser
     \item \code{fit_bounds(bounds,
                            padding_top_left = NULL,
-                           padding_bottom_right = NULL, 
+                           padding_bottom_right = NULL,
                            padding = NULL,
                            max_zoom = NULL)}: \cr
 
       Fit the map to contain a bounding box with the maximum zoom level possible.
-      
+
       Arguments:
       \describe{
-        \item{bounds}{A matrix of two points \code{rbind(c(lat1, lng1), c(lat2, lng2))} specifying the southwest and northeast corners of the bounding box.}
-        \item{padding_top_left}{A numeric vector of length 2 specifying padding in the top left corner. Useful if controls might obscure objects you're zooming to.}
-        \item{padding_bottom_right}{A numeric vector of length 2 specifying padding in the bottom right corner.}
-        \item{padding}{A numeric vector of length 2 specifying padding for both corners.}
-        \item{max_zoom}{An integer specifying the maximum zoom level to use.}
+        \item{bounds}{
+          A matrix of two points \code{rbind(c(lat1, lng1), c(lat2, lng2))}
+          specifying the southwest and northeast corners of the bounding box.
+        }
+        \item{padding_top_left}{
+          A numeric vector of length 2 specifying padding in the
+          top left corner. Useful if controls might obscure objects you're zooming to.
+        }
+        \item{padding_bottom_right}{
+          A numeric vector of length 2 specifying padding in the bottom right corner.
+        }
+        \item{padding}{
+          A numeric vector of length 2 specifying padding for both corners.
+        }
+        \item{max_zoom}{
+          An integer specifying the maximum zoom level to use.
+        }
       }
     \item \code{save(outfile, close_file = TRUE, ...)}: \cr
       Save the map to an HTML file
-      
+
       Arguments:
       \describe{
-        \item{outfile}{A character string giving the path to the output HTML file.}
-        \item{close_file}{A logical indicating whether to close the file after writing. Default is TRUE.}
-        \item{...}{Additional arguments passed to the underlying save method.}
+        \item{outfile}{
+          A character string giving the path to the output HTML file.
+        }
+        \item{close_file}{
+          A logical indicating whether to close the file after writing. Default is TRUE.
+        }
+        \item{...}{
+          Additional arguments passed to the underlying save method.
+        }
       }
   }
 }

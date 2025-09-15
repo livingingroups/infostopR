@@ -72,7 +72,7 @@ plot_map <- function(
   heatmap_subsampling = 1,
   zoom_start = 12,
   tiles = "OpenStreetMap",
-  API_key = NULL
+  api_key = NULL
 ) {
   check_infostop_initialized()
 
@@ -90,7 +90,7 @@ plot_map <- function(
   checkmate::assert_numeric(heatmap_subsampling, lower = 0, upper = 1, len = 1, any.missing = FALSE)
   checkmate::assert_numeric(zoom_start, lower = 0, len = 1, any.missing = FALSE)
   checkmate::assert_character(tiles, len = 1, any.missing = FALSE)
-  checkmate::assert_character(API_key, len = 1, any.missing = FALSE, null.ok = TRUE)
+  checkmate::assert_character(api_key, len = 1, any.missing = FALSE, null.ok = TRUE)
 
   map <- py_infostop$plot_map(
     model$model,
@@ -107,7 +107,7 @@ plot_map <- function(
     heatmap_subsampling = heatmap_subsampling,
     zoom_start = zoom_start,
     tiles = tiles,
-    API_key = API_key
+    API_key = api_key
   )
   return(folium_map(map$m))
 }
@@ -231,8 +231,9 @@ folium_map <- function(pointer) {
 print.FoliumMap <- function(x, ...) {
   writeLines("FoliumMap object")
   writeLines("  - show_in_browser()")
-  writeLines(
-    "  - fit_bounds(bounds, padding_top_left = NULL, padding_bottom_right = NULL, padding = NULL, max_zoom = NULL)"
-  )
+  writeLines(paste0(
+    "  - fit_bounds(bounds, padding_top_left = NULL, padding_bottom_right = NULL,",
+    " padding = NULL, max_zoom = NULL)"
+  ))
   writeLines("  - save(outfile, close_file = TRUE, ...)")
 }

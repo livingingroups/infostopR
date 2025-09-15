@@ -215,7 +215,7 @@ spatial_infomap.trackframe <- function(
   if (distance_metric != "euclidean") {
     stop(
       "Only distance_metric = 'euclidean' is available for objects of class trackframe"
-  )
+    )
   }
   # transform from track.frame
   data[[attr(data, "time")]] <- as.integer(data[[attr(data, "time")]])
@@ -337,7 +337,7 @@ print.SpatialInfomap <- function(x, ...) {
 #' @seealso \code{\link{find_stops}}, \code{\link{spatial_infomap}}
 #' @export
 match_labels <- function(labels, event_map) {
-  if (class(labels) == "SpatialInfomap") {
+  if (inherits(labels, "SpatialInfomap")) {
     labels <- labels$labels
   }
   labels[event_map + 1L]

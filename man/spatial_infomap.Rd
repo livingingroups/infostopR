@@ -101,10 +101,11 @@ spatial_infomap(
 
 \item{r2}{Numeric. Max distance between stationary points to form an edge.}
 
-\item{label_singleton}{Logical. If TRUE, give stationary locations that were only visited once their own label.
-If FALSE, label them as non-stationary (-1).}
+\item{label_singleton}{Logical. If TRUE, give stationary locations that were only visited
+once their own label. If FALSE, label them as non-stationary (-1).}
 
-\item{min_spacial_resolution}{Numeric. The minimal difference allowed between points before they are considered the same points.}
+\item{min_spacial_resolution}{Numeric. The minimal difference allowed between points before
+they are considered the same points.}
 
 \item{distance_metric}{Character. Either 'haversine' (for geo data) or 'euclidean'.}
 
@@ -120,9 +121,11 @@ Column 3 is optional and represents time.}
 \item{...}{other arguments passed to `as.trackframe()`}
 }
 \value{
-A numeric vector of cluster labels for each input point. Points labeled -1 are considered non-stationary.
+A numeric vector of cluster labels for each input point. Points labeled -1 are
+  considered non-stationary.
 
-A numeric vector of cluster labels for each input point. Points labeled -1 are considered non-stationary.
+A numeric vector of cluster labels for each input point. Points labeled -1 are
+  considered non-stationary.
 }
 \description{
 This function applies the SpatialInfomap algorithm to cluster a collection of points.
