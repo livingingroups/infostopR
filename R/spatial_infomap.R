@@ -28,29 +28,33 @@
 #' }
 #' @export
 #' @rdname spatial_infomap
-spatial_infomap_xyt <- function(easting,
-                                northing,
-                                r2 = 10,
-                                label_singleton = TRUE,
-                                min_spacial_resolution = 0,
-                                distance_metric = c("haversine", "euclidean"),
-                                weighted = FALSE,
-                                weight_exponent = 1,
-                                verbose = FALSE) {
+spatial_infomap_xyt <- function(
+  easting,
+  northing,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_spacial_resolution = 0,
+  distance_metric = c("haversine", "euclidean"),
+  weighted = FALSE,
+  weight_exponent = 1,
+  verbose = FALSE
+) {
   check_infostop_initialized()
-  
+
   checkmate::assert_numeric(easting, min.len = 3L, any.missing = FALSE)
   checkmate::assert_numeric(northing, len = length(easting), any.missing = FALSE)
   distance_metric <- match.arg(distance_metric)
   data <- cbind(x = easting, y = northing)
-  spatial_infomap_internal(data,
-                           r2 = r2,
-                           label_singleton = label_singleton,
-                           min_spacial_resolution = min_spacial_resolution,
-                           distance_metric = distance_metric,
-                           weighted = weighted,
-                           weight_exponent = weight_exponent,
-                           verbose = verbose)
+  spatial_infomap_internal(
+    data,
+    r2 = r2,
+    label_singleton = label_singleton,
+    min_spacial_resolution = min_spacial_resolution,
+    distance_metric = distance_metric,
+    weighted = weighted,
+    weight_exponent = weight_exponent,
+    verbose = verbose
+  )
 }
 
 
@@ -84,29 +88,33 @@ spatial_infomap_xyt <- function(easting,
 #' }
 #' @export
 #' @rdname spatial_infomap
-spatial_infomap <- function(data,
-                            r2 = 10,
-                            label_singleton = TRUE,
-                            min_spacial_resolution = 0,
-                            distance_metric = c("haversine", "euclidean"),
-                            weighted = FALSE,
-                            weight_exponent = 1,
-                            verbose = FALSE,
-                            ...) {
+spatial_infomap <- function(
+  data,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_spacial_resolution = 0,
+  distance_metric = c("haversine", "euclidean"),
+  weighted = FALSE,
+  weight_exponent = 1,
+  verbose = FALSE,
+  ...
+) {
   UseMethod("spatial_infomap")
 }
 
 
-spatial_infomap_internal <- function(data,
-                                     r2 = 10,
-                                     label_singleton = TRUE,
-                                     min_spacial_resolution = 0,
-                                     distance_metric = c("haversine", "euclidean"),
-                                     weighted = FALSE,
-                                     weight_exponent = 1,
-                                     verbose = FALSE) {
+spatial_infomap_internal <- function(
+  data,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_spacial_resolution = 0,
+  distance_metric = c("haversine", "euclidean"),
+  weighted = FALSE,
+  weight_exponent = 1,
+  verbose = FALSE
+) {
   check_infostop_initialized()
-  
+
   checkmate::assert_matrix(data, "numeric", any.missing = FALSE, min.cols = 2, max.cols = 2)
   checkmate::assert_numeric(r2, lower = 0, len = 1, any.missing = FALSE)
   checkmate::assert_logical(label_singleton, len = 1, any.missing = FALSE)
@@ -114,9 +122,9 @@ spatial_infomap_internal <- function(data,
   checkmate::assert_logical(weighted, len = 1, any.missing = FALSE)
   checkmate::assert_numeric(weight_exponent, lower = 0, len = 1, any.missing = FALSE)
   checkmate::assert_logical(verbose, len = 1, any.missing = FALSE)
-  
+
   distance_metric <- match.arg(distance_metric)
-  
+
   env <- new.env(parent = emptyenv())
   env$model <- py_infostop$SpatialInfomap(
     r2 = r2,
@@ -127,9 +135,9 @@ spatial_infomap_internal <- function(data,
     weight_exponent = weight_exponent,
     verbose = verbose
   )
-  
+
   env$labels <- refine_labels(env$model$fit_predict(data))
-  
+
   class(env) <- "SpatialInfomap"
   return(env)
 }
@@ -137,123 +145,149 @@ spatial_infomap_internal <- function(data,
 
 #' @export
 #' @rdname spatial_infomap
-spatial_infomap.matrix <- function(data,
-                                   r2 = 10,
-                                   label_singleton = TRUE,
-                                   min_spacial_resolution = 0,
-                                   distance_metric = c("haversine", "euclidean"),
-                                   weighted = FALSE,
-                                   weight_exponent = 1,
-                                   verbose = FALSE,
-                                   ...) {
-  spatial_infomap_internal(data,
-                           r2 = r2,
-                           label_singleton = label_singleton,
-                           min_spacial_resolution = min_spacial_resolution,
-                           distance_metric = distance_metric,
-                           weighted = weighted,
-                           weight_exponent = weight_exponent,
-                           verbose = verbose)
+spatial_infomap.matrix <- function(
+  data,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_spacial_resolution = 0,
+  distance_metric = c("haversine", "euclidean"),
+  weighted = FALSE,
+  weight_exponent = 1,
+  verbose = FALSE,
+  ...
+) {
+  spatial_infomap_internal(
+    data,
+    r2 = r2,
+    label_singleton = label_singleton,
+    min_spacial_resolution = min_spacial_resolution,
+    distance_metric = distance_metric,
+    weighted = weighted,
+    weight_exponent = weight_exponent,
+    verbose = verbose
+  )
 }
 
 
 #' @export
 #' @rdname spatial_infomap
-spatial_infomap.data.frame <- function(data,
-                                       r2 = 10,
-                                       label_singleton = TRUE,
-                                       min_spacial_resolution = 0,
-                                       distance_metric = c("haversine", "euclidean"),
-                                       weighted = FALSE,
-                                       weight_exponent = 1,
-                                       verbose = FALSE,
-                                       ...) {
-  spatial_infomap(as.trackframe(data, ...),
-                  r2 = r2,
-                  label_singleton = label_singleton,
-                  min_spacial_resolution = min_spacial_resolution,
-                  distance_metric = distance_metric,
-                  weighted = weighted,
-                  weight_exponent = weight_exponent,
-                  verbose = verbose)
+spatial_infomap.data.frame <- function(
+  data,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_spacial_resolution = 0,
+  distance_metric = c("haversine", "euclidean"),
+  weighted = FALSE,
+  weight_exponent = 1,
+  verbose = FALSE,
+  ...
+) {
+  spatial_infomap(
+    as.trackframe(data, ...),
+    r2 = r2,
+    label_singleton = label_singleton,
+    min_spacial_resolution = min_spacial_resolution,
+    distance_metric = distance_metric,
+    weighted = weighted,
+    weight_exponent = weight_exponent,
+    verbose = verbose
+  )
 }
 
 
 #' @export
 #' @rdname spatial_infomap
-spatial_infomap.trackframe <- function(data,
-                                       r2 = 10,
-                                       label_singleton = TRUE,
-                                       min_spacial_resolution = 0,
-                                       distance_metric = "euclidean",
-                                       weighted = FALSE,
-                                       weight_exponent = 1,
-                                       verbose = FALSE,
-                                       ...) {
-  stopifnot("Only distance_metric = 'euclidean' is available for objects of class trackframe" = distance_metric == "euclidean")
+spatial_infomap.trackframe <- function(
+  data,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_spacial_resolution = 0,
+  distance_metric = "euclidean",
+  weighted = FALSE,
+  weight_exponent = 1,
+  verbose = FALSE,
+  ...
+) {
+  stopifnot(
+    "Only distance_metric = 'euclidean' is available for objects of class trackframe" = distance_metric ==
+      "euclidean"
+  )
   # transform from track.frame
   data[[attr(data, "time")]] <- as.integer(data[[attr(data, "time")]])
   data <- as.matrix(data[, c(attr(data, "easting"), attr(data, "northing"), attr(data, "time"))])
-  spatial_infomap_internal(data,
-                           r2 = r2,
-                           label_singleton = label_singleton,
-                           min_spacial_resolution = min_spacial_resolution,
-                           distance_metric = distance_metric,
-                           weighted = weighted,
-                           weight_exponent = weight_exponent,
-                           verbose = verbose)
+  spatial_infomap_internal(
+    data,
+    r2 = r2,
+    label_singleton = label_singleton,
+    min_spacial_resolution = min_spacial_resolution,
+    distance_metric = distance_metric,
+    weighted = weighted,
+    weight_exponent = weight_exponent,
+    verbose = verbose
+  )
 }
 
 
 #' @export
 #' @rdname spatial_infomap
-spatial_infomap.move2 <- function(data,
-                                  r2 = 10,
-                                  label_singleton = TRUE,
-                                  min_spacial_resolution = 0,
-                                  distance_metric = c("haversine", "euclidean"),
-                                  weighted = FALSE,
-                                  weight_exponent = 1,
-                                  verbose = FALSE,
-                                  ...) {
-  
+spatial_infomap.move2 <- function(
+  data,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_spacial_resolution = 0,
+  distance_metric = c("haversine", "euclidean"),
+  weighted = FALSE,
+  weight_exponent = 1,
+  verbose = FALSE,
+  ...
+) {
   # transform from move2
-  data <- cbind(st_coordinates(data[[attr(data, "sf_column")]]),
-                as.integer(data[[attr(data, "time_column")]]))
-  spatial_infomap_internal(data,
-                           r2 = r2,
-                           label_singleton = label_singleton,
-                           min_spacial_resolution = min_spacial_resolution,
-                           distance_metric = distance_metric,
-                           weighted = weighted,
-                           weight_exponent = weight_exponent,
-                           verbose = verbose)
+  data <- cbind(
+    st_coordinates(data[[attr(data, "sf_column")]]),
+    as.integer(data[[attr(data, "time_column")]])
+  )
+  spatial_infomap_internal(
+    data,
+    r2 = r2,
+    label_singleton = label_singleton,
+    min_spacial_resolution = min_spacial_resolution,
+    distance_metric = distance_metric,
+    weighted = weighted,
+    weight_exponent = weight_exponent,
+    verbose = verbose
+  )
 }
 
 
 #' @export
 #' @rdname spatial_infomap
-spatial_infomap.sftrack <- function(data,
-                                    r2 = 10,
-                                    label_singleton = TRUE,
-                                    min_spacial_resolution = 0,
-                                    distance_metric = c("haversine", "euclidean"),
-                                    weighted = FALSE,
-                                    weight_exponent = 1,
-                                    verbose = FALSE,
-                                    ...) {
+spatial_infomap.sftrack <- function(
+  data,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_spacial_resolution = 0,
+  distance_metric = c("haversine", "euclidean"),
+  weighted = FALSE,
+  weight_exponent = 1,
+  verbose = FALSE,
+  ...
+) {
   #FIXME check if distance_metric fits to crs
   # transform from sftrack
-  data <- cbind(st_coordinates(data[[attr(data, "sf_column")]]),
-                as.integer(data[[attr(data, "time_col")]]))
-  spatial_infomap_internal(data,
-                           r2 = r2,
-                           label_singleton = label_singleton,
-                           min_spacial_resolution = min_spacial_resolution,
-                           distance_metric = distance_metric,
-                           weighted = weighted,
-                           weight_exponent = weight_exponent,
-                           verbose = verbose)
+  data <- cbind(
+    st_coordinates(data[[attr(data, "sf_column")]]),
+    as.integer(data[[attr(data, "time_col")]])
+  )
+  spatial_infomap_internal(
+    data,
+    r2 = r2,
+    label_singleton = label_singleton,
+    min_spacial_resolution = min_spacial_resolution,
+    distance_metric = distance_metric,
+    weighted = weighted,
+    weight_exponent = weight_exponent,
+    verbose = verbose
+  )
 }
 
 

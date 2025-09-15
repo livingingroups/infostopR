@@ -1,5 +1,3 @@
-
-
 example_data <- function() {
   dat <- rbind.data.frame(
     c(55.75047131370115, 12.340687520121195, 0.0),

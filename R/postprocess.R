@@ -1,4 +1,3 @@
-
 #' Compute Intervals
 #'
 #' This function computes time intervals for each unique label in the mobility data.
@@ -19,18 +18,17 @@
 #' intervals <- compute_intervals(model$labels, times)
 #' }
 #' @export
-compute_intervals <- function(labels,
-                              times,
-                              max_time_between = 86400) {
+compute_intervals <- function(labels, times, max_time_between = 86400) {
   check_infostop_initialized()
 
   checkmate::assert_integerish(labels, any.missing = TRUE) #FIXME: are NAs ok?
   checkmate::assert_integerish(times, len = length(labels), any.missing = FALSE)
   checkmate::assert_numeric(max_time_between, lower = 0, len = 1, any.missing = FALSE)
-  
-  result <- py_infostop$compute_intervals(as.matrix(as.integer(labels)),
-                                          as.matrix(as.integer(times)),
-                                          max_time_between)
+
+  result <- py_infostop$compute_intervals(
+    as.matrix(as.integer(labels)),
+    as.matrix(as.integer(times)),
+    max_time_between
+  )
   return(result)
 }
-

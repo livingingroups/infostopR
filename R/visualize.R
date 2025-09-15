@@ -1,5 +1,3 @@
-
-
 #' @export
 #' @noRd
 print.folium_map <- function(x, ...) {
@@ -40,9 +38,9 @@ print.folium_map <- function(x, ...) {
 #' if (is_infostop_initialized()) {
 #'  data("path_data_frame", package = "trackframe")
 #'  model <- infostop(path_data_frame, r1 = 10, r2 = 10, distance_metric = "haversine")
-#'   map <- plot_map(model, 
-#'                 scatter = TRUE, 
-#'                 polygons_color = "#ff0000", 
+#'   map <- plot_map(model,
+#'                 scatter = TRUE,
+#'                 polygons_color = "#ff0000",
 #'                 zoom_start = 10)
 #'  \dontrun{
 #'   map$show_in_browser()
@@ -50,24 +48,25 @@ print.folium_map <- function(x, ...) {
 #'  }
 #' }
 #' @export
-plot_map <- function(model,
-                     display_data="unique_stationary",
-                     polygons=TRUE,
-                     scatter=FALSE,
-                     heatmap=TRUE,
-                     polygons_color="#ee9999",
-                     polygons_opacity=0.3,
-                     scatter_color="k",
-                     scatter_opacity=0.3,
-                     scatter_subsampling=1,
-                     heatmap_radius=8,
-                     heatmap_subsampling=1,
-                     zoom_start=12,
-                     tiles="OpenStreetMap",
-                     API_key=NULL
+plot_map <- function(
+  model,
+  display_data = "unique_stationary",
+  polygons = TRUE,
+  scatter = FALSE,
+  heatmap = TRUE,
+  polygons_color = "#ee9999",
+  polygons_opacity = 0.3,
+  scatter_color = "k",
+  scatter_opacity = 0.3,
+  scatter_subsampling = 1,
+  heatmap_radius = 8,
+  heatmap_subsampling = 1,
+  zoom_start = 12,
+  tiles = "OpenStreetMap",
+  API_key = NULL
 ) {
   check_infostop_initialized()
-  
+
   checkmate::assert_multi_class(model, c("Infostop", "SpatialInfomap"))
   checkmate::assert_character(display_data, len = 1, any.missing = FALSE)
   checkmate::assert_logical(polygons, len = 1, any.missing = FALSE)
@@ -84,21 +83,23 @@ plot_map <- function(model,
   checkmate::assert_character(tiles, len = 1, any.missing = FALSE)
   checkmate::assert_character(API_key, len = 1, any.missing = FALSE, null.ok = TRUE)
 
-  map <- py_infostop$plot_map(model$model,
-                              display_data = display_data,
-                              polygons = polygons,
-                              scatter = scatter,
-                              heatmap = heatmap,
-                              polygons_color = polygons_color,
-                              polygons_opacity = polygons_opacity,
-                              scatter_color = scatter_color,
-                              scatter_opacity = scatter_opacity,
-                              scatter_subsampling = scatter_subsampling,
-                              heatmap_radius = heatmap_radius,
-                              heatmap_subsampling = heatmap_subsampling,
-                              zoom_start = zoom_start,
-                              tiles = tiles,
-                              API_key = API_key)
+  map <- py_infostop$plot_map(
+    model$model,
+    display_data = display_data,
+    polygons = polygons,
+    scatter = scatter,
+    heatmap = heatmap,
+    polygons_color = polygons_color,
+    polygons_opacity = polygons_opacity,
+    scatter_color = scatter_color,
+    scatter_opacity = scatter_opacity,
+    scatter_subsampling = scatter_subsampling,
+    heatmap_radius = heatmap_radius,
+    heatmap_subsampling = heatmap_subsampling,
+    zoom_start = zoom_start,
+    tiles = tiles,
+    API_key = API_key
+  )
   return(folium_map(map$m))
 }
 
@@ -114,23 +115,23 @@ plot_map <- function(model,
 #'   \itemize{
 #'     \item \code{show_in_browser()}
 #'     \item \code{fit_bounds(bounds, padding_top_left = NULL,
-#'                            padding_bottom_right = NULL, 
+#'                            padding_bottom_right = NULL,
 #'                            padding = NULL, max_zoom = NULL)}
 #'     \item \code{save(outfile, close_file = TRUE, ...)}
 #'   }
-#' 
+#'
 #' @details
 #'   \itemize{
 #'     \item \code{show_in_browser()}: \cr
 #'       Display the map in the default web browser
 #'     \item \code{fit_bounds(bounds,
 #'                            padding_top_left = NULL,
-#'                            padding_bottom_right = NULL, 
+#'                            padding_bottom_right = NULL,
 #'                            padding = NULL,
 #'                            max_zoom = NULL)}: \cr
-#' 
+#'
 #'       Fit the map to contain a bounding box with the maximum zoom level possible.
-#'       
+#'
 #'       Arguments:
 #'       \describe{
 #'         \item{bounds}{A matrix of two points \code{rbind(c(lat1, lng1), c(lat2, lng2))} specifying the southwest and northeast corners of the bounding box.}
@@ -141,7 +142,7 @@ plot_map <- function(model,
 #'       }
 #'     \item \code{save(outfile, close_file = TRUE, ...)}: \cr
 #'       Save the map to an HTML file
-#'       
+#'
 #'       Arguments:
 #'       \describe{
 #'         \item{outfile}{A character string giving the path to the output HTML file.}
@@ -149,7 +150,7 @@ plot_map <- function(model,
 #'         \item{...}{Additional arguments passed to the underlying save method.}
 #'       }
 #'   }
-#' 
+#'
 #' @examples
 #' if (is_infostop_initialized()) {
 #'  data("path_data_frame", package = "trackframe")
@@ -164,16 +165,18 @@ plot_map <- function(model,
 folium_map <- function(pointer) {
   env <- new.env(parent = emptyenv())
   env$map <- pointer
-  
+
   env$show_in_browser <- function() {
     env$map$show_in_browser()
   }
-  
-  env$fit_bounds <- function(bounds, 
-                             padding_top_left = NULL, 
-                             padding_bottom_right = NULL,
-                             padding = NULL, 
-                             max_zoom = NULL) {
+
+  env$fit_bounds <- function(
+    bounds,
+    padding_top_left = NULL,
+    padding_bottom_right = NULL,
+    padding = NULL,
+    max_zoom = NULL
+  ) {
     checkmate::assert_matrix(bounds, "numeric", ncol = 2, any.missing = FALSE)
     bounds <- apply(bounds, 1, as.list)
     env$map$fit_bounds(
@@ -184,13 +187,13 @@ folium_map <- function(pointer) {
       max_zoom = max_zoom
     )
   }
-  
+
   env$save <- function(outfile, close_file = TRUE, ...) {
     checkmate::assert_character(outfile, len = 1, any.missing = FALSE)
     checkmate::assert_logical(close_file, len = 1, any.missing = FALSE)
     env$map$save(outfile, close_file, ...)
   }
-  
+
   class(env) <- "FoliumMap"
   return(env)
 }
@@ -201,6 +204,8 @@ folium_map <- function(pointer) {
 print.FoliumMap <- function(x, ...) {
   writeLines("FoliumMap object")
   writeLines("  - show_in_browser()")
-  writeLines("  - fit_bounds(bounds, padding_top_left = NULL, padding_bottom_right = NULL, padding = NULL, max_zoom = NULL)")
+  writeLines(
+    "  - fit_bounds(bounds, padding_top_left = NULL, padding_bottom_right = NULL, padding = NULL, max_zoom = NULL)"
+  )
   writeLines("  - save(outfile, close_file = TRUE, ...)")
 }

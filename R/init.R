@@ -1,5 +1,3 @@
-
-
 #' Check if the Infostop is loaded
 #'
 #' @return Logical indicating if the Python module is imported.
@@ -13,68 +11,67 @@ is_infostop_initialized <- function() {
 
 
 is_python_initialized <- function() {
-  tryCatch(getNamespace("reticulate")$is_python_initialized(), 
-            error = function(e) FALSE)
+  tryCatch(getNamespace("reticulate")$is_python_initialized(), error = function(e) FALSE)
 }
 
 
 infostop_find_python <- function() {
-    spy <- Sys.getenv("INFOSTOP_PYTHON")
-    if (nchar(spy) > 0L) {
-        if (file.exists(spy)) {
-            return(spy)
-        } else {
-            msg <- "System variable 'INFOSTOP_PYTHON' set, but file '%s' does not exist."
-            stop(sprintf(msg, spy))
-        }
+  spy <- Sys.getenv("INFOSTOP_PYTHON")
+  if (nchar(spy) > 0L) {
+    if (file.exists(spy)) {
+      return(spy)
+    } else {
+      msg <- "System variable 'INFOSTOP_PYTHON' set, but file '%s' does not exist."
+      stop(sprintf(msg, spy))
     }
+  }
 
-    rpy <- Sys.getenv("RETICULATE_PYTHON")
-    if (nchar(rpy) > 0L) {
-        if (file.exists(rpy)) {
-            return(rpy)
-        } else {
-            msg <- "System variable 'RETICULATE_PYTHON' set, but file '%s' does not exist."
-            stop(sprintf(msg, rpy))
-        }
+  rpy <- Sys.getenv("RETICULATE_PYTHON")
+  if (nchar(rpy) > 0L) {
+    if (file.exists(rpy)) {
+      return(rpy)
+    } else {
+      msg <- "System variable 'RETICULATE_PYTHON' set, but file '%s' does not exist."
+      stop(sprintf(msg, rpy))
     }
+  }
 
-    config <- reticulate::py_discover_config("infostop", "infostop")
-    if (!is.null(config)) {
-        python_path <- unlist(strsplit(config$pythonpath, ":", fixed = TRUE))
-        files <- unlist(lapply(python_path, dir, include.dirs = TRUE))
-        if (isTRUE("infostop" %in% files)) {
-            return(config$python)
-        }
+  config <- reticulate::py_discover_config("infostop", "infostop")
+  if (!is.null(config)) {
+    python_path <- unlist(strsplit(config$pythonpath, ":", fixed = TRUE))
+    files <- unlist(lapply(python_path, dir, include.dirs = TRUE))
+    if (isTRUE("infostop" %in% files)) {
+      return(config$python)
     }
+  }
 
-    venvpy <- file.path(reticulate::virtualenv_root(), "infostop", "bin", "python")
-    if (file.exists(venvpy)) {
-        return(venvpy)
-    }
+  venvpy <- file.path(reticulate::virtualenv_root(), "infostop", "bin", "python")
+  if (file.exists(venvpy)) {
+    return(venvpy)
+  }
 
-    condapy <- file.path(reticulate::miniconda_path(), "envs", "infostop", "bin", "python")
-    if (file.exists(condapy)) {
-        return(condapy)
-    }
+  condapy <- file.path(reticulate::miniconda_path(), "envs", "infostop", "bin", "python")
+  if (file.exists(condapy)) {
+    return(condapy)
+  }
 
-    msg <- "could not find module 'infostop', please set the environment variable 'INFOSTOP_PYTHON'!"
-    stop(msg)
+  msg <- "could not find module 'infostop', please set the environment variable 'INFOSTOP_PYTHON'!"
+  stop(msg)
 }
 
 
 set_python_version <- function(python = NULL, virtualenv = NULL, condaenv = NULL) {
-    if (!is.null(python)) {
-        reticulate::use_python(python, required = TRUE)
-    } else if (!is.null(virtualenv)) {
-        reticulate::use_virtualenv(virtualenv, required = TRUE)
-    } else if (!is.null(condaenv)) {
-        reticulate::use_condaenv(condaenv, required = TRUE)
-    } else {
-        python <- infostop_find_python()
-        reticulate::use_python(python, required = TRUE)
-    }
-    reticulate::py_config()
+  if (!is.null(python)) {
+    reticulate::use_python(python, required = TRUE)
+  } else if (!is.null(virtualenv)) {
+    reticulate::use_virtualenv(virtualenv, required = TRUE)
+  } else if (!is.null(condaenv)) {
+    reticulate::use_condaenv(condaenv, required = TRUE)
+  } else {
+    python <- infostop_find_python()
+    reticulate::use_python(python, required = TRUE)
+  }
+  reticulate::py_config()
 }
 
 
@@ -95,13 +92,13 @@ set_python_version <- function(python = NULL, virtualenv = NULL, condaenv = NULL
 #' infostop_initialize()
 #' }
 #' @export
-infostop_initialize <- function(python = NULL,
-                                virtualenv = NULL,
-                                condaenv = NULL) {
-  assert(check_character(python, len = 1L, any.missing = FALSE, null.ok = TRUE),
-         check_character(virtualenv, len = 1L, any.missing = FALSE, null.ok = TRUE),
-         check_character(condaenv, len = 1L, any.missing = FALSE, null.ok = TRUE),
-         combine = "and")
+infostop_initialize <- function(python = NULL, virtualenv = NULL, condaenv = NULL) {
+  assert(
+    check_character(python, len = 1L, any.missing = FALSE, null.ok = TRUE),
+    check_character(virtualenv, len = 1L, any.missing = FALSE, null.ok = TRUE),
+    check_character(condaenv, len = 1L, any.missing = FALSE, null.ok = TRUE),
+    combine = "and"
+  )
 
   if (is_infostop_initialized()) {
     writeLines("Info: Package infostop is already initialized!")
@@ -115,11 +112,15 @@ infostop_initialize <- function(python = NULL,
   for (mod in py_depends) {
     state <- try(rpy(mod, reticulate::import(mod)), silent = TRUE)
     if (inherits(state, "try-error")) {
-      msg <- c(sprintf("could not import module '%s', with ", mod),
-               sprintf("python '%s'. ", python_config$python),
-               if(mod == "infostop")
-                 "Please install infostop and/or set the environment variable 'INFOSTOP_PYTHON'."
-               else "")
+      msg <- c(
+        sprintf("could not import module '%s', with ", mod),
+        sprintf("python '%s'. ", python_config$python),
+        if (mod == "infostop") {
+          "Please install infostop and/or set the environment variable 'INFOSTOP_PYTHON'."
+        } else {
+          ""
+        }
+      )
       stop(msg)
     }
   }
@@ -129,10 +130,13 @@ infostop_initialize <- function(python = NULL,
 
 check_infostop_initialized <- function() {
   if (!is_infostop_initialized()) {
-    max_allowed_cutoff <- 500L  # any number bigger than 500 triggers a warning and the default is used.
+    max_allowed_cutoff <- 500L # any number bigger than 500 triggers a warning and the default is used.
     caller_name <- deparse(sys.calls()[[sys.nframe() - 1]], width.cutoff = max_allowed_cutoff)
-    msg <- sprintf("in '%s' infostop is not initialized, %s ", caller_name,
-                   "use 'infostop_initialize' to initialize infostop!")
+    msg <- sprintf(
+      "in '%s' infostop is not initialized, %s ",
+      caller_name,
+      "use 'infostop_initialize' to initialize infostop!"
+    )
     stop(msg, call. = FALSE)
   }
 }
