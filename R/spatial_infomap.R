@@ -6,16 +6,18 @@
 #' @param easting a numeric vector of x-coordinates (easting).
 #' @param northing a numeric vector of y-coordinates (northing).
 #' @param r2 Numeric. Max distance between stationary points to form an edge.
-#' @param label_singleton Logical. If TRUE, give stationary locations that were only visited once their own label.
-#'   If FALSE, label them as non-stationary (-1).
-#' @param min_spacial_resolution Numeric. The minimal difference allowed between points before they are considered the same points.
+#' @param label_singleton Logical. If TRUE, give stationary locations that were only visited once
+#'   their own label. If FALSE, label them as non-stationary (-1).
+#' @param min_spacial_resolution Numeric. The minimal difference allowed between points before they
+#'   are considered the same points.
 #' @param distance_metric Character. Either 'haversine' (for geo data) or 'euclidean'.
 #' @param weighted Logical. Weight edges in the network representation by distance.
 #' @param weight_exponent Numeric. Exponent used when weighting edges in the network.
 #' @param verbose Logical. Print output during the fitting procedure.
 #' @param ... other arguments passed to `as.trackframe()`
 #'
-#' @return A numeric vector of cluster labels for each input point. Points labeled -1 are considered non-stationary.
+#' @return A numeric vector of cluster labels for each input point. Points labeled -1 are
+#'   considered non-stationary.
 #'
 #' @examples
 #' if (is_infostop_initialized()) {
@@ -66,16 +68,18 @@ spatial_infomap_xyt <- function(
 #' @param data A numeric matrix with 2 or 3 columns. Columns 1 and 2 are spatial coordinates.
 #'   Column 3 is optional and represents time.
 #' @param r2 Numeric. Max distance between stationary points to form an edge.
-#' @param label_singleton Logical. If TRUE, give stationary locations that were only visited once their own label.
-#'   If FALSE, label them as non-stationary (-1).
-#' @param min_spacial_resolution Numeric. The minimal difference allowed between points before they are considered the same points.
+#' @param label_singleton Logical. If TRUE, give stationary locations that were only visited
+#'   once their own label. If FALSE, label them as non-stationary (-1).
+#' @param min_spacial_resolution Numeric. The minimal difference allowed between points before
+#'   they are considered the same points.
 #' @param distance_metric Character. Either 'haversine' (for geo data) or 'euclidean'.
 #' @param weighted Logical. Weight edges in the network representation by distance.
 #' @param weight_exponent Numeric. Exponent used when weighting edges in the network.
 #' @param verbose Logical. Print output during the fitting procedure.
 #' @param ... other arguments passed to `as.trackframe()`
 #'
-#' @return A numeric vector of cluster labels for each input point. Points labeled -1 are considered non-stationary.
+#' @return A numeric vector of cluster labels for each input point. Points labeled -1 are
+#'   considered non-stationary.
 #'
 #' @examples
 #' if (is_infostop_initialized()) {
@@ -208,10 +212,11 @@ spatial_infomap.trackframe <- function(
   verbose = FALSE,
   ...
 ) {
-  stopifnot(
-    "Only distance_metric = 'euclidean' is available for objects of class trackframe" = distance_metric ==
-      "euclidean"
+  if (distance_metric != "euclidean") {
+    stop(
+      "Only distance_metric = 'euclidean' is available for objects of class trackframe"
   )
+  }
   # transform from track.frame
   data[[attr(data, "time")]] <- as.integer(data[[attr(data, "time")]])
   data <- as.matrix(data[, c(attr(data, "easting"), attr(data, "northing"), attr(data, "time"))])

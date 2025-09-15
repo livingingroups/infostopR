@@ -1,30 +1,35 @@
 #' Detect Stop Locations in Mobility Data
 #'
 #' This function creates an Infostop model to infer stop-location labels from mobility trace.
-#' The algorithm works by first identifying stationary events in the trace, then clustering
-#' these events into stop locations using a network-based approach. Dynamic (moving) points are labeled -1.
+#' The algorithm works by first identifying stationary events in the trace, then clustering these
+#' events into stop locations using a network-based approach.
+#' Dynamic (moving) points are labeled -1.
 #'
-#' @param x a numeric vector of x-coordinates (easting for distance_metric euclidean - longitude for distance_metric "haversine").
-#' @param y a numeric vector of y-coordinates (northing for distance_metric euclidean - latitude for distance_metric "haversine").
-#' @param time a vecor inheriting from \code{numeric} or \code{POSIXt} or \code{Date}
-#'        containing the timestamps corresponding to the x and y coordinates.
-#' @param r1 A numeric vector giving the maximum distance between time-consecutive points to label them as stationary.
-#'   Higher values will result in more points being considered stationary.
-#' @param r2 A numeric vector giving the maximum distance between stationary points to form an edge in the network.
-#'   Higher values will connect more distant stationary points, potentially merging stop locations.
-#' @param label_singleton A logical, if \code{TRUE}, give stationary locations that were only visited once their own label.
-#'   If FALSE, label them as non-stationary (-1).
-#' @param min_staying_time An integer giving the minimum duration (in seconds) that can constitute a stop.
-#'   Only relevant if timestamps are provided in the data.
-#' @param max_time_between An integer giving the maximum duration (in seconds) between consecutive points
-#'   to consider them part of the same stop. Only relevant if timestamps are provided.
-#' @param min_size An integer giving the minimum number of points required to consider a group stationary.
-#' @param min_spacial_resolution A numeric giving the minimum difference allowed between points before they
-#'   are considered the same points. Useful for dealing with GPS jitter.
-#' @param distance_metric A character string, either 'haversine' (for geographic coordinates) or 'euclidean'
-#'   (for Cartesian coordinates).
-#' @param weighted A logical, if \code{TRUE}, weight edges in the network by distance, giving more importance
-#'   to closer points.
+#' @param x a numeric vector of x-coordinates (easting for distance_metric euclidean - longitude for
+#'   distance_metric "haversine").
+#' @param y a numeric vector of y-coordinates (northing for distance_metric euclidean - latitude for
+#'   distance_metric "haversine").
+#' @param time a vecor inheriting from \code{numeric} or \code{POSIXt} or \code{Date} containing the
+#'   timestamps corresponding to the x and y coordinates.
+#' @param r1 A numeric vector giving the maximum distance between time-consecutive points to label
+#'   them as stationary. Higher values will result in more points being considered stationary.
+#' @param r2 A numeric vector giving the maximum distance between stationary points to form an edge
+#'   in the network. Higher values will connect more distant stationary points,
+#'   potentially merging stop locations.
+#' @param label_singleton A logical, if \code{TRUE}, give stationary locations that
+#'   were only visited once their own label. If FALSE, label them as non-stationary (-1).
+#' @param min_staying_time An integer giving the minimum duration (in seconds) that can constitute a
+#'   stop. Only relevant if timestamps are provided in the data.
+#' @param max_time_between An integer giving the maximum duration (in seconds) between consecutive
+#'   points to consider them part of the same stop. Only relevant if timestamps are provided.
+#' @param min_size An integer giving the minimum number of points required to consider a group
+#'   stationary.
+#' @param min_spacial_resolution A numeric giving the minimum difference allowed between points
+#'   before they are considered the same points. Useful for dealing with GPS jitter.
+#' @param distance_metric A character string, either 'haversine' (for geographic coordinates) or
+#'   'euclidean' (for Cartesian coordinates).
+#' @param weighted A logical, if \code{TRUE}, weight edges in the network by distance, giving more
+#'   importance to closer points.
 #' @param weight_exponent A numeric, exponent used when weighting edges in the network.
 #'   Higher values give more importance to distance.
 #' @param verbose A logical, if \code{TRUE}, print progress information during computation.
@@ -38,7 +43,8 @@
 #' @details
 #' The Infostop algorithm works in two main steps:
 #'
-#' 1. It first identifies stationary events by grouping consecutive points that are close in space and time.
+#' 1. It first identifies stationary events by grouping consecutive points that are close in space
+#'    and time.
 #' 2. Then it clusters these stationary events into stop locations using a network-based approach.
 #'
 #' The main parameters that control the algorithm's behavior are:
@@ -47,10 +53,11 @@
 #'   \item{\code{r1}}{The critical radius (in the same units as your coordinates) that determines
 #'     whether consecutive points are part of the same stationary event. For geographic coordinates,
 #'     this is typically in meters. Larger values will identify more points as stationary.}
-#'   \item{\code{r2}}{The maximum distance between stationary events to consider them connected in the
-#'     network. Larger values will result in more connections and potentially fewer, larger clusters.}
-#'   \item{\code{min_staying_time}}{The minimum time (in seconds) required for a sequence of points to
-#'     be considered a stationary event. Increase this value to ignore brief stops.}
+#'   \item{\code{r2}}{The maximum distance between stationary events to consider them connected
+#'     in the network. Larger values will result in more connections and potentially fewer,
+#'     larger clusters.}
+#'   \item{\code{min_staying_time}}{The minimum time (in seconds) required for a sequence of points
+#'     to be considered a stationary event. Increase this value to ignore brief stops.}
 #'   \item{\code{max_time_between}}{The maximum time gap (in seconds) between consecutive points to
 #'     still consider them part of the same stationary event. Useful for handling missing data.}
 #'   \item{\code{min_size}}{The minimum number of points required to form a stationary event.
@@ -125,27 +132,31 @@ infostop_xyt <- function(
 #'
 #' This function creates an Infostop model to infer stop-location labels from mobility trace.
 #' The algorithm works by first identifying stationary events in the trace, then clustering
-#' these events into stop locations using a network-based approach. Dynamic (moving) points are labeled -1.
+#' these events into stop locations using a network-based approach.
+#' Dynamic (moving) points are labeled -1.
 #'
-#' @param data Either an object of class \code{trackframe} or a numeric matrix with 2 or 3 columns. The first two columns must contain spatial
-#'   coordinates (latitude, longitude). The optional third column contains timestamps.
-#' @param r1 A numeric vector giving the maximum distance between time-consecutive points to label them as stationary.
-#'   Higher values will result in more points being considered stationary.
-#' @param r2 A numeric vector giving the maximum distance between stationary points to form an edge in the network.
-#'   Higher values will connect more distant stationary points, potentially merging stop locations.
-#' @param label_singleton A logical, if \code{TRUE}, give stationary locations that were only visited once their own label.
-#'   If FALSE, label them as non-stationary (-1).
-#' @param min_staying_time An integer giving the minimum duration (in seconds) that can constitute a stop.
-#'   Only relevant if timestamps are provided in the data.
-#' @param max_time_between An integer giving the maximum duration (in seconds) between consecutive points
-#'   to consider them part of the same stop. Only relevant if timestamps are provided.
-#' @param min_size An integer giving the minimum number of points required to consider a group stationary.
-#' @param min_spacial_resolution A numeric giving the minimum difference allowed between points before they
-#'   are considered the same points. Useful for dealing with GPS jitter.
-#' @param distance_metric A character string, either 'haversine' (for geographic coordinates) or 'euclidean'
-#'   (for Cartesian coordinates).
-#' @param weighted A logical, if \code{TRUE}, weight edges in the network by distance, giving more importance
-#'   to closer points.
+#' @param data Either an object of class \code{trackframe} or a numeric matrix with 2 or 3 columns.
+#'   The first two columns must contain spatial coordinates (latitude, longitude).
+#'   The optional third column contains timestamps.
+#' @param r1 A numeric vector giving the maximum distance between time-consecutive points to label
+#'   them as stationary. Higher values will result in more points being considered stationary.
+#' @param r2 A numeric vector giving the maximum distance between stationary points to form an edge
+#'   in the network. Higher values will connect more distant stationary points, potentially merging
+#'   stop locations.
+#' @param label_singleton A logical, if \code{TRUE}, give stationary locations that were only
+#'   visited once their own label. If FALSE, label them as non-stationary (-1).
+#' @param min_staying_time An integer giving the minimum duration (in seconds) that can constitute
+#'   a stop. Only relevant if timestamps are provided in the data.
+#' @param max_time_between An integer giving the maximum duration (in seconds) between consecutive
+#'   points to consider them part of the same stop. Only relevant if timestamps are provided.
+#' @param min_size An integer giving the minimum number of points required to consider a group
+#'   stationary.
+#' @param min_spacial_resolution A numeric giving the minimum difference allowed between points
+#'   before they are considered the same points. Useful for dealing with GPS jitter.
+#' @param distance_metric A character string, either 'haversine' (for geographic coordinates) or
+#'   'euclidean' (for Cartesian coordinates).
+#' @param weighted A logical, if \code{TRUE}, weight edges in the network by distance,
+#'   giving more importance to closer points.
 #' @param weight_exponent A numeric, exponent used when weighting edges in the network.
 #'   Higher values give more importance to distance.
 #' @param verbose A logical, if \code{TRUE}, print progress information during computation.
@@ -160,7 +171,8 @@ infostop_xyt <- function(
 #' @details
 #' The Infostop algorithm works in two main steps:
 #'
-#' 1. It first identifies stationary events by grouping consecutive points that are close in space and time.
+#' 1. It first identifies stationary events by grouping consecutive points that are close in space
+#'    and time.
 #' 2. Then it clusters these stationary events into stop locations using a network-based approach.
 #'
 #' The main parameters that control the algorithm's behavior are:
@@ -169,10 +181,11 @@ infostop_xyt <- function(
 #'   \item{\code{r1}}{The critical radius (in the same units as your coordinates) that determines
 #'     whether consecutive points are part of the same stationary event. For geographic coordinates,
 #'     this is typically in meters. Larger values will identify more points as stationary.}
-#'   \item{\code{r2}}{The maximum distance between stationary events to consider them connected in the
-#'     network. Larger values will result in more connections and potentially fewer, larger clusters.}
-#'   \item{\code{min_staying_time}}{The minimum time (in seconds) required for a sequence of points to
-#'     be considered a stationary event. Increase this value to ignore brief stops.}
+#'   \item{\code{r2}}{The maximum distance between stationary events to consider them connected in
+#'     the network. Larger values will result in more connections and potentially fewer,
+#'     larger clusters.}
+#'   \item{\code{min_staying_time}}{The minimum time (in seconds) required for a sequence of points
+#'     to be considered a stationary event. Increase this value to ignore brief stops.}
 #'   \item{\code{max_time_between}}{The maximum time gap (in seconds) between consecutive points to
 #'     still consider them part of the same stationary event. Useful for handling missing data.}
 #'   \item{\code{min_size}}{The minimum number of points required to form a stationary event.
@@ -207,13 +220,16 @@ infostop_xyt <- function(
 #'  infostop_df1 <- infostop(data = tf, distance_metric = "euclidean")
 #'
 #'  # or use infostop.data.frame method with col specification
-#'  infostop_df2 <- infostop(path_data_frame, distance_metric = "euclidean",
+#'   infostop_df2 <- infostop(path_data_frame,
+#'     distance_metric = "euclidean",
 #'                          time_col = "time",
 #'                          easting_col = "longitude",
 #'                          northing_col = "latitude",
-#'                          id_col = "id")
+#'     id_col = "id"
+#'   )
 #'  # or use automated col guessing if applicable
-#'  infostop_df3 <- infostop(df, distance_metric = "euclidean") #automated col guessing
+#'   # FIXME: @RH df is a function since not defined here.
+#'   # infostop_df3 <- infostop(df, distance_metric = "euclidean") # automated col guessing
 #'
 #'  # with sftrack
 #'  data("path_sftrack", package = "trackframe")
@@ -252,7 +268,7 @@ refine_labels <- function(labels) {
   }
   labels <- as.integer(labels)
   labels[labels == -1L] <- NA_integer_
-  return(labels)
+  labels
 }
 
 
@@ -369,14 +385,18 @@ infostop_internal <- function(
 
 # FIXME: do we really want to support data.frame or better force user to use infostop_xyt?
 
-#' @param time_col a character string specifying the column name of the time column. If no column is specified,
-#' the `time_col` is tried to be matched by possible names provided in `tf_options("time_col")`. In case of multiple matches, the first match is chosen.
-#' @param easting_col a character string specifying the column name of the easting column. If no column is specified,
-#' the `easting_col` is tried to be matched by possible names provided in `tf_options("easting_col")`. In case of multiple matches, the first match is chosen.
-#' @param northing_col a character string specifying the column name of the northing column. If no column is specified,
-#' the `northing_col` is tried to be matched by possible names provided in `tf_options("northing_col")`. In case of multiple matches, the first match is chosen.
-#' @param id_col optional character vector specifying identifier column names. If no column is specified,
-#' the `id_col` is tried to be matched by possible names provided in `tf_options("id_col")`. In case of multiple matches, the first match is chosen.
+#' @param time_col a character string specifying the column name of the time column. If no column is
+#'   specified, the `time_col` is tried to be matched by possible names provided in
+#'   `tf_options("time_col")`. In case of multiple matches, the first match is chosen.
+#' @param easting_col a character string specifying the column name of the easting column. If no
+#'   column is specified, the `easting_col` is tried to be matched by possible names provided in
+#'   `tf_options("easting_col")`. In case of multiple matches, the first match is chosen.
+#' @param northing_col a character string specifying the column name of the northing column. If no
+#'   column is specified, the `northing_col` is tried to be matched by possible names provided in
+#'   `tf_options("northing_col")`. In case of multiple matches, the first match is chosen.
+#' @param id_col optional character vector specifying identifier column names. If no column is
+#'   specified, the `id_col` is tried to be matched by possible names provided in
+#'   `tf_options("id_col")`. In case of multiple matches, the first match is chosen.
 #' @export
 #' @rdname infostop
 infostop.data.frame <- function(
@@ -410,24 +430,24 @@ infostop.data.frame <- function(
   trackframe:::warn_if_guess_ambiguous(data, guesses) #FIXME: export in trackfram, remove :::
 
   time_col <- guesses[["time_col"]][1]
-  assert_choice(time_col, colnames(data), null.ok = FALSE)
-  assert_character(time_col, len = 1, null.ok = FALSE)
-  assert_numeric(data[[time_col]])
+  checkmate::assert_choice(time_col, colnames(data), null.ok = FALSE)
+  checkmate::assert_character(time_col, len = 1, null.ok = FALSE)
+  checkmate::assert_numeric(data[[time_col]])
 
   easting_col <- guesses[["easting_col"]][1]
-  assert_choice(easting_col, colnames(data), null.ok = FALSE)
-  assert_character(easting_col, len = 1, null.ok = FALSE)
+  checkmate::assert_choice(easting_col, colnames(data), null.ok = FALSE)
+  checkmate::assert_character(easting_col, len = 1, null.ok = FALSE)
 
   northing_col <- guesses[["northing_col"]][1]
-  assert_choice(northing_col, colnames(data), null.ok = FALSE)
-  assert_character(northing_col, len = 1, null.ok = FALSE)
+  checkmate::assert_choice(northing_col, colnames(data), null.ok = FALSE)
+  checkmate::assert_character(northing_col, len = 1, null.ok = FALSE)
 
   id_col <- guesses[["id_col"]][1]
   if (is.na(id_col)) {
     id_col <- NULL
   }
-  assert_choice(id_col, colnames(data), null.ok = TRUE)
-  assert_character(id_col, len = 1, null.ok = TRUE)
+  checkmate::assert_choice(id_col, colnames(data), null.ok = TRUE)
+  checkmate::assert_character(id_col, len = 1, null.ok = TRUE)
 
   ids <- if (is.null(id_col)) NULL else data[[id_col]]
 
@@ -472,10 +492,11 @@ infostop.trackframe <- function(
   verbose = FALSE,
   ...
 ) {
-  stopifnot(
-    "Only distance_metric = 'euclidean' is available for objects of class trackframe" = distance_metric ==
-      "euclidean"
-  )
+  if (distance_metric != "euclidean") {
+    stop(
+      "Only distance_metric = 'euclidean' is available for objects of class trackframe"
+    )
+  }
   # transform from track.frame
 
   id_col <- attr(data, "id")
@@ -571,9 +592,9 @@ get_id_column <- function(x) {
 }
 
 
-assert_crs_euclidean <- function(crs, na.ok = FALSE) {
+assert_crs_euclidean <- function(crs, na_ok = FALSE) {
   if (is.na(crs$input)) {
-    if (isTRUE(na.ok)) {
+    if (isTRUE(na_ok)) {
       return(invisible(NULL))
     }
     stop("no crs information available.")
@@ -590,9 +611,9 @@ assert_crs_euclidean <- function(crs, na.ok = FALSE) {
 }
 
 
-assert_crs_haversine <- function(crs, na.ok = FALSE) {
+assert_crs_haversine <- function(crs, na_ok = FALSE) {
   if (is.na(crs$input)) {
-    if (isTRUE(na.ok)) {
+    if (isTRUE(na_ok)) {
       return(invisible(NULL))
     }
     stop("no crs information available.")
@@ -670,9 +691,9 @@ infostop.sftrack <- function(
   if (distance_metric == "haversine") {
     x_y <- st_coordinates(data[[attr(data, "sf_column")]])
     assert_lonlat(x_y, 1)
-    assert_crs_haversine(crs, na.ok = TRUE)
+    assert_crs_haversine(crs, na_ok = TRUE)
   } else {
-    assert_crs_euclidean(crs, na.ok = TRUE)
+    assert_crs_euclidean(crs, na_ok = TRUE)
   }
 
   # transform from sftrack
@@ -682,7 +703,7 @@ infostop.sftrack <- function(
   )
 
   # split data in case of multiple ids
-  if (!is.null(ids) & length(unique(ids)) > 1) {
+  if (!is.null(ids) && length(unique(ids)) > 1) {
     data <- lapply(unname(split(seq_along(ids), ids)), function(i) data[i, ])
     # uids <- unique(ids)
     # data <- lapply(uids, function(id) data[which(ids == id),])

@@ -102,5 +102,5 @@ example_data <- function() {
     c(55.7695578659369, 12.360391438976615, 5940.0)
   )
   colnames(dat) <- c("x", "y", "t")
-  return(dat)
+  dat
 }

@@ -5,8 +5,9 @@
 #'
 #' @param labels A vector of integer labels for each point in the mobility trace.
 #' @param times A vector of integer timestamps corresponding to each point in the mobility trace.
-#' @param max_time_between Maximum time (in seconds) between consecutive points to consider them part of the same interval.
-#'   If the time between points exceeds this value, a new interval is created.
+#' @param max_time_between Maximum time (in seconds) between consecutive points to consider
+#'   them part of the same interval. If the time between points exceeds this value,
+#'   a new interval is created.
 #'
 #' @return A data frame with columns for label, start time, end time, and duration of each interval.
 #'

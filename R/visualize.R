@@ -17,20 +17,29 @@ print.folium_map <- function(x, ...) {
 #' function that works directly with an Infostop model object.
 #'
 #' @param model An Infostop model object created by the infostop() function.
-#' @param display_data A character string specifying what data to display. Default is "unique_stationary".
-#' @param polygons A logical indicating whether to display polygon areas for clusters. Default is TRUE.
+#' @param display_data A character string specifying what data to display.
+#'   Default is "unique_stationary".
+#' @param polygons A logical indicating whether to display polygon areas for clusters.
+#'   Default is TRUE.
 #' @param scatter A logical indicating whether to scatter points on the map. Default is FALSE.
 #' @param heatmap A logical indicating whether to add a heatmap layer to the map. Default is TRUE.
-#' @param polygons_color A character string giving the color for polygons in hex format or named color. Default is "#ee9999".
-#' @param polygons_opacity A numeric between 0 and 1 specifying the transparency of polygons. Default is 0.3.
+#' @param polygons_color A character string giving the color for polygons in hex format or
+#'   named color. Default is "#ee9999".
+#' @param polygons_opacity A numeric between 0 and 1 specifying the transparency of polygons.
+#'   Default is 0.3.
 #' @param scatter_color A character string giving the color for scattered points. Default is "k".
-#' @param scatter_opacity A numeric between 0 and 1 specifying the transparency of points. Default is 0.3.
-#' @param scatter_subsampling A numeric between 0 and 1 specifying the fraction of points to display. Default is 1.
-#' @param heatmap_radius A numeric specifying the radius of influence for each point in the heatmap. Default is 8.
-#' @param heatmap_subsampling A numeric between 0 and 1 specifying the fraction of points to include in the heatmap. Default is 1.
+#' @param scatter_opacity A numeric between 0 and 1 specifying the transparency of points.
+#'   Default is 0.3.
+#' @param scatter_subsampling A numeric between 0 and 1 specifying the fraction of points to
+#'   display. Default is 1.
+#' @param heatmap_radius A numeric specifying the radius of influence for each point in the heatmap.
+#'   Default is 8.
+#' @param heatmap_subsampling A numeric between 0 and 1 specifying the fraction of points
+#'   to include in the heatmap. Default is 1.
 #' @param zoom_start A numeric giving the initial zoom level for the map. Default is 12.
 #' @param tiles A character string giving the map tile provider. Default is "OpenStreetMap".
-#' @param API_key A character string giving the API key for tile providers that require authentication. Default is NULL.
+#' @param api_key A character string giving the API key for tile providers that
+#'   require authentication. Default is NULL.
 #'
 #' @return A FoliumMap object with the visualization of stop locations.
 #'
@@ -134,20 +143,38 @@ plot_map <- function(
 #'
 #'       Arguments:
 #'       \describe{
-#'         \item{bounds}{A matrix of two points \code{rbind(c(lat1, lng1), c(lat2, lng2))} specifying the southwest and northeast corners of the bounding box.}
-#'         \item{padding_top_left}{A numeric vector of length 2 specifying padding in the top left corner. Useful if controls might obscure objects you're zooming to.}
-#'         \item{padding_bottom_right}{A numeric vector of length 2 specifying padding in the bottom right corner.}
-#'         \item{padding}{A numeric vector of length 2 specifying padding for both corners.}
-#'         \item{max_zoom}{An integer specifying the maximum zoom level to use.}
+#'         \item{bounds}{
+#'           A matrix of two points \code{rbind(c(lat1, lng1), c(lat2, lng2))}
+#'           specifying the southwest and northeast corners of the bounding box.
+#'         }
+#'         \item{padding_top_left}{
+#'           A numeric vector of length 2 specifying padding in the
+#'           top left corner. Useful if controls might obscure objects you're zooming to.
+#'         }
+#'         \item{padding_bottom_right}{
+#'           A numeric vector of length 2 specifying padding in the bottom right corner.
+#'         }
+#'         \item{padding}{
+#'           A numeric vector of length 2 specifying padding for both corners.
+#'         }
+#'         \item{max_zoom}{
+#'           An integer specifying the maximum zoom level to use.
+#'         }
 #'       }
 #'     \item \code{save(outfile, close_file = TRUE, ...)}: \cr
 #'       Save the map to an HTML file
 #'
 #'       Arguments:
 #'       \describe{
-#'         \item{outfile}{A character string giving the path to the output HTML file.}
-#'         \item{close_file}{A logical indicating whether to close the file after writing. Default is TRUE.}
-#'         \item{...}{Additional arguments passed to the underlying save method.}
+#'         \item{outfile}{
+#'           A character string giving the path to the output HTML file.
+#'         }
+#'         \item{close_file}{
+#'           A logical indicating whether to close the file after writing. Default is TRUE.
+#'         }
+#'         \item{...}{
+#'           Additional arguments passed to the underlying save method.
+#'         }
 #'       }
 #'   }
 #'
@@ -195,7 +222,7 @@ folium_map <- function(pointer) {
   }
 
   class(env) <- "FoliumMap"
-  return(env)
+  env
 }
 
 

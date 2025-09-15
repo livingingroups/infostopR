@@ -4,15 +4,16 @@
 #' @param y a numeric vector of y-coordinates (northing/latitude).
 #' @param t a vecor inheriting from \code{numeric} or \code{POSIXt} or \code{Date}
 #'        containing the timestamps corresponding to the x and y coordinates.
-#' @param r1 A numeric vector giving the maximum distance between time-consecutive points to label them as stationary.
-#'   Higher values will result in more points being considered stationary.
-#' @param min_staying_time An integer giving the minimum duration (in seconds) that can constitute a stop.
-#'   Only relevant if timestamps are provided in the data.
-#' @param max_time_between An integer giving the maximum duration (in seconds) between consecutive points
-#'   to consider them part of the same stop. Only relevant if timestamps are provided.
-#' @param min_size An integer giving the minimum number of points required to consider a group stationary.
-#' @param distance_metric A character string, either 'haversine' (for geographic coordinates) or 'euclidean'
-#'   (for Cartesian coordinates).
+#' @param r1 A numeric vector giving the maximum distance between time-consecutive points to label
+#'   them as stationary. Higher values will result in more points being considered stationary.
+#' @param min_staying_time An integer giving the minimum duration (in seconds) that can constitute
+#'   a stop. Only relevant if timestamps are provided in the data.
+#' @param max_time_between An integer giving the maximum duration (in seconds) between consecutive
+#'   points to consider them part of the same stop. Only relevant if timestamps are provided.
+#' @param min_size An integer giving the minimum number of points required to consider a group
+#'   stationary.
+#' @param distance_metric A character string, either 'haversine' (for geographic coordinates) or
+#'   'euclidean' (for Cartesian coordinates).
 #' @param ... other arguments passed to `as.trackframe()`
 #' @export
 #' @rdname find_stops
@@ -51,15 +52,17 @@ find_stops_xyt <- function(
 #'
 #' @param data A numeric matrix with 2 or 3 columns. Columns 1 and 2 are spatial coordinates.
 #'   Column 3 is optional and represents time.
-#' @param r1 A numeric vector giving the maximum distance between time-consecutive points to label them as stationary.
-#'   Higher values will result in more points being considered stationary.
-#' @param min_staying_time An integer giving the minimum duration (in seconds) that can constitute a stop.
-#'   Only relevant if timestamps are provided in the data.
-#' @param max_time_between An integer giving the maximum duration (in seconds) between consecutive points
-#'   to consider them part of the same stop. Only relevant if timestamps are provided.
-#' @param min_size An integer giving the minimum number of points required to consider a group stationary.
-#' @param distance_metric A character string, either 'haversine' (for geographic coordinates) or 'euclidean'
-#'   (for Cartesian coordinates).
+#' @param r1 A numeric vector giving the maximum distance between time-consecutive points
+#'   to label them as stationary. Higher values will result in more points being considered
+#'   stationary.
+#' @param min_staying_time An integer giving the minimum duration (in seconds) that can constitute
+#'   a stop. Only relevant if timestamps are provided in the data.
+#' @param max_time_between An integer giving the maximum duration (in seconds) between consecutive
+#'   points to consider them part of the same stop. Only relevant if timestamps are provided.
+#' @param min_size An integer giving the minimum number of points required to consider a group
+#'   stationary.
+#' @param distance_metric A character string, either 'haversine' (for geographic coordinates)
+#'   or 'euclidean' (for Cartesian coordinates).
 #' @param ... other arguments passed to `as.trackframe()`
 #' @examples
 #' library(trackframe)
@@ -136,14 +139,20 @@ find_stops_internal <- function(
 }
 
 
-#' @param time_col a character string specifying the column name of the time column. If no column is specified,
-#' the `time_col` is tried to be matched by possible names provided in `tf_options("time_col")`. In case of multiple matches, the first match is chosen.
-#' @param easting_col a character string specifying the column name of the easting column. If no column is specified,
-#' the `easting_col` is tried to be matched by possible names provided in `tf_options("easting_col")`. In case of multiple matches, the first match is chosen.
-#' @param northing_col a character string specifying the column name of the northing column. If no column is specified,
-#' the `northing_col` is tried to be matched by possible names provided in `tf_options("northing_col")`. In case of multiple matches, the first match is chosen.
-#' @param id_col optional character vector specifying identifier column names. If no column is specified,
-#' the `id_col` is tried to be matched by possible names provided in `tf_options("id_col")`. In case of multiple matches, the first match is chosen.
+#' @param time_col a character string specifying the column name of the time column.
+#'   If no column is specified, the `time_col` is tried to be matched by possible names provided
+#'   in `tf_options("time_col")`. In case of multiple matches, the first match is chosen.
+#' @param easting_col a character string specifying the column name of the easting column.
+#'   If no column is specified, the `easting_col` is tried to be matched by possible names
+#'   provided in `tf_options("easting_col")`. In case of multiple matches,
+#'   the first match is chosen.
+#' @param northing_col a character string specifying the column name of the northing column.
+#'   If no column is specified, the `northing_col` is tried to be matched by possible names
+#'   provided in `tf_options("northing_col")`. In case of multiple matches,
+#'   the first match is chosen.
+#' @param id_col optional character vector specifying identifier column names.
+#'   If no column is specified, the `id_col` is tried to be matched by possible names provided
+#'   in `tf_options("id_col")`. In case of multiple matches, the first match is chosen.
 #' @export
 #' @rdname find_stops
 find_stops.data.frame <- function(
@@ -223,9 +232,9 @@ find_stops.trackframe <- function(
   distance_metric = "euclidean",
   ...
 ) {
-  stopifnot(
-    "Only distance_metric = 'euclidean' is available for objects of class trackframe" = distance_metric ==
-      "euclidean"
+  if (distance_metric != "euclidean") {
+    stop(
+      "Only distance_metric = 'euclidean' is available for objects of class trackframe"
   )
   id_col <- attr(data, "id")
   ids <- if (is.null(id_col)) NULL else data[[id_col]]

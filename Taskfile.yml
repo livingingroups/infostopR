@@ -44,9 +44,9 @@ tasks:
       - R CMD check --as-cran infostop_*.tar.gz
 
   test:
-    desc: Run tests with testthat
+    desc: Run tests with tinytest
     cmds:
-      - Rscript -e "if (!require('devtools')) install.packages('devtools', repos = 'https://cran.r-project.org'); devtools::test()"
+      - R -e "tinytest::test_all()"
 
   clean:
     desc: Clean build artifacts

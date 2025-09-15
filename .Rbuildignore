@@ -8,3 +8,5 @@ infostop_*.tar.gz
 ^pkgdown$
 ^devel$
 
+^[.]?air[.]toml$
+^\.vscode$
