@@ -60,6 +60,7 @@ infostop_mtf1 <- infostop(data = tf1,
 ## `matrix` or `data.frame`
 
 When applying infostop to `matrix` or `data.frame` objects, one has two options:
+
 - Coerce to an object of class `trackframe` by applying `as.trackframe()`
 - specify `x`, `y` and `t` column explicitly in `infostop_xyt()`
 
