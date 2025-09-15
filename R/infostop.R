@@ -9,8 +9,8 @@
 #'   distance_metric "haversine").
 #' @param y a numeric vector of y-coordinates (northing for distance_metric euclidean - latitude for
 #'   distance_metric "haversine").
-#' @param time a vecor inheriting from \code{numeric} or \code{POSIXt} or \code{Date} containing the
-#'   timestamps corresponding to the x and y coordinates.
+#' @param time a vector inheriting from \code{numeric} (in seconds) or \code{POSIXt}
+#'   or \code{Date} containing the timestamps corresponding to the x and y coordinates.
 #' @param r1 A numeric vector giving the maximum distance between time-consecutive points to label
 #'   them as stationary. Higher values will result in more points being considered stationary.
 #' @param r2 A numeric vector giving the maximum distance between stationary points to form an edge

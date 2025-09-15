@@ -28,8 +28,8 @@ distance_metric "haversine").}
 \item{y}{a numeric vector of y-coordinates (northing for distance_metric euclidean - latitude for
 distance_metric "haversine").}
 
-\item{time}{a vecor inheriting from \code{numeric} or \code{POSIXt} or \code{Date} containing the
-timestamps corresponding to the x and y coordinates.}
+\item{time}{a vector inheriting from \code{numeric} (in seconds) or \code{POSIXt}
+or \code{Date} containing the timestamps corresponding to the x and y coordinates.}
 
 \item{r1}{A numeric vector giving the maximum distance between time-consecutive points to label
 them as stationary. Higher values will result in more points being considered stationary.}

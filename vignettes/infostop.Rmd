@@ -33,11 +33,20 @@ data("path_trackframe", package = "trackframe")
 head(path_trackframe)
 
 infostop <- infostop(data = path_trackframe,
-                        distance_metric = "euclidean")
+                     distance_metric = "euclidean")
+```
 
+To obtain the labels of the stop locations,
+```{r}
 head(infostop$labels, n=20)
+```
+can be used.
+For each stop location (identified by a label), we can compute the median coordinates using
+the `compute_label_medians()` method:
+```{r}
 head(infostop$compute_label_medians())
 ```
+
 
 ### multiple IDs
 
