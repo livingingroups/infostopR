@@ -22,15 +22,15 @@
 #' @examples
 #' if (is_infostop_initialized()) {
 #' data <- infostop:::example_data()
-#' stops <- find_stops(data, r1 = 100, min_staying_time = 300,
+#' stops <- identify_stops(data, r1 = 100, min_staying_time = 300,
 #'                     max_time_between = 86400, min_size = 2,
 #'                     distance_metric = "haversine")
-#' clusters <- spatial_infomap(stops$stop_events, r2 = 50)
+#' clusters <- identify_sites(stops$stop_events, r2 = 50)
 #' labels <- match_labels(clusters, stops$event_map)
 #' }
 #' @export
-#' @rdname spatial_infomap
-spatial_infomap_xyt <- function(
+#' @rdname identify_sites
+identify_sites_xyt <- function(
   easting,
   northing,
   r2 = 10,
@@ -47,7 +47,7 @@ spatial_infomap_xyt <- function(
   checkmate::assert_numeric(northing, len = length(easting), any.missing = FALSE)
   distance_metric <- match.arg(distance_metric)
   data <- cbind(x = easting, y = northing)
-  spatial_infomap_internal(
+  identify_sites_internal(
     data,
     r2 = r2,
     label_singleton = label_singleton,
@@ -84,15 +84,15 @@ spatial_infomap_xyt <- function(
 #' @examples
 #' if (is_infostop_initialized()) {
 #' data <- infostop:::example_data()
-#' stops <- find_stops(data, r1 = 100, min_staying_time = 300,
+#' stops <- identify_stops(data, r1 = 100, min_staying_time = 300,
 #'                     max_time_between = 86400, min_size = 2,
 #'                     distance_metric = "haversine")
-#' clusters <- spatial_infomap(stops$stop_events, r2 = 50)
+#' clusters <- identify_sites(stops$stop_events, r2 = 50)
 #' labels <- match_labels(clusters, stops$event_map)
 #' }
 #' @export
-#' @rdname spatial_infomap
-spatial_infomap <- function(
+#' @rdname identify_sites
+identify_sites <- function(
   data,
   r2 = 10,
   label_singleton = TRUE,
@@ -103,11 +103,11 @@ spatial_infomap <- function(
   verbose = FALSE,
   ...
 ) {
-  UseMethod("spatial_infomap")
+  UseMethod("identify_sites")
 }
 
 
-spatial_infomap_internal <- function(
+identify_sites_internal <- function(
   data,
   r2 = 10,
   label_singleton = TRUE,
@@ -148,8 +148,8 @@ spatial_infomap_internal <- function(
 
 
 #' @export
-#' @rdname spatial_infomap
-spatial_infomap.matrix <- function(
+#' @rdname identify_sites
+identify_sites.matrix <- function(
   data,
   r2 = 10,
   label_singleton = TRUE,
@@ -160,7 +160,7 @@ spatial_infomap.matrix <- function(
   verbose = FALSE,
   ...
 ) {
-  spatial_infomap_internal(
+  identify_sites_internal(
     data,
     r2 = r2,
     label_singleton = label_singleton,
@@ -174,8 +174,8 @@ spatial_infomap.matrix <- function(
 
 
 #' @export
-#' @rdname spatial_infomap
-spatial_infomap.data.frame <- function(
+#' @rdname identify_sites
+identify_sites.data.frame <- function(
   data,
   r2 = 10,
   label_singleton = TRUE,
@@ -186,7 +186,7 @@ spatial_infomap.data.frame <- function(
   verbose = FALSE,
   ...
 ) {
-  spatial_infomap(
+  identify_sites(
     as.trackframe(data, ...),
     r2 = r2,
     label_singleton = label_singleton,
@@ -200,8 +200,8 @@ spatial_infomap.data.frame <- function(
 
 
 #' @export
-#' @rdname spatial_infomap
-spatial_infomap.trackframe <- function(
+#' @rdname identify_sites
+identify_sites.trackframe <- function(
   data,
   r2 = 10,
   label_singleton = TRUE,
@@ -220,7 +220,7 @@ spatial_infomap.trackframe <- function(
   # transform from track.frame
   data[[attr(data, "time")]] <- as.integer(data[[attr(data, "time")]])
   data <- as.matrix(data[, c(attr(data, "easting"), attr(data, "northing"), attr(data, "time"))])
-  spatial_infomap_internal(
+  identify_sites_internal(
     data,
     r2 = r2,
     label_singleton = label_singleton,
@@ -234,8 +234,8 @@ spatial_infomap.trackframe <- function(
 
 
 #' @export
-#' @rdname spatial_infomap
-spatial_infomap.move2 <- function(
+#' @rdname identify_sites
+identify_sites.move2 <- function(
   data,
   r2 = 10,
   label_singleton = TRUE,
@@ -251,7 +251,7 @@ spatial_infomap.move2 <- function(
     st_coordinates(data[[attr(data, "sf_column")]]),
     as.integer(data[[attr(data, "time_column")]])
   )
-  spatial_infomap_internal(
+  identify_sites_internal(
     data,
     r2 = r2,
     label_singleton = label_singleton,
@@ -265,8 +265,8 @@ spatial_infomap.move2 <- function(
 
 
 #' @export
-#' @rdname spatial_infomap
-spatial_infomap.sftrack <- function(
+#' @rdname identify_sites
+identify_sites.sftrack <- function(
   data,
   r2 = 10,
   label_singleton = TRUE,
@@ -283,7 +283,7 @@ spatial_infomap.sftrack <- function(
     st_coordinates(data[[attr(data, "sf_column")]]),
     as.integer(data[[attr(data, "time_col")]])
   )
-  spatial_infomap_internal(
+  identify_sites_internal(
     data,
     r2 = r2,
     label_singleton = label_singleton,
@@ -308,23 +308,23 @@ print.SpatialInfomap <- function(x, ...) {
 #'
 #' For performance reasons, \code{find\_stops} returns a downsampled version of the
 #' stop events. This function helps to revert that downsampling by matching the
-#' labels obtained from \code{spatial_infomap} to the original data points.
+#' labels obtained from \code{identify_sites} to the original data points.
 #'
 #' @param labels Either a numeric vector of cluster labels or a SpatialInfomap object.
 #'   If a SpatialInfomap object is provided, the labels will be extracted automatically.
 #' @param event_map A numeric vector mapping each data point to its corresponding
-#'   stationary event. Typically obtained from \code{find_stops()$event_map}.
+#'   stationary event. Typically obtained from \code{identify_stops()$event_map}.
 #'
 #' @return A numeric vector of the same length as nuber of rows in the data
-#' given to \code{find_stops()}.
+#' given to \code{identify_stops()}.
 #'
 #' @examples
 #' if (is_infostop_initialized()) {
 #' data <- infostop:::example_data()
-#' stops <- find_stops(data, r1 = 100, min_staying_time = 300,
+#' stops <- identify_stops(data, r1 = 100, min_staying_time = 300,
 #'                     max_time_between = 86400, min_size = 2,
 #'                     distance_metric = "haversine")
-#' clusters <- spatial_infomap(stops$stop_events, r2 = 50)
+#' clusters <- identify_sites(stops$stop_events, r2 = 50)
 #' two_step_labels <- match_labels(clusters, stops$event_map)
 #'
 #' one_step_labels <- infostop(data, r1 = 100, r2 = 50, min_staying_time = 300,
@@ -334,7 +334,7 @@ print.SpatialInfomap <- function(x, ...) {
 #' all.equal(one_step_labels$labels, two_step_labels)
 #' }
 #'
-#' @seealso \code{\link{find_stops}}, \code{\link{spatial_infomap}}
+#' @seealso \code{\link{identify_stops}}, \code{\link{identify_sites}}
 #' @export
 match_labels <- function(labels, event_map) {
   if (inherits(labels, "SpatialInfomap")) {

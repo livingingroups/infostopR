@@ -16,8 +16,8 @@
 #'   'euclidean' (for Cartesian coordinates).
 #' @param ... other arguments passed to `as.trackframe()`
 #' @export
-#' @rdname find_stops
-find_stops_xyt <- function(
+#' @rdname identify_stops
+identify_stops_xyt <- function(
   x,
   y,
   t = NULL,
@@ -37,7 +37,7 @@ find_stops_xyt <- function(
     assert_lonlat(x, y)
   }
   data <- cbind(x = x, y = y, t = t)
-  find_stops_internal(
+  identify_stops_internal(
     data = data,
     r1 = r1,
     min_staying_time = min_staying_time,
@@ -67,28 +67,28 @@ find_stops_xyt <- function(
 #' @examples
 #' library(trackframe)
 #' data("path_trackframe", package = "trackframe")
-#' stops <- find_stops(data = path_trackframe,
+#' stops <- identify_stops(data = path_trackframe,
 #'                     distance_metric = "euclidean")
 #'
 #' # data.frame
 #' data("path_data_frame", package = "trackframe")
 #' tf <- as.trackframe(path_data_frame)
-#' stops <- find_stops(data = tf,
+#' stops <- identify_stops(data = tf,
 #'                     distance_metric = "euclidean")
 #'
 #' # with sftrack
 #' data("path_sftrack", package = "trackframe")
 #' class(path_sftrack)
-#' stops_sftrack <- find_stops(path_sftrack, distance_metric = "haversine")
+#' stops_sftrack <- identify_stops(path_sftrack, distance_metric = "haversine")
 #'
 #' # with move2
 #' data("path_move2", package = "trackframe")
 #' class(path_move2)
-#' stops_move2 <- find_stops(path_move2, distance_metric = "haversine")
+#' stops_move2 <- identify_stops(path_move2, distance_metric = "haversine")
 #'
 #' @export
-#' @rdname find_stops
-find_stops <- function(
+#' @rdname identify_stops
+identify_stops <- function(
   data,
   r1 = 10,
   min_staying_time = 300L,
@@ -97,11 +97,11 @@ find_stops <- function(
   distance_metric = c("haversine", "euclidean"),
   ...
 ) {
-  UseMethod("find_stops")
+  UseMethod("identify_stops")
 }
 
 
-find_stops_internal <- function(
+identify_stops_internal <- function(
   data,
   r1 = 10,
   min_staying_time = 300L,
@@ -154,8 +154,8 @@ find_stops_internal <- function(
 #'   If no column is specified, the `id_col` is tried to be matched by possible names provided
 #'   in `tf_options("id_col")`. In case of multiple matches, the first match is chosen.
 #' @export
-#' @rdname find_stops
-find_stops.data.frame <- function(
+#' @rdname identify_stops
+identify_stops.data.frame <- function(
   data,
   r1 = 10,
   min_staying_time = 300L,
@@ -201,16 +201,15 @@ find_stops.data.frame <- function(
 
   ids <- if (is.null(id_col)) NULL else data[[id_col]]
 
-  data <- cbind(as.matrix(data[, c(easting_col, northing_col)]), data[[time_col]])
-
-  # split data in case of multiple ids
   if (!is.null(ids) && length(unique(ids)) > 1) {
-    data <- lapply(unname(split(seq_along(ids), ids)), function(i) data[i, ])
-    # uids <- unique(ids)
-    # data <- lapply(uids, function(id) data[which(ids == id),])
+    stop(
+      "Multiple tracks are not supported. Please use infostop() instead in case of multiple tracks."
+    )
   }
 
-  find_stops_internal(
+  data <- cbind(as.matrix(data[, c(easting_col, northing_col)]), data[[time_col]])
+  
+  identify_stops_internal(
     data = data,
     r1 = r1,
     min_staying_time = min_staying_time,
@@ -222,8 +221,8 @@ find_stops.data.frame <- function(
 
 
 #' @export
-#' @rdname find_stops
-find_stops.trackframe <- function(
+#' @rdname identify_stops
+identify_stops.trackframe <- function(
   data,
   r1 = 10,
   min_staying_time = 300L,
@@ -250,7 +249,7 @@ find_stops.trackframe <- function(
     )
   }
 
-  find_stops_internal(
+  identify_stops_internal(
     data = data,
     r1 = r1,
     min_staying_time = min_staying_time,
@@ -262,8 +261,8 @@ find_stops.trackframe <- function(
 
 
 #' @export
-#' @rdname find_stops
-find_stops.move2 <- function(
+#' @rdname identify_stops
+identify_stops.move2 <- function(
   data,
   r1 = 10,
   min_staying_time = 300L,
@@ -277,7 +276,7 @@ find_stops.move2 <- function(
     st_coordinates(data[[attr(data, "sf_column")]]),
     as.integer(data[[attr(data, "time_column")]])
   )
-  find_stops_internal(
+  identify_stops_internal(
     data = data,
     r1 = r1,
     min_staying_time = min_staying_time,
@@ -289,8 +288,8 @@ find_stops.move2 <- function(
 
 
 #' @export
-#' @rdname find_stops
-find_stops.sftrack <- function(
+#' @rdname identify_stops
+identify_stops.sftrack <- function(
   data,
   r1 = 10,
   min_staying_time = 300L,
@@ -299,13 +298,12 @@ find_stops.sftrack <- function(
   distance_metric = c("haversine", "euclidean"),
   ...
 ) {
-  #FIXME check if distance_metric fits to crs
   # transform from sftrack
   data <- cbind(
     st_coordinates(data[[attr(data, "sf_column")]]),
     as.integer(data[[attr(data, "time_col")]])
   )
-  find_stops_internal(
+  identify_stops_internal(
     data = data,
     r1 = r1,
     min_staying_time = min_staying_time,

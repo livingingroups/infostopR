@@ -6,6 +6,7 @@
 \alias{infostop.trackframe}
 \alias{infostop.move2}
 \alias{infostop.sftrack}
+\alias{infostop.numeric}
 \title{Detect Stop Locations in Mobility Data}
 \usage{
 infostop(
@@ -77,6 +78,22 @@ infostop(
 )
 
 \method{infostop}{sftrack}(
+  data,
+  r1 = 10,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_staying_time = 300L,
+  max_time_between = 86400L,
+  min_size = 2L,
+  min_spacial_resolution = 0,
+  distance_metric = NULL,
+  weighted = FALSE,
+  weight_exponent = 1,
+  verbose = FALSE,
+  ...
+)
+
+\method{infostop}{numeric}(
   data,
   r1 = 10,
   r2 = 10,
@@ -213,7 +230,7 @@ if (is_infostop_initialized()) {
  infostop_df1 <- infostop(data = tf, distance_metric = "euclidean")
 
  # or use infostop.data.frame method with col specification
-  infostop_df2 <- infostop(path_data_frame,
+ infostop_df2 <- infostop(path_data_frame,
     distance_metric = "euclidean",
                          time_col = "time",
                          easting_col = "longitude",
@@ -221,8 +238,7 @@ if (is_infostop_initialized()) {
     id_col = "id"
   )
  # or use automated col guessing if applicable
-  # FIXME: @RH df is a function since not defined here.
-  # infostop_df3 <- infostop(df, distance_metric = "euclidean") # automated col guessing
+ infostop_df3 <- infostop(path_data_frame, distance_metric = "euclidean") # automated col guessing
 
  # with sftrack
  data("path_sftrack", package = "trackframe")

@@ -75,6 +75,10 @@
 #'       each element corresponds to a point in the input data. Points labeled -1 are
 #'       considered dynamic (not part of any stop location).
 #'   }
+#'   
+#' Objects of class \code{sftrack}, \code{move2} and \code{trackframe} are supported in \code{\link{infostop}}.
+#' 
+#' @seealso \code{\link{infostop}}
 #'
 #' @examples
 #' if (is_infostop_initialized()) {
@@ -220,7 +224,7 @@ infostop_xyt <- function(
 #'  infostop_df1 <- infostop(data = tf, distance_metric = "euclidean")
 #'
 #'  # or use infostop.data.frame method with col specification
-#'   infostop_df2 <- infostop(path_data_frame,
+#'  infostop_df2 <- infostop(path_data_frame,
 #'     distance_metric = "euclidean",
 #'                          time_col = "time",
 #'                          easting_col = "longitude",
@@ -228,8 +232,7 @@ infostop_xyt <- function(
 #'     id_col = "id"
 #'   )
 #'  # or use automated col guessing if applicable
-#'   # FIXME: @RH df is a function since not defined here.
-#'   # infostop_df3 <- infostop(df, distance_metric = "euclidean") # automated col guessing
+#'  infostop_df3 <- infostop(path_data_frame, distance_metric = "euclidean") # automated col guessing
 #'
 #'  # with sftrack
 #'  data("path_sftrack", package = "trackframe")
@@ -360,31 +363,6 @@ infostop_internal <- function(
 }
 
 
-# # FIXME: do we really want to support data.frame or better force user to use infostop_xyt?
-# #' @export
-# #' @rdname infostop
-# infostop.data.frame <- function(data,
-#                                 r1 = 10,
-#                                 r2 = 10,
-#                                 label_singleton = TRUE,
-#                                 min_staying_time = 300L,
-#                                 max_time_between = 86400L,
-#                                 min_size = 2L,
-#                                 min_spacial_resolution = 0,
-#                                 distance_metric = "euclidean",
-#                                 weighted = FALSE,
-#                                 weight_exponent = 1,
-#                                 verbose = FALSE,
-#                                 ...) {
-#   infostop(data = as.trackframe(data, ...), r1 = r1, r2 = r2, label_singleton = label_singleton,
-#            min_staying_time = min_staying_time, max_time_between = max_time_between,
-#            min_size = min_size, min_spacial_resolution = min_spacial_resolution,
-#            distance_metric = distance_metric, weighted = weighted,
-#            weight_exponent = weight_exponent, verbose = verbose)
-# }
-
-# FIXME: do we really want to support data.frame or better force user to use infostop_xyt?
-
 #' @param time_col a character string specifying the column name of the time column. If no column is
 #'   specified, the `time_col` is tried to be matched by possible names provided in
 #'   `tf_options("time_col")`. In case of multiple matches, the first match is chosen.
@@ -497,8 +475,7 @@ infostop.trackframe <- function(
       "Only distance_metric = 'euclidean' is available for objects of class trackframe"
     )
   }
-  # transform from track.frame
-
+  # create data input of infostop_internal from track.frame
   id_col <- attr(data, "id")
   ids <- if (is.null(id_col)) NULL else data[[id_col]]
 
@@ -538,7 +515,7 @@ infostop.move2 <- function(
   max_time_between = 86400L,
   min_size = 2L,
   min_spacial_resolution = 0,
-  distance_metric = NULL, #"euclidean", #c("haversine", "euclidean"),
+  distance_metric = NULL,
   weighted = FALSE,
   weight_exponent = 1,
   verbose = FALSE,
@@ -560,13 +537,6 @@ infostop.move2 <- function(
     verbose = verbose
   )
 
-  # data <- cbind(st_coordinates(data[[attr(data, "sf_column")]]),
-  #               as.integer(data[[attr(data, "time_column")]]))
-  # infostop_internal(data = data, r1 = r1, r2 = r2, label_singleton = label_singleton,
-  #                   min_staying_time = min_staying_time, max_time_between = max_time_between,
-  #                   min_size = min_size, min_spacial_resolution = min_spacial_resolution,
-  #                   distance_metric = distance_metric, weighted = weighted,
-  #                   weight_exponent = weight_exponent, verbose = verbose)
 }
 
 
@@ -661,7 +631,7 @@ infostop.sftrack <- function(
   max_time_between = 86400L,
   min_size = 2L,
   min_spacial_resolution = 0,
-  distance_metric = NULL, #"euclidean", #c("haversine", "euclidean"),
+  distance_metric = NULL,
   weighted = FALSE,
   weight_exponent = 1,
   verbose = FALSE,
@@ -723,6 +693,27 @@ infostop.sftrack <- function(
   )
 }
 
+
+#' @export
+#' @rdname infostop
+infostop.numeric <- function(
+    data,
+    r1 = 10,
+    r2 = 10,
+    label_singleton = TRUE,
+    min_staying_time = 300L,
+    max_time_between = 86400L,
+    min_size = 2L,
+    min_spacial_resolution = 0,
+    distance_metric = NULL, #"euclidean", #c("haversine", "euclidean"),
+    weighted = FALSE,
+    weight_exponent = 1,
+    verbose = FALSE,
+    ...
+) {
+  stop("no applicable method for 'infostop' applied to an object of class c('double', 'numeric').
+       use infostop_xyt() instead")
+}
 
 #' @noRd
 #' @export

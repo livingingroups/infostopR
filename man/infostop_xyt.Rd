@@ -112,6 +112,8 @@ The returned object provides the following methods and properties:
       each element corresponds to a point in the input data. Points labeled -1 are
       considered dynamic (not part of any stop location).
   }
+  
+Objects of class \code{sftrack}, \code{move2} and \code{trackframe} are supported in \code{\link{infostop}}.
 }
 \examples{
 if (is_infostop_initialized()) {
@@ -123,4 +125,7 @@ infostop_xyt <- infostop_xyt(
   distance_metric = "haversine"
  )
 }
+}
+\seealso{
+\code{\link{infostop}}
 }

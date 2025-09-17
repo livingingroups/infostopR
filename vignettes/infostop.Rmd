@@ -24,46 +24,51 @@ infostop_initialize()
 ```
 
 
-## Run `infostop` with objects of class `trackframe`
+## sftrack
 
-As objects of class `trackframe` always have easting/northing coordinates, `distance_metric` needs to be `"euclidean"`.
+### Onestep approach
 
 ```{r}
-data("path_trackframe", package = "trackframe")
-head(path_trackframe)
+data("path_sftrack", package = "trackframe")
+head(path_sftrack)
+class(path_sftrack)
 
-infostop <- infostop(data = path_trackframe,
-                     distance_metric = "euclidean")
-```
+infostop <- infostop(data = path_sftrack,
+                     distance_metric = "haversine")
 
-To obtain the labels of the stop locations,
-```{r}
 head(infostop$labels, n=20)
-```
-can be used.
-For each stop location (identified by a label), we can compute the median coordinates using
-the `compute_label_medians()` method:
-```{r}
 head(infostop$compute_label_medians())
 ```
 
-
-### multiple IDs
+### Twostep approach
 
 ```{r}
-data("paths_trackframe", package = "trackframe")
-head(paths_trackframe)
-unique(paths_trackframe$id)
+data("path_sftrack", package = "trackframe")
 
-infostop <- infostop(data = paths_trackframe,
-                     distance_metric = "euclidean")
-length(infostop$labels)
+identify_stops_sftrack <- identify_stops(data = path_sftrack,
+                            distance_metric = "haversine")
+clusters_sftrack <- identify_sites(identify_stops_sftrack$stop_events, distance_metric = "haversine")
+two_step_labels_sftrack <- match_labels(clusters_sftrack, identify_stops_sftrack$event_map)
 
-tf1 <- split_by_id(paths_trackframe)[[1]]
-infostop_mtf1 <- infostop(data = tf1,
-                         distance_metric = "euclidean")
+#compare with onestep approach
+infostop_sftrack <- infostop(data = path_sftrack,
+                        distance_metric = "haversine")
+all.equal(two_step_labels_sftrack, infostop_sftrack$labels)
 ```
 
+## move2
+
+```{r}
+data("path_move2", package = "trackframe")
+head(path_move2)
+class(path_move2)
+
+infostop <- infostop(data = path_move2,
+                     distance_metric = "haversine")
+
+head(infostop$labels, n=20)
+head(infostop$compute_label_medians())
+```
 
 
 ## `matrix` or `data.frame`
@@ -106,47 +111,43 @@ infostop_xyt <- infostop_xyt(x = path_matrix[, "longitude"],
 
 ```
 
-## sftrack
 
-```{r}
-data("path_sftrack", package = "trackframe")
-head(path_sftrack)
-class(path_sftrack)
+## Run `infostop` with objects of class `trackframe`
 
-infostop <- infostop(data = path_sftrack,
-                     distance_metric = "haversine")
-
-head(infostop$labels, n=20)
-head(infostop$compute_label_medians())
-```
-
-## move2
-
-```{r}
-data("path_move2", package = "trackframe")
-head(path_move2)
-class(path_move2)
-
-infostop <- infostop(data = path_move2,
-                     distance_metric = "haversine")
-
-head(infostop$labels, n=20)
-head(infostop$compute_label_medians())
-```
-
-## Twostep approach
+As objects of class `trackframe` always have easting/northing coordinates, `distance_metric` needs to be `"euclidean"`.
 
 ```{r}
 data("path_trackframe", package = "trackframe")
+head(path_trackframe)
 
-find_stops_tf <- find_stops(data = path_trackframe,
-                            distance_metric = "euclidean")
-clusters_tf <- spatial_infomap(find_stops_tf$stop_events, distance_metric = "euclidean")
-two_step_labels_tf <- match_labels(clusters_tf, find_stops_tf$event_map)
-
-#compare with onestep approach
-infostop_tf <- infostop(data = path_trackframe,
-                        distance_metric = "euclidean")
-all.equal(two_step_labels_tf, infostop_tf$labels)
+infostop <- infostop(data = path_trackframe,
+                     distance_metric = "euclidean")
 ```
 
+To obtain the labels of the stop locations,
+```{r}
+head(infostop$labels, n=20)
+```
+can be used.
+For each stop location (identified by a label), we can compute the median coordinates using
+the `compute_label_medians()` method:
+```{r}
+head(infostop$compute_label_medians())
+```
+
+
+### multiple IDs
+
+```{r}
+data("paths_trackframe", package = "trackframe")
+head(paths_trackframe)
+unique(paths_trackframe$id)
+
+infostop <- infostop(data = paths_trackframe,
+                     distance_metric = "euclidean")
+length(infostop$labels)
+
+tf1 <- split_by_id(paths_trackframe)[[1]]
+infostop_mtf1 <- infostop(data = tf1,
+                         distance_metric = "euclidean")
+```
