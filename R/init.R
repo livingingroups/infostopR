@@ -124,6 +124,18 @@ infostop_initialize <- function(python = NULL, virtualenv = NULL, condaenv = NUL
       stop(msg)
     }
   }
+  path <- system.file("python", package = "infostop")
+  infostop <- reticulate::import_from_path("infostop_helper", path = path)
+  funs <- c("identify_stops", "identify_sites", "downsample", "find_neighbors",
+    "infomap_network", "backtransform")
+  for (fun in funs) {
+    rpy(fun, infostop[[fun]])
+  }
+  infomap <- reticulate::import_from_path("infomap_helper", path = path)
+  funs <- c("neighbors_to_network", "run_network", "assign_labels_to_nodes")
+  for (fun in funs) {
+    rpy(fun, infomap[[fun]])
+  }
   rpy("initialized", TRUE)
 }
 

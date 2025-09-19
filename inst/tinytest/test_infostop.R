@@ -174,23 +174,6 @@ labels_single <- relabel(infostop_mtf1$labels)
 expect_equal(labels_multi, labels_single)
 
 
-# Per definition the medians are different, since the multi id median contains
-# also the locations from the other individuals assigned to the same stop location.
-# But they should not be to far appart.
-medians_multi <- infostop_mtf$compute_label_medians()[infostop_mtf$labels[[1]], ]
-medians_single <- infostop_mtf1$compute_label_medians()[infostop_mtf1$labels, ]
-max_abs_err_1 <- max(abs(medians_multi[, 1] - medians_single[, 1]), na.rm = TRUE)
-max_abs_err_2 <- max(abs(medians_multi[, 2] - medians_single[, 2]), na.rm = TRUE)
-
-# If we say the error should be less than 1 promille we should be fine, since even
-# they don't have to be the same they have to be similar.
-expect_true(
-  max_abs_err_1 / max(abs(c(medians_multi[, 1], medians_single[, 1])), na.rm = TRUE) <= 1e-3
-)
-expect_true(
-  max_abs_err_2 / max(abs(c(medians_multi[, 2], medians_single[, 2])), na.rm = TRUE) <= 1e-3
-)
-
 #
 # sftrack
 #

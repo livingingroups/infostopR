@@ -12,3 +12,5 @@ inst/doc
 infostop_*.tar.gz
 infostop.Rcheck
 docs
+__pycache__
+.lintr

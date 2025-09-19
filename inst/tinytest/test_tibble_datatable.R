@@ -1,5 +1,6 @@
-library(tinytest)
-library(trackframe)
+library("infostop")
+library("tinytest")
+library("trackframe")
 
 #
 # onestep - single track
@@ -22,19 +23,16 @@ expect_equal(infostop_tf$labels, infostop_dt$labels)
 # twostep - single track
 #
 identify_stops_tf <- identify_stops(data = tf, distance_metric = "euclidean")
-clusters_tf <- identify_sites(identify_stops_tf$stop_events, distance_metric = "euclidean")
-two_step_labels_tf <- match_labels(clusters_tf, identify_stops_tf$event_map)
-expect_equal(two_step_labels_tf, infostop_tf$labels)
+clusters_tf <- identify_sites(identify_stops_tf, distance_metric = "euclidean")
+expect_equal(clusters_tf[["site_id"]], infostop_tf[["labels"]])
 
 identify_stops_tibble <- identify_stops(data = tf_tibble, distance_metric = "euclidean")
-clusters_tibble <- identify_sites(identify_stops_tibble$stop_events, distance_metric = "euclidean")
-two_step_labels_tibble <- match_labels(clusters_tibble, identify_stops_tibble$event_map)
-expect_equal(two_step_labels_tibble, infostop_tf$labels)
+clusters_tibble <- identify_sites(identify_stops_tibble, distance_metric = "euclidean")
+expect_equal(clusters_tibble[["site_id"]], infostop_tf[["labels"]])
 
 identify_stops_dt <- identify_stops(data = tf_dt, distance_metric = "euclidean")
-clusters_dt <- identify_sites(identify_stops_dt$stop_events, distance_metric = "euclidean")
-two_step_labels_dt <- match_labels(clusters_dt, identify_stops_dt$event_map)
-expect_equal(two_step_labels_dt, infostop_tf$labels)
+clusters_dt <- identify_sites(identify_stops_dt, distance_metric = "euclidean")
+expect_equal(clusters_dt[["site_id"]], infostop_tf[["labels"]])
 
 
 #

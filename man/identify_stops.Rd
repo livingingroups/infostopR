@@ -14,29 +14,31 @@ identify_stops_xyt(
   y,
   t = NULL,
   r1 = 10,
+  min_size = 2L,
   min_staying_time = 300L,
   max_time_between = 86400L,
-  min_size = 2L,
   distance_metric = c("haversine", "euclidean")
 )
 
 identify_stops(
   data,
   r1 = 10,
+  min_size = 2L,
   min_staying_time = 300L,
   max_time_between = 86400L,
-  min_size = 2L,
   distance_metric = c("haversine", "euclidean"),
+  stop_id_col = "stop_id",
   ...
 )
 
 \method{identify_stops}{data.frame}(
   data,
   r1 = 10,
+  min_size = 2L,
   min_staying_time = 300L,
   max_time_between = 86400L,
-  min_size = 2L,
   distance_metric = "euclidean",
+  stop_id_col = "stop_id",
   time_col = tf_options("time_col"),
   easting_col = tf_options("easting_col"),
   northing_col = tf_options("northing_col"),
@@ -47,30 +49,33 @@ identify_stops(
 \method{identify_stops}{trackframe}(
   data,
   r1 = 10,
+  min_size = 2L,
   min_staying_time = 300L,
   max_time_between = 86400L,
-  min_size = 2L,
   distance_metric = "euclidean",
+  stop_id_col = "stop_id",
   ...
 )
 
 \method{identify_stops}{move2}(
   data,
   r1 = 10,
+  min_size = 2L,
   min_staying_time = 300L,
   max_time_between = 86400L,
-  min_size = 2L,
   distance_metric = c("haversine", "euclidean"),
+  stop_id_col = "stop_id",
   ...
 )
 
 \method{identify_stops}{sftrack}(
   data,
   r1 = 10,
+  min_size = 2L,
   min_staying_time = 300L,
   max_time_between = 86400L,
-  min_size = 2L,
   distance_metric = c("haversine", "euclidean"),
+  stop_id_col = "stop_id",
   ...
 )
 }
@@ -86,20 +91,23 @@ containing the timestamps corresponding to the x and y coordinates.}
 to label them as stationary. Higher values will result in more points being considered
 stationary.}
 
+\item{min_size}{An integer giving the minimum number of points required to consider a group
+stationary.}
+
 \item{min_staying_time}{An integer giving the minimum duration (in seconds) that can constitute
 a stop. Only relevant if timestamps are provided in the data.}
 
 \item{max_time_between}{An integer giving the maximum duration (in seconds) between consecutive
 points to consider them part of the same stop. Only relevant if timestamps are provided.}
 
-\item{min_size}{An integer giving the minimum number of points required to consider a group
-stationary.}
-
 \item{distance_metric}{A character string, either 'haversine' (for geographic coordinates)
 or 'euclidean' (for Cartesian coordinates).}
 
 \item{data}{A numeric matrix with 2 or 3 columns. Columns 1 and 2 are spatial coordinates.
 Column 3 is optional and represents time.}
+
+\item{stop_id_col}{A character string specifying the name of the column to be used for
+the stop identifiers. Default is "stop_id".}
 
 \item{...}{other arguments passed to `as.trackframe()`}
 

@@ -10,3 +10,4 @@ infostop_*.tar.gz
 ^.lintr$
 ^[.]?air[.]toml$
 ^\.vscode$
+.pytest_cache

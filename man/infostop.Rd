@@ -238,7 +238,7 @@ if (is_infostop_initialized()) {
     id_col = "id"
   )
  # or use automated col guessing if applicable
- infostop_df3 <- infostop(path_data_frame, distance_metric = "euclidean") # automated col guessing
+ infostop_df3 <- infostop(path_data_frame, distance_metric = "euclidean")
 
  # with sftrack
  data("path_sftrack", package = "trackframe")

@@ -16,7 +16,7 @@ This vignette demonstrates how to use `infostop`.
 
 # Load package and initialize infostop
 
-```{r}
+```{r setup}
 library("trackframe")
 library("infostop")
 
@@ -28,7 +28,7 @@ infostop_initialize()
 
 ### Onestep approach
 
-```{r}
+```{r sftrack-onestep}
 data("path_sftrack", package = "trackframe")
 head(path_sftrack)
 class(path_sftrack)
@@ -42,23 +42,21 @@ head(infostop$compute_label_medians())
 
 ### Twostep approach
 
-```{r}
+```{r sftrack-twostep}
 data("path_sftrack", package = "trackframe")
 
-identify_stops_sftrack <- identify_stops(data = path_sftrack,
-                            distance_metric = "haversine")
-clusters_sftrack <- identify_sites(identify_stops_sftrack$stop_events, distance_metric = "haversine")
-two_step_labels_sftrack <- match_labels(clusters_sftrack, identify_stops_sftrack$event_map)
+dat <- identify_stops(data = path_sftrack, distance_metric = "haversine")
+dat <- identify_sites(dat, distance_metric = "haversine")
 
-#compare with onestep approach
+# compare with onestep approach
 infostop_sftrack <- infostop(data = path_sftrack,
                         distance_metric = "haversine")
-all.equal(two_step_labels_sftrack, infostop_sftrack$labels)
+all.equal(dat[["site_id"]], infostop_sftrack$labels)
 ```
 
 ## move2
 
-```{r}
+```{r move2-example}
 data("path_move2", package = "trackframe")
 head(path_move2)
 class(path_move2)
@@ -82,7 +80,7 @@ When applying infostop to `matrix` or `data.frame` objects, one has two options:
 
 As objects of class `trackframe` always have easting/northing coordinates, `distance_metric` needs to be `"euclidean"`.
 
-```{r}
+```{r dataframe-to-trackframe}
 data("path_data_frame", package = "trackframe")
 head(path_data_frame)
 class(path_data_frame)
@@ -100,7 +98,7 @@ infostop_df <- infostop(data = path_tf,
 ### `infostop_xyt()`
 
 
-```{r}
+```{r infostop-xyt-matrix}
 data("path_matrix", package = "trackframe")
 head(path_matrix)
 class(path_matrix)
@@ -116,7 +114,7 @@ infostop_xyt <- infostop_xyt(x = path_matrix[, "longitude"],
 
 As objects of class `trackframe` always have easting/northing coordinates, `distance_metric` needs to be `"euclidean"`.
 
-```{r}
+```{r trackframe-example}
 data("path_trackframe", package = "trackframe")
 head(path_trackframe)
 
@@ -125,20 +123,20 @@ infostop <- infostop(data = path_trackframe,
 ```
 
 To obtain the labels of the stop locations,
-```{r}
+```{r labels-output}
 head(infostop$labels, n=20)
 ```
 can be used.
 For each stop location (identified by a label), we can compute the median coordinates using
 the `compute_label_medians()` method:
-```{r}
+```{r medians-output}
 head(infostop$compute_label_medians())
 ```
 
 
 ### multiple IDs
 
-```{r}
+```{r multiple-ids}
 data("paths_trackframe", package = "trackframe")
 head(paths_trackframe)
 unique(paths_trackframe$id)

@@ -1,3 +1,93 @@
+
+
+infostop_internal <- function(
+  data,
+  r1 = 10,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_staying_time = 300L,
+  max_time_between = 86400L,
+  min_size = 2L,
+  min_spacial_resolution = 0,
+  distance_metric = c("haversine", "euclidean"),
+  weighted = FALSE,
+  weight_exponent = 1,
+  verbose = FALSE
+) {
+  check_infostop_initialized()
+
+  if (is.list(data)) {
+    for (i in seq_along(data)) {
+      checkmate::assert_matrix(
+        data[[i]],
+        "numeric",
+        any.missing = FALSE,
+        min.cols = 2,
+        max.cols = 3
+      )
+    }
+  } else {
+    checkmate::assert_matrix(data, "numeric", any.missing = FALSE, min.cols = 2, max.cols = 3)
+  }
+  checkmate::assert_numeric(r1, lower = 0, len = 1, finite = TRUE, any.missing = FALSE)
+  checkmate::assert_numeric(r2, lower = 0, len = 1, finite = TRUE, any.missing = FALSE)
+  checkmate::assert_logical(label_singleton, len = 1, any.missing = FALSE)
+  checkmate::assert_integerish(min_staying_time, lower = 0, len = 1, any.missing = FALSE)
+  checkmate::assert_integerish(max_time_between, lower = 0, len = 1, any.missing = FALSE)
+  checkmate::assert_integerish(min_size, lower = 0, len = 1, any.missing = FALSE)
+  checkmate::assert_numeric(min_spacial_resolution, lower = 0, len = 1, any.missing = FALSE)
+  checkmate::assert_logical(weighted, len = 1, any.missing = FALSE)
+  checkmate::assert_numeric(weight_exponent, lower = 0, len = 1, any.missing = FALSE)
+  checkmate::assert_logical(verbose, len = 1, any.missing = FALSE)
+
+  distance_metric <- match.arg(distance_metric)
+
+  env <- new.env(parent = emptyenv())
+  env$distance_metric <- distance_metric
+  env$model <- py_infostop$Infostop(
+    r1 = r1,
+    r2 = r2,
+    label_singleton = label_singleton,
+    min_staying_time = as.integer(min_staying_time),
+    max_time_between = as.integer(max_time_between),
+    min_size = as.integer(min_size),
+    min_spacial_resolution = min_spacial_resolution,
+    distance_metric = distance_metric,
+    weighted = weighted,
+    weight_exponent = weight_exponent,
+    verbose = verbose
+  )
+
+  env$compute_label_medians <- function(simplify = TRUE) {
+    label_medians <- env$model$compute_label_medians()
+    if (isTRUE(simplify)) {
+      if (length(label_medians) > 0) {
+        label_medians <- do.call(rbind, label_medians)
+      } else {
+        label_medians <- matrix(numeric(), nrow = 0, ncol = 2)
+      }
+      if (env$distance_metric == "haversine") {
+        colnames(label_medians) <- c("longitude", "latitude")
+      } else {
+        colnames(label_medians) <- c("x", "y")
+      }
+    }
+    label_medians
+  }
+
+  if (is.list(data)) {
+    makeActiveBinding("labels", function() lapply(env$model$labels, refine_labels), env)
+  } else {
+    makeActiveBinding("labels", function() refine_labels(env$model$labels[[1]]), env)
+  }
+
+  . <- env$model$fit_predict(data)  # nolint: object_usage_linter
+  class(env) <- "Infostop"
+
+  return(env)
+}
+
+
 #' Detect Stop Locations in Mobility Data
 #'
 #' This function creates an Infostop model to infer stop-location labels from mobility trace.
@@ -75,9 +165,10 @@
 #'       each element corresponds to a point in the input data. Points labeled -1 are
 #'       considered dynamic (not part of any stop location).
 #'   }
-#'   
-#' Objects of class \code{sftrack}, \code{move2} and \code{trackframe} are supported in \code{\link{infostop}}.
-#' 
+#'
+#' Objects of class \code{sftrack}, \code{move2} and \code{trackframe} are supported
+#' in \code{\link{infostop}}.
+#'
 #' @seealso \code{\link{infostop}}
 #'
 #' @examples
@@ -232,7 +323,7 @@ infostop_xyt <- function(
 #'     id_col = "id"
 #'   )
 #'  # or use automated col guessing if applicable
-#'  infostop_df3 <- infostop(path_data_frame, distance_metric = "euclidean") # automated col guessing
+#'  infostop_df3 <- infostop(path_data_frame, distance_metric = "euclidean")
 #'
 #'  # with sftrack
 #'  data("path_sftrack", package = "trackframe")
@@ -262,104 +353,6 @@ infostop <- function(
   ...
 ) {
   UseMethod("infostop")
-}
-
-
-refine_labels <- function(labels) {
-  if (length(labels) == 0) {
-    return(labels)
-  }
-  labels <- as.integer(labels)
-  labels[labels == -1L] <- NA_integer_
-  labels
-}
-
-
-infostop_internal <- function(
-  data,
-  r1 = 10,
-  r2 = 10,
-  label_singleton = TRUE,
-  min_staying_time = 300L,
-  max_time_between = 86400L,
-  min_size = 2L,
-  min_spacial_resolution = 0,
-  distance_metric = c("haversine", "euclidean"),
-  weighted = FALSE,
-  weight_exponent = 1,
-  verbose = FALSE
-) {
-  check_infostop_initialized()
-
-  if (is.list(data)) {
-    for (i in seq_along(data)) {
-      checkmate::assert_matrix(
-        data[[i]],
-        "numeric",
-        any.missing = FALSE,
-        min.cols = 2,
-        max.cols = 3
-      )
-    }
-  } else {
-    checkmate::assert_matrix(data, "numeric", any.missing = FALSE, min.cols = 2, max.cols = 3)
-  }
-  checkmate::assert_numeric(r1, lower = 0, len = 1, finite = TRUE, any.missing = FALSE)
-  checkmate::assert_numeric(r2, lower = 0, len = 1, finite = TRUE, any.missing = FALSE)
-  checkmate::assert_logical(label_singleton, len = 1, any.missing = FALSE)
-  checkmate::assert_integerish(min_staying_time, lower = 0, len = 1, any.missing = FALSE)
-  checkmate::assert_integerish(max_time_between, lower = 0, len = 1, any.missing = FALSE)
-  checkmate::assert_integerish(min_size, lower = 0, len = 1, any.missing = FALSE)
-  checkmate::assert_numeric(min_spacial_resolution, lower = 0, len = 1, any.missing = FALSE)
-  checkmate::assert_logical(weighted, len = 1, any.missing = FALSE)
-  checkmate::assert_numeric(weight_exponent, lower = 0, len = 1, any.missing = FALSE)
-  checkmate::assert_logical(verbose, len = 1, any.missing = FALSE)
-
-  distance_metric <- match.arg(distance_metric)
-
-  env <- new.env(parent = emptyenv())
-  env$distance_metric <- distance_metric
-  env$model <- py_infostop$Infostop(
-    r1 = r1,
-    r2 = r2,
-    label_singleton = label_singleton,
-    min_staying_time = as.integer(min_staying_time),
-    max_time_between = as.integer(max_time_between),
-    min_size = as.integer(min_size),
-    min_spacial_resolution = min_spacial_resolution,
-    distance_metric = distance_metric,
-    weighted = weighted,
-    weight_exponent = weight_exponent,
-    verbose = verbose
-  )
-
-  env$compute_label_medians <- function(simplify = TRUE) {
-    label_medians <- env$model$compute_label_medians()
-    if (isTRUE(simplify)) {
-      if (length(label_medians) > 0) {
-        label_medians <- do.call(rbind, label_medians)
-      } else {
-        label_medians <- matrix(numeric(), nrow = 0, ncol = 2)
-      }
-      if (env$distance_metric == "haversine") {
-        colnames(label_medians) <- c("longitude", "latitude")
-      } else {
-        colnames(label_medians) <- c("x", "y")
-      }
-    }
-    label_medians
-  }
-
-  if (is.list(data)) {
-    makeActiveBinding("labels", function() lapply(env$model$labels, refine_labels), env)
-  } else {
-    makeActiveBinding("labels", function() refine_labels(env$model$labels[[1]]), env)
-  }
-
-  . <- env$model$fit_predict(data)  # nolint: object_usage_linter
-  class(env) <- "Infostop"
-
-  return(env)
 }
 
 
@@ -540,72 +533,6 @@ infostop.move2 <- function(
 }
 
 
-make_unique_id <- function(id_col) {
-  unique_id <- sapply(id_col, paste, collapse = "<;>")
-  attr(unique_id, "group_names") <- attr(id_col, "active_group")
-  unique_id
-}
-
-
-get_id_column <- function(x) {
-  if (inherits(x, "trackframe")) {
-    attr(x, "id")
-  } else if (inherits(x, "move2")) {
-    attr(x, "track_id_column")
-  } else if (inherits(x, "sftrack")) {
-    attr(x, "group_col")
-  } else {
-    stop("x is expected to inherit from 'trackframe', 'move2' or 'sftrack'")
-  }
-}
-
-
-assert_crs_euclidean <- function(crs, na_ok = FALSE) {
-  if (is.na(crs$input)) {
-    if (isTRUE(na_ok)) {
-      return(invisible(NULL))
-    }
-    stop("no crs information available.")
-  }
-  # check easting / northing
-  crs_value <- as.integer(gsub("\\D", "", crs$input))
-  if (!(crs_value >= 32600 && crs_value <= 32760)) {
-    stop(sprintf(
-      "distance_metric euclidean does not match with crs %s. %s",
-      crs$input,
-      "Choose distance_metric = 'haversine' instead."
-    ))
-  }
-}
-
-
-assert_crs_haversine <- function(crs, na_ok = FALSE) {
-  if (is.na(crs$input)) {
-    if (isTRUE(na_ok)) {
-      return(invisible(NULL))
-    }
-    stop("no crs information available.")
-  }
-  # check easting / northing
-  crs_value <- as.integer(gsub("\\D", "", crs$input))
-  if (crs_value >= 32600 && crs_value <= 32760) {
-    stop(sprintf(
-      "distance_metric haversine does not match with crs %s. %s",
-      crs$input,
-      "Choose distance_metric = 'euclidean' instead."
-    ))
-  }
-}
-
-
-assert_lonlat <- function(lon, lat, emsg = NULL) {
-  if (any(abs(lon) > 180, na.rm = TRUE) || any(abs(lat) > 90, na.rm = TRUE)) {
-    default_msg <- "coordinates do not seem to be lon/lat"
-    stop(emsg %||% default_msg)
-  }
-}
-
-
 guess_distance_metric <- function(crs) {
   if (!grepl("EPSG", crs$input)) {
     return(NULL)
@@ -697,19 +624,19 @@ infostop.sftrack <- function(
 #' @export
 #' @rdname infostop
 infostop.numeric <- function(
-    data,
-    r1 = 10,
-    r2 = 10,
-    label_singleton = TRUE,
-    min_staying_time = 300L,
-    max_time_between = 86400L,
-    min_size = 2L,
-    min_spacial_resolution = 0,
-    distance_metric = NULL, #"euclidean", #c("haversine", "euclidean"),
-    weighted = FALSE,
-    weight_exponent = 1,
-    verbose = FALSE,
-    ...
+  data,
+  r1 = 10,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_staying_time = 300L,
+  max_time_between = 86400L,
+  min_size = 2L,
+  min_spacial_resolution = 0,
+  distance_metric = NULL, #"euclidean", #c("haversine", "euclidean"),
+  weighted = FALSE,
+  weight_exponent = 1,
+  verbose = FALSE,
+  ...
 ) {
   stop("no applicable method for 'infostop' applied to an object of class c('double', 'numeric').
        use infostop_xyt() instead")

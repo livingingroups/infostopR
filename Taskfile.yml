@@ -58,9 +58,13 @@ tasks:
 
   vignettes:
     desc: Build package vignettes
-    deps: [document]
     cmds:
-      - Rscript -e "if (!require('devtools')) install.packages('devtools', repos = 'https://cran.r-project.org'); devtools::build_vignettes()"
+      - Rscript -e "devtools::build_vignettes()"
+
+  tangle:
+    desc: Run tangler to convert Rmd to R scripts
+    cmds:
+      - Rscript -e "setwd('vignettes'); knitr::knit('infostop.Rmd', tangle = TRUE)"
 
   tinytest-infostop:
     cmds:

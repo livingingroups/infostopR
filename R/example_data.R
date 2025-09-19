@@ -104,3 +104,14 @@ example_data <- function() {
   colnames(dat) <- c("x", "y", "t")
   dat
 }
+
+
+example_data_move2 <- function() {
+  x <- sf::st_as_sf(example_data(), coords = c("x", "y"), crs = 4326L)
+  colnames(x)[1] <- "time"
+  x[["id"]] <- "id_1"
+  attr(x, "time_column") <- "time"
+  attr(x, "track_id_column") <- "id"
+  class(x) <- c("move2", class(x))
+  x
+}

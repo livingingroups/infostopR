@@ -1,3 +1,40 @@
+
+
+identify_stops_internal <- function(
+  data,
+  r1 = 10,
+  min_size = 2L,
+  min_staying_time = 300L,
+  max_time_between = 86400L,
+  distance_metric = c("haversine", "euclidean")  
+) {
+  check_infostop_initialized()
+  checkmate::assert_numeric(r1, lower = 0, len = 1, finite = TRUE, any.missing = FALSE)
+  checkmate::assert_integerish(min_staying_time, lower = 0, len = 1, any.missing = FALSE)
+  checkmate::assert_integerish(max_time_between, lower = 0, len = 1, any.missing = FALSE)
+  checkmate::assert_integerish(min_size, lower = 0, len = 1, any.missing = FALSE)
+
+  distance_metric <- match.arg(distance_metric)
+  min_size <- as.integer(min_size)
+
+  py_identify_stops <- rpy("identify_stops")
+  ret <- py_identify_stops(data, r1, min_size, min_staying_time, max_time_between, distance_metric)
+  names(ret) <- c("stop_events", "event_map")
+  ret
+}
+
+
+add_stop_ids <- function(data, event_map, stop_id_col = "stop_id") {
+  ids <- make_unique_id(data[[get_id_column(data)]])
+  uids <- unique(ids)
+  data[[stop_id_col]] <- NA_integer_
+  for (i in seq_along(event_map)) {
+    data[[stop_id_col]][ids %in% uids[i]] <- refine_labels(event_map[[i]])
+  }
+  data
+}
+
+
 #' Find based on distance and time threshold
 #'
 #' @param x a numeric vector of x-coordinates (easting/longitude).
@@ -6,12 +43,12 @@
 #'        containing the timestamps corresponding to the x and y coordinates.
 #' @param r1 A numeric vector giving the maximum distance between time-consecutive points to label
 #'   them as stationary. Higher values will result in more points being considered stationary.
+#' @param min_size An integer giving the minimum number of points required to consider a group
+#'   stationary.
 #' @param min_staying_time An integer giving the minimum duration (in seconds) that can constitute
 #'   a stop. Only relevant if timestamps are provided in the data.
 #' @param max_time_between An integer giving the maximum duration (in seconds) between consecutive
 #'   points to consider them part of the same stop. Only relevant if timestamps are provided.
-#' @param min_size An integer giving the minimum number of points required to consider a group
-#'   stationary.
 #' @param distance_metric A character string, either 'haversine' (for geographic coordinates) or
 #'   'euclidean' (for Cartesian coordinates).
 #' @param ... other arguments passed to `as.trackframe()`
@@ -22,9 +59,9 @@ identify_stops_xyt <- function(
   y,
   t = NULL,
   r1 = 10,
+  min_size = 2L,
   min_staying_time = 300L,
   max_time_between = 86400L,
-  min_size = 2L,
   distance_metric = c("haversine", "euclidean")
 ) {
   check_infostop_initialized()
@@ -37,7 +74,7 @@ identify_stops_xyt <- function(
     assert_lonlat(x, y)
   }
   data <- cbind(x = x, y = y, t = t)
-  identify_stops_internal(
+  stops <- identify_stops_internal(
     data = data,
     r1 = r1,
     min_staying_time = min_staying_time,
@@ -45,6 +82,7 @@ identify_stops_xyt <- function(
     min_size = min_size,
     distance_metric = distance_metric
   )
+  stops
 }
 
 
@@ -55,14 +93,16 @@ identify_stops_xyt <- function(
 #' @param r1 A numeric vector giving the maximum distance between time-consecutive points
 #'   to label them as stationary. Higher values will result in more points being considered
 #'   stationary.
+#' @param min_size An integer giving the minimum number of points required to consider a group
+#'   stationary.
 #' @param min_staying_time An integer giving the minimum duration (in seconds) that can constitute
 #'   a stop. Only relevant if timestamps are provided in the data.
 #' @param max_time_between An integer giving the maximum duration (in seconds) between consecutive
 #'   points to consider them part of the same stop. Only relevant if timestamps are provided.
-#' @param min_size An integer giving the minimum number of points required to consider a group
-#'   stationary.
 #' @param distance_metric A character string, either 'haversine' (for geographic coordinates)
 #'   or 'euclidean' (for Cartesian coordinates).
+#' @param stop_id_col A character string specifying the name of the column to be used for
+#'   the stop identifiers. Default is "stop_id".
 #' @param ... other arguments passed to `as.trackframe()`
 #' @examples
 #' library(trackframe)
@@ -91,51 +131,14 @@ identify_stops_xyt <- function(
 identify_stops <- function(
   data,
   r1 = 10,
+  min_size = 2L,
   min_staying_time = 300L,
   max_time_between = 86400L,
-  min_size = 2L,
   distance_metric = c("haversine", "euclidean"),
+  stop_id_col = "stop_id",
   ...
 ) {
   UseMethod("identify_stops")
-}
-
-
-identify_stops_internal <- function(
-  data,
-  r1 = 10,
-  min_staying_time = 300L,
-  max_time_between = 86400L,
-  min_size = 2L,
-  distance_metric = c("haversine", "euclidean")
-) {
-  check_infostop_initialized()
-
-  # checkmate::assert_matrix(data, "numeric", any.missing = FALSE, min.cols = 2, max.cols = 3)
-  checkmate::assert_numeric(r1, lower = 0, len = 1, finite = TRUE, any.missing = FALSE)
-  checkmate::assert_integerish(min_staying_time, lower = 0, len = 1, any.missing = FALSE)
-  checkmate::assert_integerish(max_time_between, lower = 0, len = 1, any.missing = FALSE)
-  checkmate::assert_integerish(min_size, lower = 0, len = 1, any.missing = FALSE)
-
-  distance_metric <- match.arg(distance_metric)
-  stops <- py_cpputils$get_stationary_events(
-    data,
-    r1,
-    as.integer(min_size),
-    min_staying_time,
-    max_time_between,
-    distance_metric
-  )  # nolint: object_usage_linter
-  stops[[1]] <- as.matrix(do.call(rbind, stops[[1]]))
-  names(stops) <- c("stop_events", "event_map")
-
-  if (abs(max(data[, 1:2])) <= 180 && sum(stops[["event_map"]] != 0) == 0) {
-    warning("Seems that coordinate reference system and distance_metric do not coincide.")
-  }
-
-  stops[[2]] <- refine_labels(stops[[2]])
-
-  return(stops)
 }
 
 
@@ -158,10 +161,11 @@ identify_stops_internal <- function(
 identify_stops.data.frame <- function(
   data,
   r1 = 10,
+  min_size = 2L,
   min_staying_time = 300L,
   max_time_between = 86400L,
-  min_size = 2L,
   distance_metric = "euclidean",
+  stop_id_col = "stop_id",
   time_col = tf_options("time_col"),
   easting_col = tf_options("easting_col"),
   northing_col = tf_options("northing_col"),
@@ -208,15 +212,16 @@ identify_stops.data.frame <- function(
   }
 
   data <- cbind(as.matrix(data[, c(easting_col, northing_col)]), data[[time_col]])
-  
-  identify_stops_internal(
+
+  stops <- identify_stops_internal(
     data = data,
     r1 = r1,
+    min_size = min_size,
     min_staying_time = min_staying_time,
     max_time_between = max_time_between,
-    min_size = min_size,
     distance_metric = distance_metric
   )
+  add_stop_ids(data, stops$event_map, stop_id_col = stop_id_col)
 }
 
 
@@ -225,10 +230,11 @@ identify_stops.data.frame <- function(
 identify_stops.trackframe <- function(
   data,
   r1 = 10,
+  min_size = 2L,
   min_staying_time = 300L,
   max_time_between = 86400L,
-  min_size = 2L,
   distance_metric = "euclidean",
+  stop_id_col = "stop_id",
   ...
 ) {
   if (distance_metric != "euclidean") {
@@ -236,27 +242,15 @@ identify_stops.trackframe <- function(
       "Only distance_metric = 'euclidean' is available for objects of class trackframe"
     )
   }
-  id_col <- attr(data, "id")
-  ids <- if (is.null(id_col)) NULL else data[[id_col]]
-
-  data[[attr(data, "time")]] <- as.integer(data[[attr(data, "time")]])
-  cols <- c(attr(data, "easting"), attr(data, "northing"), attr(data, "time"))
-  data <- as.matrix(data[, cols])
-
-  if (!is.null(ids) && length(unique(ids)) > 1) {
-    stop(
-      "Multiple tracks are not supported. Please use infostop() instead in case of multiple tracks."
-    )
-  }
-
-  identify_stops_internal(
-    data = data,
+  stops <- identify_stops_internal(
+    data = as_infostop(data),
     r1 = r1,
+    min_size = min_size,
     min_staying_time = min_staying_time,
     max_time_between = max_time_between,
-    min_size = min_size,
     distance_metric = distance_metric
   )
+  add_stop_ids(data, stops$event_map, stop_id_col = stop_id_col)
 }
 
 
@@ -265,50 +259,25 @@ identify_stops.trackframe <- function(
 identify_stops.move2 <- function(
   data,
   r1 = 10,
+  min_size = 2L,
   min_staying_time = 300L,
   max_time_between = 86400L,
-  min_size = 2L,
   distance_metric = c("haversine", "euclidean"),
+  stop_id_col = "stop_id",
   ...
 ) {
-  # transform from move2
-  data <- cbind(
-    st_coordinates(data[[attr(data, "sf_column")]]),
-    as.integer(data[[attr(data, "time_column")]])
-  )
-  identify_stops_internal(
-    data = data,
+  stops <- identify_stops_internal(
+    data = as_infostop(data),
     r1 = r1,
+    min_size = min_size,
     min_staying_time = min_staying_time,
     max_time_between = max_time_between,
-    min_size = min_size,
     distance_metric = distance_metric
   )
+  add_stop_ids(data, stops$event_map, stop_id_col = stop_id_col)
 }
 
 
 #' @export
 #' @rdname identify_stops
-identify_stops.sftrack <- function(
-  data,
-  r1 = 10,
-  min_staying_time = 300L,
-  max_time_between = 86400L,
-  min_size = 2L,
-  distance_metric = c("haversine", "euclidean"),
-  ...
-) {
-  # transform from sftrack
-  data <- cbind(
-    st_coordinates(data[[attr(data, "sf_column")]]),
-    as.integer(data[[attr(data, "time_col")]])
-  )
-  identify_stops_internal(
-    data = data,
-    r1 = r1,
-    min_staying_time = min_staying_time,
-    max_time_between = max_time_between,
-    min_size = min_size,
-    distance_metric = distance_metric
-  )
-}
+identify_stops.sftrack <- identify_stops.move2
