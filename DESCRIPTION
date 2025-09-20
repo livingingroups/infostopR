@@ -2,10 +2,18 @@ Package: infostop
 Title: R Interface to the Python 'infostop' Package for Detecting Stop Locations in Mobility Data
 Version: 0.1.1
 Authors@R: 
-    person(given = "Florian",
-           family = "Schwendinger",
-           role = c("aut", "cre"),
-           email = "Florian.Schwendinger@quintik.at")
+    c(
+        person(given = "Florian",
+               family = "Schwendinger",
+               role = c("aut"),
+               email = "Florian.Schwendinger@quintik.at"),
+        person(given = "Katrina",
+               family = "Brock",
+               role = c("cre"),
+               email = "kbrock@ab.mpg.de"),
+        person("Max Planck Institute of Animal Behavior",
+               role = c("fnd", "cph"))
+    )
 Description: An R wrapper for the Python 'infostop' package which implements 
     algorithms for detecting stop locations in time-ordered location data. 
     The package is useful for anyone who wishes to detect stationary events in 
