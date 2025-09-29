@@ -26,5 +26,6 @@ Depends: sf
 Imports: 
     reticulate, checkmate, trackframe
 Suggests: 
-    rmarkdown, knitr, tinytest
+    rmarkdown, knitr, markdown, tinytest
 VignetteBuilder: knitr
+RoxygenNote: 7.3.2

@@ -11,3 +11,6 @@ infostop_*.tar.gz
 ^[.]?air[.]toml$
 ^\.vscode$
 .pytest_cache
+^doc$
+^Meta$
+^CONTRIBUTING.md$
