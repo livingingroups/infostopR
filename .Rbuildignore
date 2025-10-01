@@ -14,3 +14,4 @@ infostop_*.tar.gz
 ^doc$
 ^Meta$
 ^CONTRIBUTING.md$
+^requirements.txt$

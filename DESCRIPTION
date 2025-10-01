@@ -9,10 +9,16 @@ Authors@R:
                email = "Florian.Schwendinger@quintik.at"),
         person(given = "Katrina",
                family = "Brock",
-               role = c("cre"),
+               role = c("aut", "cre"),
                email = "kbrock@ab.mpg.de"),
         person("Max Planck Institute of Animal Behavior",
-               role = c("fnd", "cph"))
+               role = c("fnd", "cph")),
+        person(given = "Ulf",
+               family = "Aslak",
+               role = c("aut")),
+        person(given = "Laura",
+               family = "Alessandretti",
+               role = c("aut"))
     )
 Description: An R wrapper for the Python 'infostop' package which implements 
     algorithms for detecting stop locations in time-ordered location data. 
@@ -20,12 +26,12 @@ Description: An R wrapper for the Python 'infostop' package which implements
     location coordinate streams, simplifying dense and rich location time-series 
     into sequences of events. The underlying algorithm is described in 
     Aslak et al. (2020) <arXiv:2003.14370>.
-License: MIT + file LICENSE
+License: GPL-3
 Encoding: UTF-8
 Depends: sf
 Imports: 
     reticulate, checkmate, trackframe
 Suggests: 
     rmarkdown, knitr, markdown, tinytest
+SystemRequirements: Python (>=3.9) with the 'infostop' package installed
 VignetteBuilder: knitr
-RoxygenNote: 7.3.2
