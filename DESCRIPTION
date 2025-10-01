@@ -33,5 +33,5 @@ Imports:
     reticulate, checkmate, trackframe
 Suggests: 
     rmarkdown, knitr, markdown, tinytest
-SystemRequirements: Python (>=3.9) with the 'infostop' package installed
+SystemRequirements: Python (>=3.10) with the 'infostop' package installed
 VignetteBuilder: knitr
