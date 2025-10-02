@@ -11,7 +11,10 @@ load("data/tf_paths.RData")
 # On debian in the terminal the automatic init works as expected.
 # However using Positiron
 infostop_initialize()
-expected <- jsonlite::read_json(system.file("tinytest/extdata/exp_infostop.json", package = "infostop"), simplifyVector = TRUE)
+expected <- jsonlite::read_json(
+  system.file("tinytest/extdata/exp_infostop.json", package = "infostop"),
+  simplifyVector = TRUE
+)
 expected_sites_e <- expected[["tf_mat_default_e"]][["expected_sites"]]
 expected_sites_h <- expected[["tf_mat_default_h"]][["expected_sites"]]
 expected_label_medians_e <- expected[["tf_mat_default_e"]][["expected_label_medians"]]
@@ -88,11 +91,10 @@ expect_equal(
 )
 
 
-
 #
 # data.frame
 #
-
+data("path_data_frame", package = "trackframe")
 expect_error(infostop_xyt(data = path_data_frame, distance_metric = "euclidean"))
 expect_silent(infostop(data = path_data_frame, distance_metric = "euclidean"))
 
@@ -175,7 +177,6 @@ tf1 <- trackframe::split_by_id(paths_trackframe)[[1]]
 infostop_mtf1 <- infostop(data = tf1, distance_metric = "euclidean")
 
 
-
 # Due to label switching we cannot compare directly, but can only
 # compare the relabeled.
 relabel <- function(x) {
@@ -199,7 +200,7 @@ infostop_msftrack <- infostop(data = paths_sftrack, distance_metric = "haversine
 
 paths_sftrack_e <- sf::st_transform(paths_sftrack, 32633)
 infostop_msftrack_e <- infostop(data = paths_sftrack_e, distance_metric = "euclidean")
-expect_equal(unlist(infostop_msftrack_e$labels), expected_sites_e_multi) 
+expect_equal(unlist(infostop_msftrack_e$labels), expected_sites_e_multi)
 expect_equivalent(infostop_msftrack_e$compute_label_medians(), expected_label_medians_e_multi)
 # correct number of tracks
 expect_equal(length(infostop_msftrack$labels), length(unique(paths_sftrack$id)))
