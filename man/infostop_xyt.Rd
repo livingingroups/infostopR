@@ -22,10 +22,10 @@ infostop_xyt(
 )
 }
 \arguments{
-\item{x}{a numeric vector of x-coordinates (easting for distance_metric euclidean - longitude for
+\item{x}{a numeric vector of x-coordinates (northing for distance_metric euclidean - latitude for
 distance_metric "haversine").}
 
-\item{y}{a numeric vector of y-coordinates (northing for distance_metric euclidean - latitude for
+\item{y}{a numeric vector of y-coordinates (easting for distance_metric euclidean - longitude for
 distance_metric "haversine").}
 
 \item{time}{a vector inheriting from \code{numeric} (in seconds) or \code{POSIXt}
@@ -120,8 +120,8 @@ in \code{\link{infostop}}.
 if (is_infostop_initialized()) {
 data("path_matrix", package = "trackframe")
 infostop_xyt <- infostop_xyt(
-  x = path_matrix[, "longitude"],
-  y = path_matrix[, "latitude"],
+  x = path_matrix[, "latitude"],
+  y = path_matrix[, "longitude"],
   t = path_matrix[, "time"],
   distance_metric = "haversine"
  )

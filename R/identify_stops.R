@@ -6,7 +6,7 @@ identify_stops_internal <- function(
   min_size = 2L,
   min_staying_time = 300L,
   max_time_between = 86400L,
-  distance_metric = c("haversine", "euclidean")  
+  distance_metric = c("haversine", "euclidean")
 ) {
   check_infostop_initialized()
   checkmate::assert_numeric(r1, lower = 0, len = 1, finite = TRUE, any.missing = FALSE)
@@ -37,8 +37,10 @@ add_stop_ids <- function(data, event_map, stop_id_col = "stop_id") {
 
 #' Find based on distance and time threshold
 #'
-#' @param x a numeric vector of x-coordinates (easting/longitude).
-#' @param y a numeric vector of y-coordinates (northing/latitude).
+#' @param x a numeric vector of x-coordinates (easting for distance_metric euclidean - latitude for
+#'   distance_metric "haversine").
+#' @param y a numeric vector of y-coordinates (northing for distance_metric euclidean - longitude for
+#'   distance_metric "haversine").
 #' @param t a vecor inheriting from \code{numeric} or \code{POSIXt} or \code{Date}
 #'        containing the timestamps corresponding to the x and y coordinates.
 #' @param r1 A numeric vector giving the maximum distance between time-consecutive points to label

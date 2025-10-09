@@ -95,9 +95,9 @@ infostop_internal <- function(
 #' events into stop locations using a network-based approach.
 #' Dynamic (moving) points are labeled -1.
 #'
-#' @param x a numeric vector of x-coordinates (easting for distance_metric euclidean - longitude for
+#' @param x a numeric vector of x-coordinates (easting for distance_metric euclidean - latitude for
 #'   distance_metric "haversine").
-#' @param y a numeric vector of y-coordinates (northing for distance_metric euclidean - latitude for
+#' @param y a numeric vector of y-coordinates (northing for distance_metric euclidean - longitude for
 #'   distance_metric "haversine").
 #' @param time a vector inheriting from \code{numeric} (in seconds) or \code{POSIXt}
 #'   or \code{Date} containing the timestamps corresponding to the x and y coordinates.
@@ -175,8 +175,8 @@ infostop_internal <- function(
 #' if (is_infostop_initialized()) {
 #' data("path_matrix", package = "trackframe")
 #' infostop_xyt <- infostop_xyt(
-#'   x = path_matrix[, "longitude"],
-#'   y = path_matrix[, "latitude"],
+#'   x = path_matrix[, "latitude"],
+#'   y = path_matrix[, "longitude"],
 #'   t = path_matrix[, "time"],
 #'   distance_metric = "haversine"
 #'  )
@@ -422,7 +422,12 @@ infostop.data.frame <- function(
 
   ids <- if (is.null(id_col)) NULL else data[[id_col]]
 
-  data <- cbind(as.matrix(data[, c(easting_col, northing_col)]), data[[time_col]])
+  coord_cols <- if (distance_metric == "euclidean") {
+    c(easting_col, northing_col)
+  } else {
+    c(northing_col, easting_col)
+  }
+  data <- cbind(as.matrix(data[, coord_cols]), data[[time_col]])
 
   # split data in case of multiple ids
   if (!is.null(ids) && length(unique(ids)) > 1) {
@@ -593,15 +598,13 @@ infostop.sftrack <- function(
 
   # transform from sftrack
   data <- cbind(
-    st_coordinates(data[[attr(data, "sf_column")]]),
+    st_coordinates_lat_lon(data[[attr(data, "sf_column")]]),
     as.integer(data[[attr(data, "time_col")]])
   )
 
   # split data in case of multiple ids
   if (!is.null(ids) && length(unique(ids)) > 1) {
     data <- lapply(unname(split(seq_along(ids), ids)), function(i) data[i, ])
-    # uids <- unique(ids)
-    # data <- lapply(uids, function(id) data[which(ids == id),])
   }
 
   infostop_internal(

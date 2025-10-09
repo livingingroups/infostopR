@@ -34,9 +34,9 @@ head(path_sftrack)
 class(path_sftrack)
 
 infostop <- infostop(data = path_sftrack,
-                     distance_metric = "haversine")
+  distance_metric = "haversine")
 
-head(infostop$labels, n=20)
+head(infostop$labels, n = 20)
 head(infostop$compute_label_medians())
 ```
 
@@ -50,7 +50,7 @@ dat <- identify_sites(dat, distance_metric = "haversine")
 
 # compare with onestep approach
 infostop_sftrack <- infostop(data = path_sftrack,
-                        distance_metric = "haversine")
+  distance_metric = "haversine")
 all.equal(dat[["site_id"]], infostop_sftrack$labels)
 ```
 
@@ -62,9 +62,9 @@ head(path_move2)
 class(path_move2)
 
 infostop <- infostop(data = path_move2,
-                     distance_metric = "haversine")
+  distance_metric = "haversine")
 
-head(infostop$labels, n=20)
+head(infostop$labels, n = 20)
 head(infostop$compute_label_medians())
 ```
 
@@ -91,7 +91,7 @@ attr(path_tf, "easting")
 attr(path_tf, "northing")
 # need to use euclidean distance as coordinates were transformed to easting/northing
 infostop_df <- infostop(data = path_tf,
-                       distance_metric = "euclidean")
+  distance_metric = "euclidean")
 ```
 
 
@@ -103,10 +103,9 @@ data("path_matrix", package = "trackframe")
 head(path_matrix)
 class(path_matrix)
 infostop_xyt <- infostop_xyt(x = path_matrix[, "longitude"],
-                             y = path_matrix[, "latitude"],
-                             t = path_matrix[, "time"],
-                             distance_metric = "haversine")
-
+  y = path_matrix[, "latitude"],
+  t = path_matrix[, "time"],
+  distance_metric = "haversine")
 ```
 
 
@@ -119,12 +118,12 @@ data("path_trackframe", package = "trackframe")
 head(path_trackframe)
 
 infostop <- infostop(data = path_trackframe,
-                     distance_metric = "euclidean")
+  distance_metric = "euclidean")
 ```
 
 To obtain the labels of the stop locations,
 ```{r labels-output}
-head(infostop$labels, n=20)
+head(infostop$labels, n = 20)
 ```
 can be used.
 For each stop location (identified by a label), we can compute the median coordinates using
@@ -142,10 +141,10 @@ head(paths_trackframe)
 unique(paths_trackframe$id)
 
 infostop <- infostop(data = paths_trackframe,
-                     distance_metric = "euclidean")
+  distance_metric = "euclidean")
 length(infostop$labels)
 
 tf1 <- split_by_id(paths_trackframe)[[1]]
 infostop_mtf1 <- infostop(data = tf1,
-                         distance_metric = "euclidean")
+  distance_metric = "euclidean")
 ```

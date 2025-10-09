@@ -32,6 +32,7 @@ Depends: sf
 Imports: 
     reticulate, checkmate, trackframe
 Suggests: 
-    rmarkdown, knitr, markdown, tinytest
+    rmarkdown, knitr, markdown, sftrack, move2, tinytest
 SystemRequirements: Python (>=3.10) with the 'infostop' package installed
 VignetteBuilder: knitr
+RoxygenNote: 7.3.3

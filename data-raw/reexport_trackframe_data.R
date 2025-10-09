@@ -1,5 +1,5 @@
 # The purpose of this file is to freeze external (to infostop)
-# data files used for testing in infostop. 
+# data files used for testing in infostop.
 # Prevents changes to trackframe data from breaking infostop tests.
 save(
   tf_path_matrix = 'path_matrix',

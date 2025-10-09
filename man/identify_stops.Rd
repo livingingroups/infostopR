@@ -80,9 +80,11 @@ identify_stops(
 )
 }
 \arguments{
-\item{x}{a numeric vector of x-coordinates (easting/longitude).}
+\item{x}{a numeric vector of x-coordinates (northing for distance_metric euclidean - latitude for
+distance_metric "haversine").}
 
-\item{y}{a numeric vector of y-coordinates (northing/latitude).}
+\item{y}{a numeric vector of y-coordinates (easting for distance_metric euclidean - longitude for
+distance_metric "haversine").}
 
 \item{t}{a vecor inheriting from \code{numeric} or \code{POSIXt} or \code{Date}
 containing the timestamps corresponding to the x and y coordinates.}

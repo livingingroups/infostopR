@@ -4,7 +4,8 @@ library("infostop")
 infostop_initialize()
 
 load('data/tf_paths.RData')
-expected <- jsonlite::read_json(system.file("tinytest/extdata/exp_onestep_twostep.json", package = "infostop"), simplifyVector = TRUE)
+expected <- jsonlite::read_json(system.file("tinytest/extdata/exp_onestep_twostep.json",
+    package = "infostop"), simplifyVector = TRUE)
 
 
 #
@@ -22,7 +23,7 @@ expect_equal(sites_tf_onestep, expected[["tf_pkg_r2_50"]][["expected_sites"]])
 #
 stops_mo <- identify_stops(paths_move2, distance_metric = "haversine")
 sites_mo <- identify_sites(stops_mo, r2 = 10, distance_metric = "haversine")
-sites_mo_onestep <- unlist(infostop(paths_move2, r2 = 10)$labels)
+sites_mo_onestep <- unlist(infostop(paths_move2, r2 = 10, distance_metric = "haversine")$labels)
 expect_equal(stops_mo[["stop_id"]], expected[["tf_default_h"]][["expected_stops"]])
 expect_equal(sites_mo[["site_id"]], expected[["tf_default_h"]][["expected_sites"]])
 expect_equal(sites_mo_onestep, expected[["tf_default_h"]][["expected_sites"]])
@@ -33,7 +34,7 @@ expect_equal(sites_mo_onestep, expected[["tf_default_h"]][["expected_sites"]])
 #
 stops_sft <- identify_stops(paths_sftrack, distance_metric = "haversine")
 sites_sft <- identify_sites(stops_sft, r2 = 10, distance_metric = "haversine")
-sites_sft_onestep <- unlist(infostop(paths_sftrack, r2 = 10)$labels)
+sites_sft_onestep <- unlist(infostop(paths_sftrack, r2 = 10, distance_metric = "haversine")$labels)
 expect_equal(stops_sft[["stop_id"]], expected[["tf_default_h"]][["expected_stops"]])
 expect_equal(sites_sft[["site_id"]], expected[["tf_default_h"]][["expected_sites"]])
 expect_equal(sites_sft_onestep, expected[["tf_default_h"]][["expected_sites"]])
