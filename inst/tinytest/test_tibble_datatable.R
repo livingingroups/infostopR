@@ -2,19 +2,21 @@ library("infostop")
 library("tinytest")
 library("trackframe")
 
+projected_crs <- "EPSG:32632"
+
 #
 # onestep - single track
 #
-data("path_data_frame", package = "trackframe")
-tf <- as.trackframe(path_data_frame, crs_input = 4326)
+path_df <- as.data.frame(path_trackframe[,c('easting', 'northing', 'time', 'id')])
+tf <- as.trackframe(path_df, crs = projected_crs)
 infostop_tf <- infostop(data = tf, distance_metric = "euclidean")
 
-tf_tibble <- as.trackframe(path_data_frame, crs_input = 4326, coerce_to = "tibble")
+tf_tibble <- as.trackframe(path_df, crs = projected_crs, coerce_to = "tibble")
 infostop_tibble <- infostop(data = tf, distance_metric = "euclidean")
 
 expect_equal(infostop_tf$labels, infostop_tibble$labels)
 
-tf_dt <- as.trackframe(path_data_frame, crs_input = 4326, coerce_to = "data.table")
+tf_dt <- as.trackframe(path_df, crs = projected_crs, coerce_to = "data.table")
 infostop_dt <- infostop(data = tf_dt, distance_metric = "euclidean")
 
 expect_equal(infostop_tf$labels, infostop_dt$labels)
@@ -38,16 +40,16 @@ expect_equal(clusters_dt[["site_id"]], infostop_tf[["labels"]])
 #
 # onestep - multipe tracks
 #
-data("paths_data_frame", package = "trackframe")
-tf <- as.trackframe(paths_data_frame, crs_input = 4326)
+paths_df <- as.data.frame(paths_trackframe[,c('easting', 'northing', 'id', 'time')])
+tf <- as.trackframe(paths_df, crs = projected_crs)
 infostop_tf <- infostop(data = tf, distance_metric = "euclidean")
 
-tf_tibble <- as.trackframe(paths_data_frame, crs_input = 4326, coerce_to = "tibble")
+tf_tibble <- as.trackframe(paths_df, crs = projected_crs, coerce_to = "tibble")
 infostop_tibble <- infostop(data = tf, distance_metric = "euclidean")
 
 expect_equal(infostop_tf$labels, infostop_tibble$labels)
 
-tf_dt <- as.trackframe(paths_data_frame, crs_input = 4326, coerce_to = "data.table")
+tf_dt <- as.trackframe(paths_df, crs = projected_crs, coerce_to = "data.table")
 infostop_dt <- infostop(data = tf_dt, distance_metric = "euclidean")
 
 expect_equal(infostop_tf$labels, infostop_dt$labels)

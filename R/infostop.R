@@ -95,10 +95,12 @@ infostop_internal <- function(
 #' events into stop locations using a network-based approach.
 #' Dynamic (moving) points are labeled -1.
 #'
-#' @param x a numeric vector of x-coordinates (easting for distance_metric euclidean - latitude for
-#'   distance_metric "haversine").
-#' @param y a numeric vector of y-coordinates (northing for distance_metric euclidean - longitude for
-#'   distance_metric "haversine").
+#' @param x a numeric vector of x-coordinates in cartesian coordinate system
+#'   (e.g. projected coordinates).
+#' @param y a numeric vector of y-coordinates in cartesian coordinate system
+#'   (e.g. projected coordinates).
+#' @param longitude numeric vector of longitude coordinates
+#' @param latitude numeric vector of latitude coordinates
 #' @param time a vector inheriting from \code{numeric} (in seconds) or \code{POSIXt}
 #'   or \code{Date} containing the timestamps corresponding to the x and y coordinates.
 #' @param r1 A numeric vector giving the maximum distance between time-consecutive points to label
@@ -116,8 +118,6 @@ infostop_internal <- function(
 #'   stationary.
 #' @param min_spacial_resolution A numeric giving the minimum difference allowed between points
 #'   before they are considered the same points. Useful for dealing with GPS jitter.
-#' @param distance_metric A character string, either 'haversine' (for geographic coordinates) or
-#'   'euclidean' (for Cartesian coordinates).
 #' @param weighted A logical, if \code{TRUE}, weight edges in the network by distance, giving more
 #'   importance to closer points.
 #' @param weight_exponent A numeric, exponent used when weighting edges in the network.
@@ -173,15 +173,15 @@ infostop_internal <- function(
 #'
 #' @examples
 #' if (is_infostop_initialized()) {
-#' data("path_matrix", package = "trackframe")
-#' infostop_xyt <- infostop_xyt(
-#'   x = path_matrix[, "latitude"],
-#'   y = path_matrix[, "longitude"],
-#'   t = path_matrix[, "time"],
-#'   distance_metric = "haversine"
-#'  )
+#'   data("path_matrix", package = "trackframe")
+#'     model <- infostop_xyt(
+#'     x = path_matrix[, "easting"],
+#'     y = path_matrix[, "northing"],
+#'     time = path_matrix[, "time"]
+#'   )
 #' }
 #' @export
+#' @rdname infostop_xyt
 infostop_xyt <- function(
   x,
   y,
@@ -193,7 +193,6 @@ infostop_xyt <- function(
   max_time_between = 86400L,
   min_size = 2L,
   min_spacial_resolution = 0,
-  distance_metric = c("haversine", "euclidean"),
   weighted = FALSE,
   weight_exponent = 1,
   verbose = FALSE
@@ -203,7 +202,6 @@ infostop_xyt <- function(
   checkmate::assert_numeric(x, min.len = 3L, any.missing = FALSE)
   checkmate::assert_numeric(y, len = length(x), any.missing = FALSE)
   checkmate::assert_numeric(time, len = length(x), any.missing = FALSE)
-  distance_metric <- match.arg(distance_metric)
 
   data <- cbind(x = x, y = y, t = time)
   infostop_internal(
@@ -215,7 +213,47 @@ infostop_xyt <- function(
     max_time_between = max_time_between,
     min_size = min_size,
     min_spacial_resolution = min_spacial_resolution,
-    distance_metric = distance_metric,
+    distance_metric = "euclidean",
+    weighted = weighted,
+    weight_exponent = weight_exponent,
+    verbose = verbose
+  )
+}
+
+#' @rdname infostop_xyt
+#' @export
+infostop_lonlatt <- function(
+  longitude,
+  latitude,
+  time,
+  r1 = 10,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_staying_time = 300L,
+  max_time_between = 86400L,
+  min_size = 2L,
+  min_spacial_resolution = 0,
+  weighted = FALSE,
+  weight_exponent = 1,
+  verbose = FALSE
+) {
+  check_infostop_initialized()
+
+  assert_lonlat(longitude, latitude)
+  checkmate::assert_numeric(time, len = length(longitude), any.missing = FALSE)
+
+  # infostop python expects latlon
+  data <- cbind(x = latitude, y = longitude, t = time)
+  infostop_internal(
+    data = data,
+    r1 = r1,
+    r2 = r2,
+    label_singleton = label_singleton,
+    min_staying_time = min_staying_time,
+    max_time_between = max_time_between,
+    min_size = min_size,
+    min_spacial_resolution = min_spacial_resolution,
+    distance_metric = "haversine",
     weighted = weighted,
     weight_exponent = weight_exponent,
     verbose = verbose
@@ -248,8 +286,6 @@ infostop_xyt <- function(
 #'   stationary.
 #' @param min_spacial_resolution A numeric giving the minimum difference allowed between points
 #'   before they are considered the same points. Useful for dealing with GPS jitter.
-#' @param distance_metric A character string, either 'haversine' (for geographic coordinates) or
-#'   'euclidean' (for Cartesian coordinates).
 #' @param weighted A logical, if \code{TRUE}, weight edges in the network by distance,
 #'   giving more importance to closer points.
 #' @param weight_exponent A numeric, exponent used when weighting edges in the network.
@@ -303,37 +339,37 @@ infostop_xyt <- function(
 #' library(trackframe)
 #' # with trackframe
 #' if (is_infostop_initialized()) {
-#'  data("path_matrix", package = "trackframe")
-#'  tf <- as.trackframe(path_matrix, crs_input = 4326)
-#'  infostop_tf <- infostop(tf, distance_metric = "euclidean")
+#'   data("path_matrix", package = "trackframe")
+#'   tf <- as.trackframe(path_matrix, crs = NA)
+#'   infostop_tf <- infostop(tf)
 #'
-#'  # with data.frame
+#'   # with data.frame
 #'
-#'  # coerce to trackframe
-#'  data("path_data_frame", package = "trackframe")
-#'  tf <- as.trackframe(path_data_frame)
-#'  infostop_df1 <- infostop(data = tf, distance_metric = "euclidean")
+#'   # coerce to trackframe
+#'   data("path_data_frame", package = "trackframe")
+#'   tf <- as.trackframe(path_data_frame, crs = NA)
+#'   infostop_df1 <- infostop(data = tf)
 #'
-#'  # or use infostop.data.frame method with col specification
-#'  infostop_df2 <- infostop(path_data_frame,
-#'     distance_metric = "euclidean",
-#'                          time_col = "time",
-#'                          easting_col = "longitude",
-#'                          northing_col = "latitude",
-#'     id_col = "id"
+#'   # or use infostop.data.frame method with col specification
+#'   infostop_df2 <- infostop(path_data_frame,
+#'     time_col = "time",
+#'     easting_col = "easting",
+#'     northing_col = "northing",
+#'     id_col = "id",
+#'     crs = NA
 #'   )
-#'  # or use automated col guessing if applicable
-#'  infostop_df3 <- infostop(path_data_frame, distance_metric = "euclidean")
+#'   # or use automated col guessing if applicable
+#'   infostop_df3 <- infostop(path_data_frame, crs = NA)
 #'
-#'  # with sftrack
-#'  data("path_sftrack", package = "trackframe")
-#'  class(path_sftrack)
-#'  infostop_sftrack <- infostop(path_sftrack, distance_metric = "haversine")
+#'   # with sftrack
+#'   data("path_sftrack", package = "trackframe")
+#'   class(path_sftrack)
+#'   infostop_sftrack <- infostop(path_sftrack)
 #'
-#'  # with move2
-#'  data("path_move2", package = "trackframe")
-#'  class(path_move2)
-#'  infostop_move2 <- infostop(path_move2, distance_metric = "haversine")
+#'   # with move2
+#'   data("path_move2", package = "trackframe")
+#'   class(path_move2)
+#'   infostop_move2 <- infostop(path_move2)
 #' }
 #' @export
 #' @rdname infostop
@@ -346,7 +382,6 @@ infostop <- function(
   max_time_between = 86400L,
   min_size = 2L,
   min_spacial_resolution = 0,
-  distance_metric = c("haversine", "euclidean"),
   weighted = FALSE,
   weight_exponent = 1,
   verbose = FALSE,
@@ -368,6 +403,8 @@ infostop <- function(
 #' @param id_col optional character vector specifying identifier column names. If no column is
 #'   specified, the `id_col` is tried to be matched by possible names provided in
 #'   `tf_options("id_col")`. In case of multiple matches, the first match is chosen.
+#' @param crs required integer or charactor string identifying coordinate reference system.
+#'   Use NA for non-georeferenced cartesian coordinate systems.
 #' @export
 #' @rdname infostop
 infostop.data.frame <- function(
@@ -379,7 +416,6 @@ infostop.data.frame <- function(
   max_time_between = 86400L,
   min_size = 2L,
   min_spacial_resolution = 0,
-  distance_metric = "euclidean",
   weighted = FALSE,
   weight_exponent = 1,
   verbose = FALSE,
@@ -387,55 +423,20 @@ infostop.data.frame <- function(
   easting_col = tf_options("easting_col"), #FIXME: more general name, could also be lon
   northing_col = tf_options("northing_col"),
   id_col = tf_options("id_col"),
+  crs = NULL,
   ...
 ) {
-  #columns guessing
-  guesses <- guess_all_cols(
-    col_names = colnames(data),
-    time_col_candidates = time_col,
-    easting_col_candidates = easting_col,
-    northing_col_candidates = northing_col,
-    id_col_candidates = id_col
-  )
-
-  getNamespace("trackframe")$warn_if_guess_ambiguous(data, guesses) #FIXME: export in trackframe
-
-  time_col <- guesses[["time_col"]][1]
-  checkmate::assert_choice(time_col, colnames(data), null.ok = FALSE)
-  checkmate::assert_character(time_col, len = 1, null.ok = FALSE)
-  checkmate::assert_numeric(data[[time_col]])
-
-  easting_col <- guesses[["easting_col"]][1]
-  checkmate::assert_choice(easting_col, colnames(data), null.ok = FALSE)
-  checkmate::assert_character(easting_col, len = 1, null.ok = FALSE)
-
-  northing_col <- guesses[["northing_col"]][1]
-  checkmate::assert_choice(northing_col, colnames(data), null.ok = FALSE)
-  checkmate::assert_character(northing_col, len = 1, null.ok = FALSE)
-
-  id_col <- guesses[["id_col"]][1]
-  if (is.na(id_col)) {
-    id_col <- NULL
+  is_longlat <- sf::st_is_longlat(crs)
+  if (isTRUE(is_longlat)) {
+    stop(paste(
+      "Geographic coordinates not supported with non-sf data frame.",
+      "Recommend doing one of the following: 1) use identify_stops_longlatt",
+      "2) provide an sftrack or move2 object",
+      "3) project coordinates"
+    ))
   }
-  checkmate::assert_choice(id_col, colnames(data), null.ok = TRUE)
-  checkmate::assert_character(id_col, len = 1, null.ok = TRUE)
-
-  ids <- if (is.null(id_col)) NULL else data[[id_col]]
-
-  coord_cols <- if (distance_metric == "euclidean") {
-    c(easting_col, northing_col)
-  } else {
-    c(northing_col, easting_col)
-  }
-  data <- cbind(as.matrix(data[, coord_cols]), data[[time_col]])
-
-  # split data in case of multiple ids
-  if (!is.null(ids) && length(unique(ids)) > 1) {
-    data <- lapply(unname(split(seq_along(ids), ids)), function(i) data[i, ])
-  }
-
-  infostop_internal(
-    data = data,
+  infostop.trackframe(
+    data = as.trackframe(data, time_col, easting_col, northing_col, id_col, crs = crs),
     r1 = r1,
     r2 = r2,
     label_singleton = label_singleton,
@@ -443,7 +444,6 @@ infostop.data.frame <- function(
     max_time_between = max_time_between,
     min_size = min_size,
     min_spacial_resolution = min_spacial_resolution,
-    distance_metric = distance_metric,
     weighted = weighted,
     weight_exponent = weight_exponent,
     verbose = verbose
@@ -452,6 +452,7 @@ infostop.data.frame <- function(
 
 
 #' @export
+#' @importFrom trackframe id
 #' @rdname infostop
 infostop.trackframe <- function(
   data,
@@ -462,31 +463,20 @@ infostop.trackframe <- function(
   max_time_between = 86400L,
   min_size = 2L,
   min_spacial_resolution = 0,
-  distance_metric = "euclidean",
   weighted = FALSE,
   weight_exponent = 1,
   verbose = FALSE,
   ...
 ) {
-  if (distance_metric != "euclidean") {
-    stop(
-      "Only distance_metric = 'euclidean' is available for objects of class trackframe"
-    )
-  }
   # create data input of infostop_internal from track.frame
-  id_col <- attr(data, "id")
-  ids <- if (is.null(id_col)) NULL else data[[id_col]]
+  ids <- id(data)
 
   data[[attr(data, "time")]] <- as.integer(data[[attr(data, "time")]])
   cols <- c(attr(data, "easting"), attr(data, "northing"), attr(data, "time"))
   data <- as.matrix(data[, cols])
 
-  if (!is.null(ids) && length(unique(ids)) > 1) {
-    data <- lapply(unname(split(seq_len(NROW(data)), f = ids)), function(i) data[i, ])
-  }
-
   infostop_internal(
-    data = data,
+    data = split_mat_by_id(data, ids),
     r1 = r1,
     r2 = r2,
     label_singleton = label_singleton,
@@ -494,17 +484,18 @@ infostop.trackframe <- function(
     max_time_between = max_time_between,
     min_size = min_size,
     min_spacial_resolution = min_spacial_resolution,
-    distance_metric = distance_metric,
+    distance_metric = "euclidean",
     weighted = weighted,
     weight_exponent = weight_exponent,
     verbose = verbose
   )
 }
 
-
+#' @importFrom stats time
+#' @importFrom trackframe id time.trackframe
 #' @export
 #' @rdname infostop
-infostop.move2 <- function(
+infostop.sf <- function(
   data,
   r1 = 10,
   r2 = 10,
@@ -513,114 +504,64 @@ infostop.move2 <- function(
   max_time_between = 86400L,
   min_size = 2L,
   min_spacial_resolution = 0,
-  distance_metric = NULL,
   weighted = FALSE,
   weight_exponent = 1,
   verbose = FALSE,
   ...
 ) {
-  attr(data, "time_col") <- attr(data, "time_column")
-  infostop.sftrack(
-    data = data,
-    r1 = r1,
-    r2 = r2,
-    label_singleton = label_singleton,
-    min_staying_time = min_staying_time,
-    max_time_between = max_time_between,
-    min_size = min_size,
-    min_spacial_resolution = min_spacial_resolution,
-    distance_metric = distance_metric,
-    weighted = weighted,
-    weight_exponent = weight_exponent,
-    verbose = verbose
-  )
+  is_longlat <- sf::st_is_longlat(data)
+  if (isTRUE(is_longlat)) {
 
-}
+    # use trackframe package to identify id and time columns
+    # easting/northing columns of tf are not meaningful
+    data_no_crs <- data
+    sf::st_crs(data_no_crs) <- sf::st_crs(NA)
+    tf <- as.trackframe(data_no_crs, sort = FALSE)
+    ids <- if (is.null(id(tf))) '' else id(tf)
 
+    # reorder
+    idx <- order(ids, time(tf))
+    data <- data[idx, ]
+    tf <- tf[idx, ]
 
-guess_distance_metric <- function(crs) {
-  if (!grepl("EPSG", crs$input)) {
-    return(NULL)
-  }
-  crs_value <- as.integer(gsub("EPSG:", "", crs$input))
-  # check easting / northing
-  if (crs_value >= 32600 && crs_value <= 32760) {
-    "euclidean"
+    # use custom coords function to identify lat and long
+    coords <- st_coordinates_lat_lon(data)
+
+    # put together
+    infostop_internal(
+      data = split_mat_by_id(as.matrix(data.frame(
+        # infostop python program expects lat long, not long lat
+        x = coords[, 1],
+        y = coords[, 2],
+        time = as.integer(time(tf))
+      )), ids = if (is.null(id(tf))) "" else id(tf)),
+      r1 = r1,
+      r2 = r2,
+      label_singleton = label_singleton,
+      min_staying_time = min_staying_time,
+      max_time_between = max_time_between,
+      min_size = min_size,
+      min_spacial_resolution = min_spacial_resolution,
+      distance_metric = "haversine",
+      weighted = weighted,
+      weight_exponent = weight_exponent,
+      verbose = verbose
+    )
   } else {
-    "haversine"
-  }
-}
-
-
-#' @export
-#' @rdname infostop
-infostop.sftrack <- function(
-  data,
-  r1 = 10,
-  r2 = 10,
-  label_singleton = TRUE,
-  min_staying_time = 300L,
-  max_time_between = 86400L,
-  min_size = 2L,
-  min_spacial_resolution = 0,
-  distance_metric = NULL,
-  weighted = FALSE,
-  weight_exponent = 1,
-  verbose = FALSE,
-  ...
-) {
-  id_col <- get_id_column(data)
-  if (length(id_col) && !is.atomic(data[[id_col]])) {
-    new_id_col <- "sft_group_id"
-    data[[new_id_col]] <- make_unique_id(data[[id_col]])
-    attr(data, "group_names") <- attr(data[[id_col]], "active_group")
-    id_col <- new_id_col
-  }
-
-  ids <- if (is.null(id_col)) NULL else data[[id_col]]
-
-  crs <- st_crs(data)
-  distance_metric <- distance_metric %||% guess_distance_metric(crs)
-  if (is.null(distance_metric)) {
-    stop(
-      "Please, specify distance_metric ('haversine' or 'euclidean'). No crs provided in sf object."
+    infostop.trackframe(
+      as.trackframe(data, ...),
+      r1 = r1,
+      r2 = r2,
+      label_singleton = label_singleton,
+      min_staying_time = min_staying_time,
+      max_time_between = max_time_between,
+      min_size = min_size,
+      min_spacial_resolution = min_spacial_resolution,
+      weighted = weighted,
+      weight_exponent = weight_exponent,
+      verbose = verbose
     )
   }
-
-  # Check if distance_metric fits to crs
-  if (distance_metric == "haversine") {
-    x_y <- st_coordinates(data[[attr(data, "sf_column")]])
-    assert_lonlat(x_y, 1)
-    assert_crs_haversine(crs, na_ok = TRUE)
-  } else {
-    assert_crs_euclidean(crs, na_ok = TRUE)
-  }
-
-  # transform from sftrack
-  data <- cbind(
-    st_coordinates_lat_lon(data[[attr(data, "sf_column")]]),
-    as.integer(data[[attr(data, "time_col")]])
-  )
-
-  # split data in case of multiple ids
-  if (!is.null(ids) && length(unique(ids)) > 1) {
-    data <- lapply(unname(split(seq_along(ids), ids)), function(i) data[i, ])
-  }
-
-  infostop_internal(
-    data = data,
-    r1 = r1,
-    r2 = r2,
-    label_singleton = label_singleton,
-    min_staying_time = min_staying_time,
-    max_time_between = max_time_between,
-    min_size = min_size,
-    min_spacial_resolution = min_spacial_resolution,
-    distance_metric = distance_metric,
-    weighted = weighted,
-    weight_exponent = weight_exponent,
-    verbose = verbose
-  )
 }
 
 
@@ -635,7 +576,6 @@ infostop.numeric <- function(
   max_time_between = 86400L,
   min_size = 2L,
   min_spacial_resolution = 0,
-  distance_metric = NULL, #"euclidean", #c("haversine", "euclidean"),
   weighted = FALSE,
   weight_exponent = 1,
   verbose = FALSE,

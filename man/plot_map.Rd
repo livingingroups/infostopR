@@ -72,15 +72,15 @@ function that works directly with an Infostop model object.
 }
 \examples{
 if (is_infostop_initialized()) {
- data("path_data_frame", package = "trackframe")
- model <- infostop(path_data_frame, r1 = 10, r2 = 10, distance_metric = "haversine")
+  data("path_move2", package = "trackframe")
+  model <- infostop(sf::st_transform(path_move2, 4326), r1 = 10, r2 = 10)
   map <- plot_map(model,
                 scatter = TRUE,
                 polygons_color = "#ff0000",
                 zoom_start = 10)
- \dontrun{
-  map$show_in_browser()
-  map$save("map.html")
- }
+  \dontrun{
+    map$show_in_browser()
+    map$save("map.html")
+  }
 }
 }

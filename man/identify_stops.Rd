@@ -2,11 +2,11 @@
 % Please edit documentation in R/identify_stops.R
 \name{identify_stops_xyt}
 \alias{identify_stops_xyt}
+\alias{identify_stops_longlatt}
 \alias{identify_stops}
 \alias{identify_stops.data.frame}
 \alias{identify_stops.trackframe}
-\alias{identify_stops.move2}
-\alias{identify_stops.sftrack}
+\alias{identify_stops.sf}
 \title{Find based on distance and time threshold}
 \usage{
 identify_stops_xyt(
@@ -16,8 +16,17 @@ identify_stops_xyt(
   r1 = 10,
   min_size = 2L,
   min_staying_time = 300L,
-  max_time_between = 86400L,
-  distance_metric = c("haversine", "euclidean")
+  max_time_between = 86400L
+)
+
+identify_stops_longlatt(
+  longitude,
+  latitude,
+  t = NULL,
+  r1 = 10,
+  min_size = 2L,
+  min_staying_time = 300L,
+  max_time_between = 86400L
 )
 
 identify_stops(
@@ -26,7 +35,6 @@ identify_stops(
   min_size = 2L,
   min_staying_time = 300L,
   max_time_between = 86400L,
-  distance_metric = c("haversine", "euclidean"),
   stop_id_col = "stop_id",
   ...
 )
@@ -37,12 +45,12 @@ identify_stops(
   min_size = 2L,
   min_staying_time = 300L,
   max_time_between = 86400L,
-  distance_metric = "euclidean",
   stop_id_col = "stop_id",
   time_col = tf_options("time_col"),
   easting_col = tf_options("easting_col"),
   northing_col = tf_options("northing_col"),
   id_col = tf_options("id_col"),
+  crs = NULL,
   ...
 )
 
@@ -52,39 +60,26 @@ identify_stops(
   min_size = 2L,
   min_staying_time = 300L,
   max_time_between = 86400L,
-  distance_metric = "euclidean",
   stop_id_col = "stop_id",
   ...
 )
 
-\method{identify_stops}{move2}(
+\method{identify_stops}{sf}(
   data,
   r1 = 10,
   min_size = 2L,
   min_staying_time = 300L,
   max_time_between = 86400L,
-  distance_metric = c("haversine", "euclidean"),
-  stop_id_col = "stop_id",
-  ...
-)
-
-\method{identify_stops}{sftrack}(
-  data,
-  r1 = 10,
-  min_size = 2L,
-  min_staying_time = 300L,
-  max_time_between = 86400L,
-  distance_metric = c("haversine", "euclidean"),
   stop_id_col = "stop_id",
   ...
 )
 }
 \arguments{
-\item{x}{a numeric vector of x-coordinates (northing for distance_metric euclidean - latitude for
-distance_metric "haversine").}
+\item{x}{a numeric vector of x-coordinates in cartesian coordinate system
+(e.g. projected coordinates).}
 
-\item{y}{a numeric vector of y-coordinates (easting for distance_metric euclidean - longitude for
-distance_metric "haversine").}
+\item{y}{a numeric vector of y-coordinates in cartesian coordinate system
+(e.g. projected coordinates).}
 
 \item{t}{a vecor inheriting from \code{numeric} or \code{POSIXt} or \code{Date}
 containing the timestamps corresponding to the x and y coordinates.}
@@ -102,8 +97,9 @@ a stop. Only relevant if timestamps are provided in the data.}
 \item{max_time_between}{An integer giving the maximum duration (in seconds) between consecutive
 points to consider them part of the same stop. Only relevant if timestamps are provided.}
 
-\item{distance_metric}{A character string, either 'haversine' (for geographic coordinates)
-or 'euclidean' (for Cartesian coordinates).}
+\item{longitude}{numeric vector of longitude coordinates}
+
+\item{latitude}{numeric vector of latitude coordinates}
 
 \item{data}{A numeric matrix with 2 or 3 columns. Columns 1 and 2 are spatial coordinates.
 Column 3 is optional and represents time.}
@@ -130,6 +126,9 @@ the first match is chosen.}
 \item{id_col}{optional character vector specifying identifier column names.
 If no column is specified, the `id_col` is tried to be matched by possible names provided
 in `tf_options("id_col")`. In case of multiple matches, the first match is chosen.}
+
+\item{crs}{required integer or charactor string identifying coordinate reference system.
+Use NA for non-georeferenced cartesian coordinate systems.}
 }
 \description{
 Find based on distance and time threshold
@@ -139,23 +138,21 @@ Find based on distance and time threshold
 \examples{
 library(trackframe)
 data("path_trackframe", package = "trackframe")
-stops <- identify_stops(data = path_trackframe,
-                    distance_metric = "euclidean")
+stops <- identify_stops(data = path_trackframe)
 
 # data.frame
 data("path_data_frame", package = "trackframe")
-tf <- as.trackframe(path_data_frame)
-stops <- identify_stops(data = tf,
-                    distance_metric = "euclidean")
+tf <- as.trackframe(path_data_frame, crs = NA)
+stops <- identify_stops(data = tf)
 
 # with sftrack
 data("path_sftrack", package = "trackframe")
 class(path_sftrack)
-stops_sftrack <- identify_stops(path_sftrack, distance_metric = "haversine")
+stops_sftrack <- identify_stops(path_sftrack)
 
 # with move2
 data("path_move2", package = "trackframe")
 class(path_move2)
-stops_move2 <- identify_stops(path_move2, distance_metric = "haversine")
+stops_move2 <- identify_stops(path_move2)
 
 }

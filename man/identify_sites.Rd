@@ -3,8 +3,7 @@
 \name{identify_sites}
 \alias{identify_sites}
 \alias{identify_sites.trackframe}
-\alias{identify_sites.move2}
-\alias{identify_sites.sftrack}
+\alias{identify_sites.sf}
 \title{Spatial Infomap Cluster a Collection of Points Using Infomap}
 \usage{
 identify_sites(
@@ -12,7 +11,6 @@ identify_sites(
   r2 = 10,
   label_singleton = TRUE,
   min_spacial_resolution = 0,
-  distance_metric = c("haversine", "euclidean"),
   weighted = FALSE,
   weight_exponent = 1,
   stop_id_col = "stop_id",
@@ -25,7 +23,6 @@ identify_sites(
   r2 = 10,
   label_singleton = TRUE,
   min_spacial_resolution = 0,
-  distance_metric = "euclidean",
   weighted = FALSE,
   weight_exponent = 1,
   stop_id_col = "stop_id",
@@ -33,25 +30,11 @@ identify_sites(
   ...
 )
 
-\method{identify_sites}{move2}(
+\method{identify_sites}{sf}(
   data,
   r2 = 10,
   label_singleton = TRUE,
   min_spacial_resolution = 0,
-  distance_metric = c("haversine", "euclidean"),
-  weighted = FALSE,
-  weight_exponent = 1,
-  stop_id_col = "stop_id",
-  site_id_col = "site_id",
-  ...
-)
-
-\method{identify_sites}{sftrack}(
-  data,
-  r2 = 10,
-  label_singleton = TRUE,
-  min_spacial_resolution = 0,
-  distance_metric = c("haversine", "euclidean"),
   weighted = FALSE,
   weight_exponent = 1,
   stop_id_col = "stop_id",
@@ -70,8 +53,6 @@ once their own label. If FALSE, label them as non-stationary (-1).}
 
 \item{min_spacial_resolution}{Numeric. The minimal difference allowed between points before
 they are considered the same points.}
-
-\item{distance_metric}{Character. Either 'haversine' (for geo data) or 'euclidean'.}
 
 \item{weighted}{Logical. Weight edges in the network representation by distance.}
 
@@ -97,8 +78,7 @@ It directly returns the cluster labels rather than a model object.
 if (is_infostop_initialized()) {
 dat <- infostop:::example_data_move2()
 stops <- identify_stops(dat, r1 = 100, min_staying_time = 300,
-                        max_time_between = 86400, min_size = 2,
-                        distance_metric = "haversine")
+                        max_time_between = 86400, min_size = 2)
 head(stops[["stop_id"]], 30)
 clusters <- identify_sites(stops, r2 = 50)
 head(clusters[["site_id"]], 30)

@@ -4,8 +4,7 @@
 \alias{infostop}
 \alias{infostop.data.frame}
 \alias{infostop.trackframe}
-\alias{infostop.move2}
-\alias{infostop.sftrack}
+\alias{infostop.sf}
 \alias{infostop.numeric}
 \title{Detect Stop Locations in Mobility Data}
 \usage{
@@ -18,7 +17,6 @@ infostop(
   max_time_between = 86400L,
   min_size = 2L,
   min_spacial_resolution = 0,
-  distance_metric = c("haversine", "euclidean"),
   weighted = FALSE,
   weight_exponent = 1,
   verbose = FALSE,
@@ -34,7 +32,6 @@ infostop(
   max_time_between = 86400L,
   min_size = 2L,
   min_spacial_resolution = 0,
-  distance_metric = "euclidean",
   weighted = FALSE,
   weight_exponent = 1,
   verbose = FALSE,
@@ -42,6 +39,7 @@ infostop(
   easting_col = tf_options("easting_col"),
   northing_col = tf_options("northing_col"),
   id_col = tf_options("id_col"),
+  crs = NULL,
   ...
 )
 
@@ -54,14 +52,13 @@ infostop(
   max_time_between = 86400L,
   min_size = 2L,
   min_spacial_resolution = 0,
-  distance_metric = "euclidean",
   weighted = FALSE,
   weight_exponent = 1,
   verbose = FALSE,
   ...
 )
 
-\method{infostop}{move2}(
+\method{infostop}{sf}(
   data,
   r1 = 10,
   r2 = 10,
@@ -70,23 +67,6 @@ infostop(
   max_time_between = 86400L,
   min_size = 2L,
   min_spacial_resolution = 0,
-  distance_metric = NULL,
-  weighted = FALSE,
-  weight_exponent = 1,
-  verbose = FALSE,
-  ...
-)
-
-\method{infostop}{sftrack}(
-  data,
-  r1 = 10,
-  r2 = 10,
-  label_singleton = TRUE,
-  min_staying_time = 300L,
-  max_time_between = 86400L,
-  min_size = 2L,
-  min_spacial_resolution = 0,
-  distance_metric = NULL,
   weighted = FALSE,
   weight_exponent = 1,
   verbose = FALSE,
@@ -102,7 +82,6 @@ infostop(
   max_time_between = 86400L,
   min_size = 2L,
   min_spacial_resolution = 0,
-  distance_metric = NULL,
   weighted = FALSE,
   weight_exponent = 1,
   verbose = FALSE,
@@ -136,9 +115,6 @@ stationary.}
 \item{min_spacial_resolution}{A numeric giving the minimum difference allowed between points
 before they are considered the same points. Useful for dealing with GPS jitter.}
 
-\item{distance_metric}{A character string, either 'haversine' (for geographic coordinates) or
-'euclidean' (for Cartesian coordinates).}
-
 \item{weighted}{A logical, if \code{TRUE}, weight edges in the network by distance,
 giving more importance to closer points.}
 
@@ -164,6 +140,9 @@ column is specified, the `northing_col` is tried to be matched by possible names
 \item{id_col}{optional character vector specifying identifier column names. If no column is
 specified, the `id_col` is tried to be matched by possible names provided in
 `tf_options("id_col")`. In case of multiple matches, the first match is chosen.}
+
+\item{crs}{required integer or charactor string identifying coordinate reference system.
+Use NA for non-georeferenced cartesian coordinate systems.}
 }
 \value{
 An Infostop model object with the following methods and properties:
@@ -218,36 +197,36 @@ The returned object provides the following methods and properties:
 library(trackframe)
 # with trackframe
 if (is_infostop_initialized()) {
- data("path_matrix", package = "trackframe")
- tf <- as.trackframe(path_matrix, crs_input = 4326)
- infostop_tf <- infostop(tf, distance_metric = "euclidean")
+  data("path_matrix", package = "trackframe")
+  tf <- as.trackframe(path_matrix, crs = NA)
+  infostop_tf <- infostop(tf)
 
- # with data.frame
+  # with data.frame
 
- # coerce to trackframe
- data("path_data_frame", package = "trackframe")
- tf <- as.trackframe(path_data_frame)
- infostop_df1 <- infostop(data = tf, distance_metric = "euclidean")
+  # coerce to trackframe
+  data("path_data_frame", package = "trackframe")
+  tf <- as.trackframe(path_data_frame, crs = NA)
+  infostop_df1 <- infostop(data = tf)
 
- # or use infostop.data.frame method with col specification
- infostop_df2 <- infostop(path_data_frame,
-    distance_metric = "euclidean",
-                         time_col = "time",
-                         easting_col = "longitude",
-                         northing_col = "latitude",
-    id_col = "id"
+  # or use infostop.data.frame method with col specification
+  infostop_df2 <- infostop(path_data_frame,
+    time_col = "time",
+    easting_col = "easting",
+    northing_col = "northing",
+    id_col = "id",
+    crs = NA
   )
- # or use automated col guessing if applicable
- infostop_df3 <- infostop(path_data_frame, distance_metric = "euclidean")
+  # or use automated col guessing if applicable
+  infostop_df3 <- infostop(path_data_frame, crs = NA)
 
- # with sftrack
- data("path_sftrack", package = "trackframe")
- class(path_sftrack)
- infostop_sftrack <- infostop(path_sftrack, distance_metric = "haversine")
+  # with sftrack
+  data("path_sftrack", package = "trackframe")
+  class(path_sftrack)
+  infostop_sftrack <- infostop(path_sftrack)
 
- # with move2
- data("path_move2", package = "trackframe")
- class(path_move2)
- infostop_move2 <- infostop(path_move2, distance_metric = "haversine")
+  # with move2
+  data("path_move2", package = "trackframe")
+  class(path_move2)
+  infostop_move2 <- infostop(path_move2)
 }
 }

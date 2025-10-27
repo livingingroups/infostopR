@@ -37,10 +37,12 @@ add_stop_ids <- function(data, event_map, stop_id_col = "stop_id") {
 
 #' Find based on distance and time threshold
 #'
-#' @param x a numeric vector of x-coordinates (easting for distance_metric euclidean - latitude for
-#'   distance_metric "haversine").
-#' @param y a numeric vector of y-coordinates (northing for distance_metric euclidean - longitude for
-#'   distance_metric "haversine").
+#' @param x a numeric vector of x-coordinates in cartesian coordinate system
+#'   (e.g. projected coordinates).
+#' @param y a numeric vector of y-coordinates in cartesian coordinate system
+#'   (e.g. projected coordinates).
+#' @param longitude numeric vector of longitude coordinates
+#' @param latitude numeric vector of latitude coordinates
 #' @param t a vecor inheriting from \code{numeric} or \code{POSIXt} or \code{Date}
 #'        containing the timestamps corresponding to the x and y coordinates.
 #' @param r1 A numeric vector giving the maximum distance between time-consecutive points to label
@@ -51,9 +53,6 @@ add_stop_ids <- function(data, event_map, stop_id_col = "stop_id") {
 #'   a stop. Only relevant if timestamps are provided in the data.
 #' @param max_time_between An integer giving the maximum duration (in seconds) between consecutive
 #'   points to consider them part of the same stop. Only relevant if timestamps are provided.
-#' @param distance_metric A character string, either 'haversine' (for geographic coordinates) or
-#'   'euclidean' (for Cartesian coordinates).
-#' @param ... other arguments passed to `as.trackframe()`
 #' @export
 #' @rdname identify_stops
 identify_stops_xyt <- function(
@@ -63,18 +62,13 @@ identify_stops_xyt <- function(
   r1 = 10,
   min_size = 2L,
   min_staying_time = 300L,
-  max_time_between = 86400L,
-  distance_metric = c("haversine", "euclidean")
+  max_time_between = 86400L
 ) {
   check_infostop_initialized()
 
   checkmate::assert_numeric(x, min.len = 3L, any.missing = FALSE)
   checkmate::assert_numeric(y, len = length(x), any.missing = FALSE)
   checkmate::assert_numeric(t, len = length(x), any.missing = FALSE, null.ok = TRUE)
-  distance_metric <- match.arg(distance_metric)
-  if (distance_metric == "haversine") {
-    assert_lonlat(x, y)
-  }
   data <- cbind(x = x, y = y, t = t)
   stops <- identify_stops_internal(
     data = data,
@@ -82,7 +76,37 @@ identify_stops_xyt <- function(
     min_staying_time = min_staying_time,
     max_time_between = max_time_between,
     min_size = min_size,
-    distance_metric = distance_metric
+    distance_metric = "euclidean"
+  )
+  stops
+}
+
+#' @export
+#' @rdname identify_stops
+identify_stops_longlatt <- function(
+  longitude,
+  latitude,
+  t = NULL,
+  r1 = 10,
+  min_size = 2L,
+  min_staying_time = 300L,
+  max_time_between = 86400L
+) {
+  check_infostop_initialized()
+
+  checkmate::assert_numeric(longitude, min.len = 3L, any.missing = FALSE)
+  checkmate::assert_numeric(latitude, len = length(longitude), any.missing = FALSE)
+  checkmate::assert_numeric(t, len = length(longitude), any.missing = FALSE, null.ok = TRUE)
+  assert_lonlat(longitude, latitude)
+  # infostop python program expects lat long, not long lat
+  data <- cbind(x = latitude, y = longitude, t = t)
+  stops <- identify_stops_internal(
+    data = data,
+    r1 = r1,
+    min_staying_time = min_staying_time,
+    max_time_between = max_time_between,
+    min_size = min_size,
+    distance_metric = "haversine"
   )
   stops
 }
@@ -101,32 +125,28 @@ identify_stops_xyt <- function(
 #'   a stop. Only relevant if timestamps are provided in the data.
 #' @param max_time_between An integer giving the maximum duration (in seconds) between consecutive
 #'   points to consider them part of the same stop. Only relevant if timestamps are provided.
-#' @param distance_metric A character string, either 'haversine' (for geographic coordinates)
-#'   or 'euclidean' (for Cartesian coordinates).
 #' @param stop_id_col A character string specifying the name of the column to be used for
 #'   the stop identifiers. Default is "stop_id".
 #' @param ... other arguments passed to `as.trackframe()`
 #' @examples
 #' library(trackframe)
 #' data("path_trackframe", package = "trackframe")
-#' stops <- identify_stops(data = path_trackframe,
-#'                     distance_metric = "euclidean")
+#' stops <- identify_stops(data = path_trackframe)
 #'
 #' # data.frame
 #' data("path_data_frame", package = "trackframe")
-#' tf <- as.trackframe(path_data_frame)
-#' stops <- identify_stops(data = tf,
-#'                     distance_metric = "euclidean")
+#' tf <- as.trackframe(path_data_frame, crs = NA)
+#' stops <- identify_stops(data = tf)
 #'
 #' # with sftrack
 #' data("path_sftrack", package = "trackframe")
 #' class(path_sftrack)
-#' stops_sftrack <- identify_stops(path_sftrack, distance_metric = "haversine")
+#' stops_sftrack <- identify_stops(path_sftrack)
 #'
 #' # with move2
 #' data("path_move2", package = "trackframe")
 #' class(path_move2)
-#' stops_move2 <- identify_stops(path_move2, distance_metric = "haversine")
+#' stops_move2 <- identify_stops(path_move2)
 #'
 #' @export
 #' @rdname identify_stops
@@ -136,7 +156,6 @@ identify_stops <- function(
   min_size = 2L,
   min_staying_time = 300L,
   max_time_between = 86400L,
-  distance_metric = c("haversine", "euclidean"),
   stop_id_col = "stop_id",
   ...
 ) {
@@ -158,6 +177,8 @@ identify_stops <- function(
 #' @param id_col optional character vector specifying identifier column names.
 #'   If no column is specified, the `id_col` is tried to be matched by possible names provided
 #'   in `tf_options("id_col")`. In case of multiple matches, the first match is chosen.
+#' @param crs required integer or charactor string identifying coordinate reference system.
+#'   Use NA for non-georeferenced cartesian coordinate systems.
 #' @export
 #' @rdname identify_stops
 identify_stops.data.frame <- function(
@@ -166,68 +187,42 @@ identify_stops.data.frame <- function(
   min_size = 2L,
   min_staying_time = 300L,
   max_time_between = 86400L,
-  distance_metric = "euclidean",
   stop_id_col = "stop_id",
   time_col = tf_options("time_col"),
   easting_col = tf_options("easting_col"),
   northing_col = tf_options("northing_col"),
   id_col = tf_options("id_col"),
+  crs = NULL,
   ...
 ) {
-  #columns guessing
-  guesses <- guess_all_cols(
-    col_names = colnames(data),
-    time_col_candidates = time_col,
-    easting_col_candidates = easting_col,
-    northing_col_candidates = northing_col,
-    id_col_candidates = id_col
-  )
-
-  getNamespace("trackframe")$warn_if_guess_ambiguous(data, guesses) #FIXME: export in trackframe
-
-  time_col <- guesses[["time_col"]][1]
-  assert_choice(time_col, colnames(data), null.ok = FALSE)
-  assert_character(time_col, len = 1, null.ok = FALSE)
-  assert_numeric(data[[time_col]])
-
-  easting_col <- guesses[["easting_col"]][1]
-  assert_choice(easting_col, colnames(data), null.ok = FALSE)
-  assert_character(easting_col, len = 1, null.ok = FALSE)
-
-  northing_col <- guesses[["northing_col"]][1]
-  assert_choice(northing_col, colnames(data), null.ok = FALSE)
-  assert_character(northing_col, len = 1, null.ok = FALSE)
-
-  id_col <- guesses[["id_col"]][1]
-  if (is.na(id_col)) {
-    id_col <- NULL
+  is_longlat <- sf::st_is_longlat(crs)
+  if (isTRUE(is_longlat)) {
+    stop(paste(
+      "Geographic coordinates not supported with non-sf data frame.",
+      "Recommend doing one of the following: 1) use identify_stops_longlatt",
+      "2) provide an sftrack or move2 object",
+      "3) project coordinates"
+    ))
   }
-  assert_choice(id_col, colnames(data), null.ok = TRUE)
-  assert_character(id_col, len = 1, null.ok = TRUE)
+  tf <- as.trackframe(data, time_col, easting_col, northing_col, id_col, crs)
 
-  ids <- if (is.null(id_col)) NULL else data[[id_col]]
-
-  if (!is.null(ids) && length(unique(ids)) > 1) {
+  if (!is.null(trackframe::id(tf)) && length(trackframe::unique_ids(tf)) > 1) {
     stop(
       "Multiple tracks are not supported. Please use infostop() instead in case of multiple tracks."
     )
   }
-
-  data <- cbind(as.matrix(data[, c(easting_col, northing_col)]), data[[time_col]])
-
-  stops <- identify_stops_internal(
-    data = data,
+  trackframe::tf_backtransform(identify_stops.trackframe(
+    data = tf,
     r1 = r1,
     min_size = min_size,
     min_staying_time = min_staying_time,
-    max_time_between = max_time_between,
-    distance_metric = distance_metric
-  )
-  add_stop_ids(data, stops$event_map, stop_id_col = stop_id_col)
+    max_time_between = max_time_between
+  ))
 }
 
 
 #' @export
+#' @importFrom trackframe northing easting id
 #' @rdname identify_stops
 identify_stops.trackframe <- function(
   data,
@@ -235,51 +230,77 @@ identify_stops.trackframe <- function(
   min_size = 2L,
   min_staying_time = 300L,
   max_time_between = 86400L,
-  distance_metric = "euclidean",
   stop_id_col = "stop_id",
   ...
 ) {
-  if (distance_metric != "euclidean") {
-    stop(
-      "Only distance_metric = 'euclidean' is available for objects of class trackframe"
-    )
-  }
   stops <- identify_stops_internal(
-    data = as_infostop(data),
+    data = split_mat_by_id(cbind(
+      easting(data),
+      northing(data),
+      as.integer(time(data))
+    ), id(data)),
     r1 = r1,
     min_size = min_size,
     min_staying_time = min_staying_time,
     max_time_between = max_time_between,
-    distance_metric = distance_metric
+    distance_metric = "euclidean"
   )
   add_stop_ids(data, stops$event_map, stop_id_col = stop_id_col)
 }
 
-
+#' @importFrom trackframe id 
 #' @export
 #' @rdname identify_stops
-identify_stops.move2 <- function(
+identify_stops.sf <- function(
   data,
   r1 = 10,
   min_size = 2L,
   min_staying_time = 300L,
   max_time_between = 86400L,
-  distance_metric = c("haversine", "euclidean"),
   stop_id_col = "stop_id",
   ...
 ) {
-  stops <- identify_stops_internal(
-    data = as_infostop(data),
-    r1 = r1,
-    min_size = min_size,
-    min_staying_time = min_staying_time,
-    max_time_between = max_time_between,
-    distance_metric = distance_metric
-  )
-  add_stop_ids(data, stops$event_map, stop_id_col = stop_id_col)
+  is_longlat <- sf::st_is_longlat(data)
+  if (isTRUE(is_longlat)) {
+
+    # use trackframe package to identify id and time columns
+    # easting/northing columns of tf are not meaningful
+    data_no_crs <- data
+    sf::st_crs(data_no_crs) <- sf::st_crs(NA)
+    tf <- as.trackframe(data_no_crs, sort = FALSE)
+    ids <- if (is.null(id(tf))) '' else id(tf)
+
+    # reorder
+    idx <- order(ids, time(tf))
+    data <- data[idx, ]
+    tf <- tf[idx, ]
+
+    # use custom coords function to identify lat and long
+    coords <- st_coordinates_lat_lon(data)
+
+    # put together
+    stops <- identify_stops_internal(
+      data = split_mat_by_id(as.matrix(data.frame(
+        # infostop python program expects lat long, not long lat
+        x = coords[, 1],
+        y = coords[, 2],
+        time = as.integer(time(tf))
+      )), ids = if (is.null(id(tf))) '' else id(tf)),
+      r1 = r1,
+      min_size = min_size,
+      min_staying_time = min_staying_time,
+      max_time_between = max_time_between,
+      distance_metric = 'haversine'
+    )
+    add_stop_ids(data, stops$event_map, stop_id_col = stop_id_col)
+  } else {
+    identify_stops.trackframe(
+      as.trackframe(data, ...),
+      r1 = r1,
+      min_size = min_size,
+      min_staying_time = min_staying_time,
+      max_time_between = max_time_between,
+      stop_id_col = stop_id_col
+    )
+  }
 }
-
-
-#' @export
-#' @rdname identify_stops
-identify_stops.sftrack <- identify_stops.move2

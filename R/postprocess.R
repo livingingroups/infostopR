@@ -13,9 +13,9 @@
 #'
 #' @examples
 #' if (is_infostop_initialized()) {
-#' data("path_data_frame", package = "trackframe")
-#' model <- infostop(path_data_frame, r1 = 10, r2 = 10, distance_metric = "haversine")
-#' times <- as.integer(path_data_frame[["time"]])
+#' data("path_trackframe", package = "trackframe")
+#' model <- infostop(path_trackframe, r1 = 10, r2 = 10)
+#' times <- as.integer(path_trackframe[["time"]])
 #' intervals <- compute_intervals(model$labels, times)
 #' }
 #' @export

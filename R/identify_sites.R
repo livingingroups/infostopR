@@ -46,7 +46,6 @@ identify_sites_internal <- function(
 #'   once their own label. If FALSE, label them as non-stationary (-1).
 #' @param min_spacial_resolution Numeric. The minimal difference allowed between points before
 #'   they are considered the same points.
-#' @param distance_metric Character. Either 'haversine' (for geo data) or 'euclidean'.
 #' @param weighted Logical. Weight edges in the network representation by distance.
 #' @param weight_exponent Numeric. Exponent used when weighting edges in the network.
 #' @param stop_id_col A character string specifying the name of the column to be used for
@@ -62,8 +61,7 @@ identify_sites_internal <- function(
 #' if (is_infostop_initialized()) {
 #' dat <- infostop:::example_data_move2()
 #' stops <- identify_stops(dat, r1 = 100, min_staying_time = 300,
-#'                         max_time_between = 86400, min_size = 2,
-#'                         distance_metric = "haversine")
+#'                         max_time_between = 86400, min_size = 2)
 #' head(stops[["stop_id"]], 30)
 #' clusters <- identify_sites(stops, r2 = 50)
 #' head(clusters[["site_id"]], 30)
@@ -75,7 +73,6 @@ identify_sites <- function(
   r2 = 10,
   label_singleton = TRUE,
   min_spacial_resolution = 0,
-  distance_metric = c("haversine", "euclidean"),
   weighted = FALSE,
   weight_exponent = 1,
   stop_id_col = "stop_id",
@@ -104,86 +101,94 @@ identify_sites.trackframe <- function(
   r2 = 10,
   label_singleton = TRUE,
   min_spacial_resolution = 0,
-  distance_metric = "euclidean",
   weighted = FALSE,
   weight_exponent = 1,
   stop_id_col = "stop_id",
   site_id_col = "site_id",
   ...
 ) {
-  if (distance_metric != "euclidean") {
-    stop(
-      "Only distance_metric = 'euclidean' is available for objects of class trackframe"
+  stops <- prep_stops(
+    easting(data),
+    northing(data),
+    id(data),
+    data[[stop_id_col]]
+  )
+  site_map <- identify_sites_internal(
+    stops$stop_events,
+    stops$event_maps,
+    r2 = r2,
+    label_singleton = label_singleton,
+    min_spacial_resolution = min_spacial_resolution,
+    distance_metric = "euclidean",
+    weighted = weighted,
+    weight_exponent = weight_exponent
+  )
+  add_site_ids(data, site_map = site_map, site_id_col = site_id_col)
+}
+
+
+#' @export
+#' @importFrom stats time
+#' @importFrom trackframe id time.trackframe
+#' @rdname identify_sites
+identify_sites.sf <- function(
+  data,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_spacial_resolution = 0,
+  weighted = FALSE,
+  weight_exponent = 1,
+  stop_id_col = "stop_id",
+  site_id_col = "site_id",
+  ...
+) {
+  is_longlat <- sf::st_is_longlat(data)
+  if (isTRUE(is_longlat)) {
+
+    # use trackframe package to identify id and time columns
+    # easting/northing columns of tf are not meaningful
+    data_no_crs <- data
+    sf::st_crs(data_no_crs) <- sf::st_crs(NA)
+    tf <- as.trackframe(data_no_crs, sort = FALSE)
+    ids <- if (is.null(id(tf))) '' else id(tf)
+
+    # reorder
+    idx <- order(ids, time(tf))
+    data <- data[idx, ]
+    tf <- tf[idx, ]
+
+    # use custom coords function to identify lat and long
+    coords <- st_coordinates_lat_lon(data)
+
+    # put together
+    stops <- prep_stops(
+        # infostop python program expects lat long, not long lat
+        x = coords[, 1],
+        y = coords[, 2],
+        if(is.null(id(tf))) '' else id(tf),
+        data[[stop_id_col]]
+    )
+    site_map <- identify_sites_internal(
+      stops$stop_events,
+      stops$event_maps,
+      r2 = r2,
+      label_singleton = label_singleton,
+      min_spacial_resolution = min_spacial_resolution,
+      distance_metric = "haversine",
+      weighted = weighted,
+      weight_exponent = weight_exponent
+    )
+    add_site_ids(data, site_map = site_map, site_id_col = site_id_col)
+  } else {
+    identify_sites(
+      as.trackframe(data, ...),
+      r2 = r2,
+      label_singleton = label_singleton,
+      min_spacial_resolution = min_spacial_resolution,
+      weighted = weighted,
+      weight_exponent = weight_exponent,
+      stop_id_col = stop_id_col,
+      site_id_col = site_id_col
     )
   }
-  stops <- as_stop_locations(data, stop_id_col = stop_id_col)
-  site_map <- identify_sites_internal(
-    stops$stop_events,
-    stops$event_maps,
-    r2 = r2,
-    label_singleton = label_singleton,
-    min_spacial_resolution = min_spacial_resolution,
-    distance_metric = distance_metric,
-    weighted = weighted,
-    weight_exponent = weight_exponent
-  )
-  add_site_ids(data, site_map = site_map, site_id_col = site_id_col)
-}
-
-
-#' @export
-#' @rdname identify_sites
-identify_sites.move2 <- function(
-  data,
-  r2 = 10,
-  label_singleton = TRUE,
-  min_spacial_resolution = 0,
-  distance_metric = c("haversine", "euclidean"),
-  weighted = FALSE,
-  weight_exponent = 1,
-  stop_id_col = "stop_id",
-  site_id_col = "site_id",
-  ...
-) {
-  stops <- as_stop_locations(data, stop_id_col = stop_id_col)
-  site_map <- identify_sites_internal(
-    stops$stop_events,
-    stops$event_maps,
-    r2 = r2,
-    label_singleton = label_singleton,
-    min_spacial_resolution = min_spacial_resolution,
-    distance_metric = distance_metric,
-    weighted = weighted,
-    weight_exponent = weight_exponent
-  )
-  add_site_ids(data, site_map = site_map, site_id_col = site_id_col)
-}
-
-
-#' @export
-#' @rdname identify_sites
-identify_sites.sftrack <- function(
-  data,
-  r2 = 10,
-  label_singleton = TRUE,
-  min_spacial_resolution = 0,
-  distance_metric = c("haversine", "euclidean"),
-  weighted = FALSE,
-  weight_exponent = 1,
-  stop_id_col = "stop_id",
-  site_id_col = "site_id",
-  ...
-) {
-  stops <- as_stop_locations(data, stop_id_col = stop_id_col)
-  site_map <- identify_sites_internal(
-    stops$stop_events,
-    stops$event_maps,
-    r2 = r2,
-    label_singleton = label_singleton,
-    min_spacial_resolution = min_spacial_resolution,
-    distance_metric = distance_metric,
-    weighted = weighted,
-    weight_exponent = weight_exponent
-  )
-  add_site_ids(data, site_map = site_map, site_id_col = site_id_col)
 }

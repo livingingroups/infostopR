@@ -4,16 +4,20 @@ library("trackframe")
 
 infostop_initialize()
 
+unique_non_na <- function(v) {
+  length(unique(v[!is.na(v)]))
+}
+
 expect_n_stops <- function(df, n) {
-  expect_equal(length(unique(df$stop_id[!is.na(df$stop_id)])), n)
+  expect_equal(unique_non_na(df$stop_id), n)
 }
 
 expect_n_sites <- function(df, n) {
-  expect_equal(length(unique(df$site_id[!is.na(df$site_id)])), n)
+  expect_equal(unique_non_na(df$site_id), n)
 }
 
 expect_n_labels <- function(is, n) {
-  expect_equal(length(unique(is$labels[!is.na(is$labels)])), n)
+  expect_equal(unique_non_na(is$labels), n)
 }
 
 #
@@ -55,21 +59,12 @@ expect_equal(
 df$id <- 'track_1'
 
 #
-# trackframe
-#
-tf <- as.trackframe(df, crs = 4326)
-expect_n_stops(
-  identify_stops(tf, distance_metric = "euclidean"),
-  3
-)
-
-#
 # move2
 #
 m2 <- move2::mt_as_move2(df, coords = c("lat", "long"), time_column = "time",
   track_id_column = "id", crs = 4326)
 expect_n_stops(
-  identify_stops(m2, distance_metric = "haversine"),
+  identify_stops(m2),
   3
 )
 
@@ -79,7 +74,7 @@ expect_n_stops(
 #
 sft <- sftrack::as_sftrack(df, coords = c("lat", "long"), crs = 4326)
 expect_n_stops(
-  identify_stops(sft, distance_metric = "haversine"),
+  identify_stops(sft),
   3
 )
 
@@ -87,15 +82,15 @@ expect_n_stops(
 #
 # identify_stops_xyt
 #
-stops_xyt <- identify_stops_xyt(
-  x = df[, "lat"],
-  y = df[, "long"],
+
+stops_xyt <- identify_stops_longlatt(
+  df[, "long"],
+  df[, "lat"],
   t = df[, "time"],
   r1 = 100,
   min_staying_time = 300,
   max_time_between = 86400,
-  min_size = 2,
-  distance_metric = "haversine"
+  min_size = 2
 )
 
 expect_equal(
@@ -144,24 +139,19 @@ df$stop_id <- NA
 df$stop_id[event_map != -1] <- event_map[event_map != -1] + 1
 
 #
-# trackframe
-#
-expect_n_sites(identify_sites(as.trackframe(df, crs = 4326)), 3)
-
-#
 # move2
 #
 m2_lat_lon <- move2::mt_as_move2(df, coords = c("lat", "long"), time_column = "time",
   track_id_column = "id", crs = 4326)
 expect_n_stops(
-  identify_sites(m2_lat_lon, distance_metric = "haversine"),
+  identify_sites(m2_lat_lon),
   3
 )
 
 m2_lon_lat <- move2::mt_as_move2(df, coords = c("long", "lat"), time_column = "time",
   track_id_column = "id", crs = "OGC:CRS84")
-sites_m2_lat_lon <- identify_sites(m2_lat_lon, distance_metric = "haversine")
-sites_m2_lon_lat <- identify_sites(m2_lon_lat, distance_metric = "haversine")
+sites_m2_lat_lon <- identify_sites(m2_lat_lon)
+sites_m2_lon_lat <- identify_sites(m2_lon_lat)
 
 expect_equal(sites_m2_lat_lon$stop_id, sites_m2_lon_lat$stop_id)
 expect_equal(sites_m2_lat_lon$site_id, sites_m2_lon_lat$site_id)
@@ -171,13 +161,13 @@ expect_equal(sites_m2_lat_lon$site_id, sites_m2_lon_lat$site_id)
 #
 sft_lat_lon <- sftrack::as_sftrack(df, coords = c("lat", "long"), crs = 4326)
 expect_n_stops(
-  identify_sites(sft_lat_lon, distance_metric = "haversine"),
+  identify_sites(sft_lat_lon),
   3
 )
 
 sft_lon_lat <- sftrack::as_sftrack(df, coords = c("long", "lat"), crs = "OGC:CRS84")
-sites_sft_lat_lon <- identify_sites(sft_lat_lon, distance_metric = "haversine")
-sites_sft_lon_lat <- identify_sites(sft_lon_lat, distance_metric = "haversine")
+sites_sft_lat_lon <- identify_sites(sft_lat_lon)
+sites_sft_lon_lat <- identify_sites(sft_lon_lat)
 
 expect_equal(sites_sft_lat_lon$stop_id, sites_sft_lon_lat$stop_id)
 expect_equal(sites_sft_lat_lon$site_id, sites_sft_lon_lat$site_id)
@@ -190,24 +180,19 @@ df$stop_id <- NULL
 df$site_id <- NULL
 
 #
-# trackframe
-#
-expect_n_labels(infostop(as.trackframe(df, crs = 4326)), 3)
-
-#
 # move2
 #
 m2_lat_lon <- move2::mt_as_move2(df, coords = c("lat", "long"), time_column = "time",
   track_id_column = "id", crs = 4326)
 expect_n_labels(
-  infostop(m2_lat_lon, distance_metric = "haversine"),
+  infostop(m2_lat_lon),
   3
 )
 
 m2_lon_lat <- move2::mt_as_move2(df, coords = c("long", "lat"), time_column = "time",
   track_id_column = "id", crs = "OGC:CRS84")
-infostop_m2_lat_lon <- infostop(m2_lat_lon, distance_metric = "haversine")
-infostop_m2_lon_lat <- infostop(m2_lon_lat, distance_metric = "haversine")
+infostop_m2_lat_lon <- infostop(m2_lat_lon)
+infostop_m2_lon_lat <- infostop(m2_lon_lat)
 
 expect_equal(
   infostop_m2_lat_lon$compute_label_medians(),
@@ -220,19 +205,20 @@ expect_equal(infostop_m2_lat_lon$labels, infostop_m2_lon_lat$labels)
 #
 sft_lat_lon <- sftrack::as_sftrack(df, coords = c("lat", "long"), crs = 4326)
 expect_n_labels(
-  infostop(sft_lat_lon, distance_metric = "haversine"),
+  infostop(sft_lat_lon),
   3
 )
 
-expect_n_labels(infostop_xyt(
-  x = df[, "lat"],
-  y = df[, "long"],
+
+expect_n_labels(infostop_lonlatt(
+  df[, "long"],
+  df[, "lat"],
   t = df[, "time"],
 ), 3)
 
 sft_lon_lat <- sftrack::as_sftrack(df, coords = c("long", "lat"), crs = "OGC:CRS84")
-infostop_sft_lat_lon <- infostop(sft_lat_lon, distance_metric = "haversine")
-infostop_sft_lon_lat <- infostop(sft_lon_lat, distance_metric = "haversine")
+infostop_sft_lat_lon <- infostop(sft_lat_lon)
+infostop_sft_lon_lat <- infostop(sft_lon_lat)
 
 expect_equal(
   infostop_sft_lat_lon$compute_label_medians(),

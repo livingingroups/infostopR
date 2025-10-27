@@ -2,6 +2,7 @@
 % Please edit documentation in R/infostop.R
 \name{infostop_xyt}
 \alias{infostop_xyt}
+\alias{infostop_lonlatt}
 \title{Detect Stop Locations in Mobility Data}
 \usage{
 infostop_xyt(
@@ -15,18 +16,33 @@ infostop_xyt(
   max_time_between = 86400L,
   min_size = 2L,
   min_spacial_resolution = 0,
-  distance_metric = c("haversine", "euclidean"),
+  weighted = FALSE,
+  weight_exponent = 1,
+  verbose = FALSE
+)
+
+infostop_lonlatt(
+  longitude,
+  latitude,
+  time,
+  r1 = 10,
+  r2 = 10,
+  label_singleton = TRUE,
+  min_staying_time = 300L,
+  max_time_between = 86400L,
+  min_size = 2L,
+  min_spacial_resolution = 0,
   weighted = FALSE,
   weight_exponent = 1,
   verbose = FALSE
 )
 }
 \arguments{
-\item{x}{a numeric vector of x-coordinates (northing for distance_metric euclidean - latitude for
-distance_metric "haversine").}
+\item{x}{a numeric vector of x-coordinates in cartesian coordinate system
+(e.g. projected coordinates).}
 
-\item{y}{a numeric vector of y-coordinates (easting for distance_metric euclidean - longitude for
-distance_metric "haversine").}
+\item{y}{a numeric vector of y-coordinates in cartesian coordinate system
+(e.g. projected coordinates).}
 
 \item{time}{a vector inheriting from \code{numeric} (in seconds) or \code{POSIXt}
 or \code{Date} containing the timestamps corresponding to the x and y coordinates.}
@@ -53,9 +69,6 @@ stationary.}
 \item{min_spacial_resolution}{A numeric giving the minimum difference allowed between points
 before they are considered the same points. Useful for dealing with GPS jitter.}
 
-\item{distance_metric}{A character string, either 'haversine' (for geographic coordinates) or
-'euclidean' (for Cartesian coordinates).}
-
 \item{weighted}{A logical, if \code{TRUE}, weight edges in the network by distance, giving more
 importance to closer points.}
 
@@ -63,6 +76,10 @@ importance to closer points.}
 Higher values give more importance to distance.}
 
 \item{verbose}{A logical, if \code{TRUE}, print progress information during computation.}
+
+\item{longitude}{numeric vector of longitude coordinates}
+
+\item{latitude}{numeric vector of latitude coordinates}
 }
 \value{
 An Infostop model object with the following methods and properties:
@@ -118,13 +135,12 @@ in \code{\link{infostop}}.
 }
 \examples{
 if (is_infostop_initialized()) {
-data("path_matrix", package = "trackframe")
-infostop_xyt <- infostop_xyt(
-  x = path_matrix[, "latitude"],
-  y = path_matrix[, "longitude"],
-  t = path_matrix[, "time"],
-  distance_metric = "haversine"
- )
+  data("path_matrix", package = "trackframe")
+    model <- infostop_xyt(
+    x = path_matrix[, "easting"],
+    y = path_matrix[, "northing"],
+    time = path_matrix[, "time"]
+  )
 }
 }
 \seealso{

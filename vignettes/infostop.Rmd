@@ -33,8 +33,7 @@ data("path_sftrack", package = "trackframe")
 head(path_sftrack)
 class(path_sftrack)
 
-infostop <- infostop(data = path_sftrack,
-  distance_metric = "haversine")
+infostop <- infostop(data = path_sftrack)
 
 head(infostop$labels, n = 20)
 head(infostop$compute_label_medians())
@@ -45,12 +44,11 @@ head(infostop$compute_label_medians())
 ```{r sftrack-twostep}
 data("path_sftrack", package = "trackframe")
 
-dat <- identify_stops(data = path_sftrack, distance_metric = "haversine")
-dat <- identify_sites(dat, distance_metric = "haversine")
+dat <- identify_stops(data = path_sftrack)
+dat <- identify_sites(dat)
 
 # compare with onestep approach
-infostop_sftrack <- infostop(data = path_sftrack,
-  distance_metric = "haversine")
+infostop_sftrack <- infostop(data = path_sftrack)
 all.equal(dat[["site_id"]], infostop_sftrack$labels)
 ```
 
@@ -61,8 +59,7 @@ data("path_move2", package = "trackframe")
 head(path_move2)
 class(path_move2)
 
-infostop <- infostop(data = path_move2,
-  distance_metric = "haversine")
+infostop <- infostop(data = path_move2)
 
 head(infostop$labels, n = 20)
 head(infostop$compute_label_medians())
@@ -84,14 +81,14 @@ As objects of class `trackframe` always have easting/northing coordinates, `dist
 data("path_data_frame", package = "trackframe")
 head(path_data_frame)
 class(path_data_frame)
-path_tf <- as.trackframe(path_data_frame, crs_input = 4326)
+projected_crs <- "EPSG:32632"
+path_tf <- as.trackframe(path_data_frame, crs = projected_crs)
 class(path_tf)
 head(path_tf)
 attr(path_tf, "easting")
 attr(path_tf, "northing")
 # need to use euclidean distance as coordinates were transformed to easting/northing
-infostop_df <- infostop(data = path_tf,
-  distance_metric = "euclidean")
+infostop_df <- infostop(data = path_tf)
 ```
 
 
@@ -102,10 +99,10 @@ infostop_df <- infostop(data = path_tf,
 data("path_matrix", package = "trackframe")
 head(path_matrix)
 class(path_matrix)
-infostop_xyt <- infostop_xyt(x = path_matrix[, "longitude"],
-  y = path_matrix[, "latitude"],
-  t = path_matrix[, "time"],
-  distance_metric = "haversine")
+infostop_xyt <- infostop_xyt(x = path_matrix[, "easting"],
+  y = path_matrix[, "northing"],
+  t = path_matrix[, "time"]
+)
 ```
 
 
@@ -117,8 +114,7 @@ As objects of class `trackframe` always have easting/northing coordinates, `dist
 data("path_trackframe", package = "trackframe")
 head(path_trackframe)
 
-infostop <- infostop(data = path_trackframe,
-  distance_metric = "euclidean")
+infostop <- infostop(data = path_trackframe)
 ```
 
 To obtain the labels of the stop locations,
@@ -140,11 +136,9 @@ data("paths_trackframe", package = "trackframe")
 head(paths_trackframe)
 unique(paths_trackframe$id)
 
-infostop <- infostop(data = paths_trackframe,
-  distance_metric = "euclidean")
+infostop <- infostop(data = paths_trackframe)
 length(infostop$labels)
 
 tf1 <- split_by_id(paths_trackframe)[[1]]
-infostop_mtf1 <- infostop(data = tf1,
-  distance_metric = "euclidean")
+infostop_mtf1 <- infostop(data = tf1)
 ```
