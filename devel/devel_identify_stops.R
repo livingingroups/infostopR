@@ -64,11 +64,11 @@ as_lon_lat
 
 as_infostop.trackframe <- function(data) {
   # create data input of infostop_internal from track.frame
-  id_col <- attr(data, "id")
+  id_col <- id_col(data)
   ids <- if (is.null(id_col)) NULL else data[[id_col]]
 
-  data[[attr(data, "time")]] <- as.integer(data[[attr(data, "time")]])
-  cols <- c(attr(data, "easting"), attr(data, "northing"), attr(data, "time"))
+  data[[time_col(data)]] <- as.integer(data[[time_col(data)]])
+  cols <- c(easting_col(data), northing_col(data), time_col(data))
   data <- as.matrix(data[, cols])
 
   if (!is.null(ids) && length(unique(ids)) > 1) {

@@ -129,7 +129,7 @@ identify_sites.trackframe <- function(
 
 #' @export
 #' @importFrom stats time
-#' @importFrom trackframe id time.trackframe
+#' @importFrom trackframe id
 #' @rdname identify_sites
 identify_sites.sf <- function(
   data,

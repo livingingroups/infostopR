@@ -452,7 +452,7 @@ infostop.data.frame <- function(
 
 
 #' @export
-#' @importFrom trackframe id
+#' @importFrom trackframe id easting_col northing_col time_col "time<-"
 #' @rdname infostop
 infostop.trackframe <- function(
   data,
@@ -471,8 +471,8 @@ infostop.trackframe <- function(
   # create data input of infostop_internal from track.frame
   ids <- id(data)
 
-  data[[attr(data, "time")]] <- as.integer(data[[attr(data, "time")]])
-  cols <- c(attr(data, "easting"), attr(data, "northing"), attr(data, "time"))
+  time(data) <- as.integer(time(data))
+  cols <- c(easting_col(data), northing_col(data), time_col(data))
   data <- as.matrix(data[, cols])
 
   infostop_internal(
@@ -492,7 +492,7 @@ infostop.trackframe <- function(
 }
 
 #' @importFrom stats time
-#' @importFrom trackframe id time.trackframe
+#' @importFrom trackframe id
 #' @export
 #' @rdname infostop
 infostop.sf <- function(

@@ -19,10 +19,10 @@ make_unique_id <- function(id_col) {
   unique_id
 }
 
-
+#' @importFrom trackframe id_col
 get_id_column <- function(x) {
   if (inherits(x, "trackframe")) {
-    attr(x, "id")
+    id_col(x)
   } else if (inherits(x, "move2")) {
     attr(x, "track_id_column")
   } else if (inherits(x, "sftrack")) {
