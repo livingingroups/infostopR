@@ -21,7 +21,6 @@ rpy <- function(key, value) {
 
 
 .onLoad <- function(libname, pkgname) {
-  # infostop <- reticulate::import("infostop", delay_load = TRUE)
   rpy("initialized", NULL)
   env <- getNamespace("infostop")
   makeActiveBinding("py_infostop", function() rpy("infostop"), env)
