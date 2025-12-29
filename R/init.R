@@ -11,7 +11,10 @@ is_infostop_initialized <- function() {
 
 
 is_python_initialized <- function() {
-  tryCatch(getNamespace("reticulate")$is_python_initialized(), error = function(e) FALSE)
+  tryCatch(
+    getNamespace("reticulate")$is_python_initialized(),
+    error = function(e) FALSE
+  )
 }
 
 
@@ -45,12 +48,23 @@ infostop_find_python <- function() {
     }
   }
 
-  venvpy <- file.path(reticulate::virtualenv_root(), "infostop", "bin", "python")
+  venvpy <- file.path(
+    reticulate::virtualenv_root(),
+    "infostop",
+    "bin",
+    "python"
+  )
   if (file.exists(venvpy)) {
     return(venvpy)
   }
 
-  condapy <- file.path(reticulate::miniconda_path(), "envs", "infostop", "bin", "python")
+  condapy <- file.path(
+    reticulate::miniconda_path(),
+    "envs",
+    "infostop",
+    "bin",
+    "python"
+  )
   if (file.exists(condapy)) {
     return(condapy)
   }
@@ -60,7 +74,11 @@ infostop_find_python <- function() {
 }
 
 
-set_python_version <- function(python = NULL, virtualenv = NULL, condaenv = NULL) {
+set_python_version <- function(
+  python = NULL,
+  virtualenv = NULL,
+  condaenv = NULL
+) {
   if (!is.null(python)) {
     reticulate::use_python(python, required = TRUE)
   } else if (!is.null(virtualenv)) {
@@ -92,7 +110,11 @@ set_python_version <- function(python = NULL, virtualenv = NULL, condaenv = NULL
 #' infostop_initialize()
 #' }
 #' @export
-infostop_initialize <- function(python = NULL, virtualenv = NULL, condaenv = NULL) {
+infostop_initialize <- function(
+  python = NULL,
+  virtualenv = NULL,
+  condaenv = NULL
+) {
   assert(
     check_character(python, len = 1L, any.missing = FALSE, null.ok = TRUE),
     check_character(virtualenv, len = 1L, any.missing = FALSE, null.ok = TRUE),
@@ -126,8 +148,14 @@ infostop_initialize <- function(python = NULL, virtualenv = NULL, condaenv = NUL
   }
   path <- system.file("python", package = "infostop")
   infostop <- reticulate::import_from_path("infostop_helper", path = path)
-  funs <- c("identify_stops", "identify_sites", "downsample", "find_neighbors",
-    "infomap_network", "backtransform")
+  funs <- c(
+    "identify_stops",
+    "identify_sites",
+    "downsample",
+    "find_neighbors",
+    "infomap_network",
+    "backtransform"
+  )
   for (fun in funs) {
     rpy(fun, infostop[[fun]])
   }
@@ -144,7 +172,10 @@ check_infostop_initialized <- function() {
   if (!is_infostop_initialized()) {
     # any number bigger than 500 triggers a warning and the default is used.
     max_allowed_cutoff <- 500L
-    caller_name <- deparse(sys.calls()[[sys.nframe() - 1]], width.cutoff = max_allowed_cutoff)
+    caller_name <- deparse(
+      sys.calls()[[sys.nframe() - 1]],
+      width.cutoff = max_allowed_cutoff
+    )
     msg <- sprintf(
       "in '%s' infostop is not initialized, %s ",
       caller_name,

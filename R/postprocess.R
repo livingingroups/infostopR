@@ -24,7 +24,12 @@ compute_intervals <- function(labels, times, max_time_between = 86400) {
 
   checkmate::assert_integerish(labels, any.missing = TRUE) #FIXME: are NAs ok?
   checkmate::assert_integerish(times, len = length(labels), any.missing = FALSE)
-  checkmate::assert_numeric(max_time_between, lower = 0, len = 1, any.missing = FALSE)
+  checkmate::assert_numeric(
+    max_time_between,
+    lower = 0,
+    len = 1,
+    any.missing = FALSE
+  )
 
   result <- py_infostop$compute_intervals(
     as.matrix(as.integer(labels)),

@@ -1,5 +1,3 @@
-
-
 infostop_internal <- function(
   data,
   r1 = 10,
@@ -27,17 +25,60 @@ infostop_internal <- function(
       )
     }
   } else {
-    checkmate::assert_matrix(data, "numeric", any.missing = FALSE, min.cols = 2, max.cols = 3)
+    checkmate::assert_matrix(
+      data,
+      "numeric",
+      any.missing = FALSE,
+      min.cols = 2,
+      max.cols = 3
+    )
   }
-  checkmate::assert_numeric(r1, lower = 0, len = 1, finite = TRUE, any.missing = FALSE)
-  checkmate::assert_numeric(r2, lower = 0, len = 1, finite = TRUE, any.missing = FALSE)
+  checkmate::assert_numeric(
+    r1,
+    lower = 0,
+    len = 1,
+    finite = TRUE,
+    any.missing = FALSE
+  )
+  checkmate::assert_numeric(
+    r2,
+    lower = 0,
+    len = 1,
+    finite = TRUE,
+    any.missing = FALSE
+  )
   checkmate::assert_logical(label_singleton, len = 1, any.missing = FALSE)
-  checkmate::assert_integerish(min_staying_time, lower = 0, len = 1, any.missing = FALSE)
-  checkmate::assert_integerish(max_time_between, lower = 0, len = 1, any.missing = FALSE)
-  checkmate::assert_integerish(min_size, lower = 0, len = 1, any.missing = FALSE)
-  checkmate::assert_numeric(min_spacial_resolution, lower = 0, len = 1, any.missing = FALSE)
+  checkmate::assert_integerish(
+    min_staying_time,
+    lower = 0,
+    len = 1,
+    any.missing = FALSE
+  )
+  checkmate::assert_integerish(
+    max_time_between,
+    lower = 0,
+    len = 1,
+    any.missing = FALSE
+  )
+  checkmate::assert_integerish(
+    min_size,
+    lower = 0,
+    len = 1,
+    any.missing = FALSE
+  )
+  checkmate::assert_numeric(
+    min_spacial_resolution,
+    lower = 0,
+    len = 1,
+    any.missing = FALSE
+  )
   checkmate::assert_logical(weighted, len = 1, any.missing = FALSE)
-  checkmate::assert_numeric(weight_exponent, lower = 0, len = 1, any.missing = FALSE)
+  checkmate::assert_numeric(
+    weight_exponent,
+    lower = 0,
+    len = 1,
+    any.missing = FALSE
+  )
   checkmate::assert_logical(verbose, len = 1, any.missing = FALSE)
 
   distance_metric <- match.arg(distance_metric)
@@ -76,12 +117,20 @@ infostop_internal <- function(
   }
 
   if (is.list(data)) {
-    makeActiveBinding("labels", function() lapply(env$model$labels, refine_labels), env)
+    makeActiveBinding(
+      "labels",
+      function() lapply(env$model$labels, refine_labels),
+      env
+    )
   } else {
-    makeActiveBinding("labels", function() refine_labels(env$model$labels[[1]]), env)
+    makeActiveBinding(
+      "labels",
+      function() refine_labels(env$model$labels[[1]]),
+      env
+    )
   }
 
-  . <- env$model$fit_predict(data)  # nolint: object_usage_linter
+  . <- env$model$fit_predict(data) # nolint: object_usage_linter
   class(env) <- "Infostop"
 
   return(env)
@@ -436,7 +485,14 @@ infostop.data.frame <- function(
     ))
   }
   infostop.trackframe(
-    data = as.trackframe(data, time_col, easting_col, northing_col, id_col, crs = crs),
+    data = as.trackframe(
+      data,
+      time_col,
+      easting_col,
+      northing_col,
+      id_col,
+      crs = crs
+    ),
     r1 = r1,
     r2 = r2,
     label_singleton = label_singleton,
@@ -511,7 +567,6 @@ infostop.sf <- function(
 ) {
   is_longlat <- sf::st_is_longlat(data)
   if (isTRUE(is_longlat)) {
-
     # use trackframe package to identify id and time columns
     # easting/northing columns of tf are not meaningful
     data_no_crs <- data
@@ -529,12 +584,15 @@ infostop.sf <- function(
 
     # put together
     infostop_internal(
-      data = split_mat_by_id(as.matrix(data.frame(
-        # infostop python program expects lat long, not long lat
-        x = coords[, 1],
-        y = coords[, 2],
-        time = as.integer(time(tf))
-      )), ids = if (is.null(id(tf))) "" else id(tf)),
+      data = split_mat_by_id(
+        as.matrix(data.frame(
+          # infostop python program expects lat long, not long lat
+          x = coords[, 1],
+          y = coords[, 2],
+          time = as.integer(time(tf))
+        )),
+        ids = if (is.null(id(tf))) "" else id(tf)
+      ),
       r1 = r1,
       r2 = r2,
       label_singleton = label_singleton,
@@ -581,8 +639,10 @@ infostop.numeric <- function(
   verbose = FALSE,
   ...
 ) {
-  stop("no applicable method for 'infostop' applied to an object of class c('double', 'numeric').
-       use infostop_xyt() instead")
+  stop(
+    "no applicable method for 'infostop' applied to an object of class c('double', 'numeric').
+       use infostop_xyt() instead"
+  )
 }
 
 #' @noRd

@@ -25,8 +25,14 @@ expect_n_labels <- function(is, n) {
 #
 m <- .4
 n <- 8
-lat <- 1 + c(rep(0, 2), seq(0, m, length.out = n), rep(m, 2),
-  seq(m, 2 * m, length.out = n), rep(2 * m, 2))
+lat <- 1 +
+  c(
+    rep(0, 2),
+    seq(0, m, length.out = n),
+    rep(m, 2),
+    seq(m, 2 * m, length.out = n),
+    rep(2 * m, 2)
+  )
 long <- 89.99
 df <- data.frame(
   lat = lat,
@@ -46,13 +52,16 @@ stops_incorrect_axis_order <- list(
 )
 
 expect_equal(
-  infostop:::identify_stops_internal(data = list(unname(as.matrix(df))))$stop_events[[1]],
+  infostop:::identify_stops_internal(
+    data = list(unname(as.matrix(df)))
+  )$stop_events[[1]],
   expected_stops
 )
 
 expect_equal(
   infostop:::identify_stops_internal(
-    data = list(unname(as.matrix(df[, c(2, 1, 3)]))))$stop_events[[1]],
+    data = list(unname(as.matrix(df[, c(2, 1, 3)])))
+  )$stop_events[[1]],
   stops_incorrect_axis_order
 )
 
@@ -61,8 +70,13 @@ df$id <- 'track_1'
 #
 # move2
 #
-m2 <- move2::mt_as_move2(df, coords = c("lat", "long"), time_column = "time",
-  track_id_column = "id", crs = 4326)
+m2 <- move2::mt_as_move2(
+  df,
+  coords = c("lat", "long"),
+  time_column = "time",
+  track_id_column = "id",
+  crs = 4326
+)
 expect_n_stops(
   identify_stops(m2),
   3
@@ -108,8 +122,30 @@ rev_ax_stops <- lapply(
   rev
 )
 
-event_map <- c(0L, 0L, 0L, -1L, -1L, -1L, -1L, -1L, -1L, 1L, 1L, 1L,
-  1L, -1L, -1L, -1L, -1L, -1L, -1L, 2L, 2L, 2L)
+event_map <- c(
+  0L,
+  0L,
+  0L,
+  -1L,
+  -1L,
+  -1L,
+  -1L,
+  -1L,
+  -1L,
+  1L,
+  1L,
+  1L,
+  1L,
+  -1L,
+  -1L,
+  -1L,
+  -1L,
+  -1L,
+  -1L,
+  2L,
+  2L,
+  2L
+)
 
 # expected result
 expected_sites <- event_map
@@ -141,15 +177,25 @@ df$stop_id[event_map != -1] <- event_map[event_map != -1] + 1
 #
 # move2
 #
-m2_lat_lon <- move2::mt_as_move2(df, coords = c("lat", "long"), time_column = "time",
-  track_id_column = "id", crs = 4326)
+m2_lat_lon <- move2::mt_as_move2(
+  df,
+  coords = c("lat", "long"),
+  time_column = "time",
+  track_id_column = "id",
+  crs = 4326
+)
 expect_n_stops(
   identify_sites(m2_lat_lon),
   3
 )
 
-m2_lon_lat <- move2::mt_as_move2(df, coords = c("long", "lat"), time_column = "time",
-  track_id_column = "id", crs = "OGC:CRS84")
+m2_lon_lat <- move2::mt_as_move2(
+  df,
+  coords = c("long", "lat"),
+  time_column = "time",
+  track_id_column = "id",
+  crs = "OGC:CRS84"
+)
 sites_m2_lat_lon <- identify_sites(m2_lat_lon)
 sites_m2_lon_lat <- identify_sites(m2_lon_lat)
 
@@ -165,7 +211,11 @@ expect_n_stops(
   3
 )
 
-sft_lon_lat <- sftrack::as_sftrack(df, coords = c("long", "lat"), crs = "OGC:CRS84")
+sft_lon_lat <- sftrack::as_sftrack(
+  df,
+  coords = c("long", "lat"),
+  crs = "OGC:CRS84"
+)
 sites_sft_lat_lon <- identify_sites(sft_lat_lon)
 sites_sft_lon_lat <- identify_sites(sft_lon_lat)
 
@@ -182,15 +232,25 @@ df$site_id <- NULL
 #
 # move2
 #
-m2_lat_lon <- move2::mt_as_move2(df, coords = c("lat", "long"), time_column = "time",
-  track_id_column = "id", crs = 4326)
+m2_lat_lon <- move2::mt_as_move2(
+  df,
+  coords = c("lat", "long"),
+  time_column = "time",
+  track_id_column = "id",
+  crs = 4326
+)
 expect_n_labels(
   infostop(m2_lat_lon),
   3
 )
 
-m2_lon_lat <- move2::mt_as_move2(df, coords = c("long", "lat"), time_column = "time",
-  track_id_column = "id", crs = "OGC:CRS84")
+m2_lon_lat <- move2::mt_as_move2(
+  df,
+  coords = c("long", "lat"),
+  time_column = "time",
+  track_id_column = "id",
+  crs = "OGC:CRS84"
+)
 infostop_m2_lat_lon <- infostop(m2_lat_lon)
 infostop_m2_lon_lat <- infostop(m2_lon_lat)
 
@@ -210,13 +270,20 @@ expect_n_labels(
 )
 
 
-expect_n_labels(infostop_lonlatt(
-  df[, "long"],
-  df[, "lat"],
-  t = df[, "time"],
-), 3)
+expect_n_labels(
+  infostop_lonlatt(
+    df[, "long"],
+    df[, "lat"],
+    t = df[, "time"],
+  ),
+  3
+)
 
-sft_lon_lat <- sftrack::as_sftrack(df, coords = c("long", "lat"), crs = "OGC:CRS84")
+sft_lon_lat <- sftrack::as_sftrack(
+  df,
+  coords = c("long", "lat"),
+  crs = "OGC:CRS84"
+)
 infostop_sft_lat_lon <- infostop(sft_lat_lon)
 infostop_sft_lon_lat <- infostop(sft_lon_lat)
 

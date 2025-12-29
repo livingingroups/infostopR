@@ -1,5 +1,3 @@
-
-
 refine_labels <- function(labels) {
   if (length(labels) == 0) {
     return(labels)

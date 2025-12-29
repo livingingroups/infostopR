@@ -4,8 +4,13 @@ library("infostop")
 infostop_initialize()
 
 load('data/tf_paths.RData')
-expected <- jsonlite::read_json(system.file("tinytest/extdata/exp_onestep_twostep.json",
-    package = "infostop"), simplifyVector = TRUE)
+expected <- jsonlite::read_json(
+  system.file(
+    "tinytest/extdata/exp_onestep_twostep.json",
+    package = "infostop"
+  ),
+  simplifyVector = TRUE
+)
 
 
 #
@@ -14,8 +19,14 @@ expected <- jsonlite::read_json(system.file("tinytest/extdata/exp_onestep_twoste
 stops_tf <- identify_stops(paths_trackframe)
 sites_tf <- identify_sites(stops_tf, r2 = 50)
 sites_tf_onestep <- unlist(infostop(paths_trackframe, r2 = 50)$labels)
-expect_equal(stops_tf[["stop_id"]], expected[["tf_pkg_r2_50"]][["expected_stops"]])
-expect_equal(sites_tf[["site_id"]], expected[["tf_pkg_r2_50"]][["expected_sites"]])
+expect_equal(
+  stops_tf[["stop_id"]],
+  expected[["tf_pkg_r2_50"]][["expected_stops"]]
+)
+expect_equal(
+  sites_tf[["site_id"]],
+  expected[["tf_pkg_r2_50"]][["expected_sites"]]
+)
 expect_equal(sites_tf_onestep, expected[["tf_pkg_r2_50"]][["expected_sites"]])
 
 #
@@ -24,8 +35,14 @@ expect_equal(sites_tf_onestep, expected[["tf_pkg_r2_50"]][["expected_sites"]])
 stops_mo <- identify_stops(paths_move2)
 sites_mo <- identify_sites(stops_mo, r2 = 10)
 sites_mo_onestep <- unlist(infostop(paths_move2, r2 = 10)$labels)
-expect_equal(stops_mo[["stop_id"]], expected[["tf_default_h"]][["expected_stops"]])
-expect_equal(sites_mo[["site_id"]], expected[["tf_default_h"]][["expected_sites"]])
+expect_equal(
+  stops_mo[["stop_id"]],
+  expected[["tf_default_h"]][["expected_stops"]]
+)
+expect_equal(
+  sites_mo[["site_id"]],
+  expected[["tf_default_h"]][["expected_sites"]]
+)
 expect_equal(sites_mo_onestep, expected[["tf_default_h"]][["expected_sites"]])
 
 
@@ -35,8 +52,14 @@ expect_equal(sites_mo_onestep, expected[["tf_default_h"]][["expected_sites"]])
 stops_sft <- identify_stops(paths_sftrack)
 sites_sft <- identify_sites(stops_sft, r2 = 10)
 sites_sft_onestep <- unlist(infostop(paths_sftrack, r2 = 10)$labels)
-expect_equal(stops_sft[["stop_id"]], expected[["tf_default_h"]][["expected_stops"]])
-expect_equal(sites_sft[["site_id"]], expected[["tf_default_h"]][["expected_sites"]])
+expect_equal(
+  stops_sft[["stop_id"]],
+  expected[["tf_default_h"]][["expected_stops"]]
+)
+expect_equal(
+  sites_sft[["site_id"]],
+  expected[["tf_default_h"]][["expected_sites"]]
+)
 expect_equal(sites_sft_onestep, expected[["tf_default_h"]][["expected_sites"]])
 
 
@@ -71,4 +94,7 @@ sites_xyt <- infostop_lonlatt(
 
 # check that stops and sites are identical?
 expect_equal(sites_xyt$labels, py_labels)
-expect_equal(sites_xyt$labels, expected[["infostop_pkg_example"]][["expected_sites"]])
+expect_equal(
+  sites_xyt$labels,
+  expected[["infostop_pkg_example"]][["expected_sites"]]
+)

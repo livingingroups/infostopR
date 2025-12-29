@@ -1,5 +1,3 @@
-
-
 identify_stops_internal <- function(
   data,
   r1 = 10,
@@ -9,16 +7,44 @@ identify_stops_internal <- function(
   distance_metric = c("haversine", "euclidean")
 ) {
   check_infostop_initialized()
-  checkmate::assert_numeric(r1, lower = 0, len = 1, finite = TRUE, any.missing = FALSE)
-  checkmate::assert_integerish(min_staying_time, lower = 0, len = 1, any.missing = FALSE)
-  checkmate::assert_integerish(max_time_between, lower = 0, len = 1, any.missing = FALSE)
-  checkmate::assert_integerish(min_size, lower = 0, len = 1, any.missing = FALSE)
+  checkmate::assert_numeric(
+    r1,
+    lower = 0,
+    len = 1,
+    finite = TRUE,
+    any.missing = FALSE
+  )
+  checkmate::assert_integerish(
+    min_staying_time,
+    lower = 0,
+    len = 1,
+    any.missing = FALSE
+  )
+  checkmate::assert_integerish(
+    max_time_between,
+    lower = 0,
+    len = 1,
+    any.missing = FALSE
+  )
+  checkmate::assert_integerish(
+    min_size,
+    lower = 0,
+    len = 1,
+    any.missing = FALSE
+  )
 
   distance_metric <- match.arg(distance_metric)
   min_size <- as.integer(min_size)
 
   py_identify_stops <- rpy("identify_stops")
-  ret <- py_identify_stops(data, r1, min_size, min_staying_time, max_time_between, distance_metric)
+  ret <- py_identify_stops(
+    data,
+    r1,
+    min_size,
+    min_staying_time,
+    max_time_between,
+    distance_metric
+  )
   names(ret) <- c("stop_events", "event_map")
   ret
 }
@@ -68,7 +94,12 @@ identify_stops_xyt <- function(
 
   checkmate::assert_numeric(x, min.len = 3L, any.missing = FALSE)
   checkmate::assert_numeric(y, len = length(x), any.missing = FALSE)
-  checkmate::assert_numeric(t, len = length(x), any.missing = FALSE, null.ok = TRUE)
+  checkmate::assert_numeric(
+    t,
+    len = length(x),
+    any.missing = FALSE,
+    null.ok = TRUE
+  )
   data <- cbind(x = x, y = y, t = t)
   stops <- identify_stops_internal(
     data = data,
@@ -95,8 +126,17 @@ identify_stops_longlatt <- function(
   check_infostop_initialized()
 
   checkmate::assert_numeric(longitude, min.len = 3L, any.missing = FALSE)
-  checkmate::assert_numeric(latitude, len = length(longitude), any.missing = FALSE)
-  checkmate::assert_numeric(t, len = length(longitude), any.missing = FALSE, null.ok = TRUE)
+  checkmate::assert_numeric(
+    latitude,
+    len = length(longitude),
+    any.missing = FALSE
+  )
+  checkmate::assert_numeric(
+    t,
+    len = length(longitude),
+    any.missing = FALSE,
+    null.ok = TRUE
+  )
   assert_lonlat(longitude, latitude)
   # infostop python program expects lat long, not long lat
   data <- cbind(x = latitude, y = longitude, t = t)
@@ -234,11 +274,14 @@ identify_stops.trackframe <- function(
   ...
 ) {
   stops <- identify_stops_internal(
-    data = split_mat_by_id(cbind(
-      easting(data),
-      northing(data),
-      as.integer(time(data))
-    ), id(data)),
+    data = split_mat_by_id(
+      cbind(
+        easting(data),
+        northing(data),
+        as.integer(time(data))
+      ),
+      id(data)
+    ),
     r1 = r1,
     min_size = min_size,
     min_staying_time = min_staying_time,
@@ -248,7 +291,7 @@ identify_stops.trackframe <- function(
   add_stop_ids(data, stops$event_map, stop_id_col = stop_id_col)
 }
 
-#' @importFrom trackframe id 
+#' @importFrom trackframe id
 #' @export
 #' @rdname identify_stops
 identify_stops.sf <- function(
@@ -262,7 +305,6 @@ identify_stops.sf <- function(
 ) {
   is_longlat <- sf::st_is_longlat(data)
   if (isTRUE(is_longlat)) {
-
     # use trackframe package to identify id and time columns
     # easting/northing columns of tf are not meaningful
     data_no_crs <- data
@@ -280,12 +322,15 @@ identify_stops.sf <- function(
 
     # put together
     stops <- identify_stops_internal(
-      data = split_mat_by_id(as.matrix(data.frame(
-        # infostop python program expects lat long, not long lat
-        x = coords[, 1],
-        y = coords[, 2],
-        time = as.integer(time(tf))
-      )), ids = if (is.null(id(tf))) '' else id(tf)),
+      data = split_mat_by_id(
+        as.matrix(data.frame(
+          # infostop python program expects lat long, not long lat
+          x = coords[, 1],
+          y = coords[, 2],
+          time = as.integer(time(tf))
+        )),
+        ids = if (is.null(id(tf))) '' else id(tf)
+      ),
       r1 = r1,
       min_size = min_size,
       min_staying_time = min_staying_time,

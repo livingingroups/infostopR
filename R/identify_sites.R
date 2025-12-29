@@ -1,4 +1,3 @@
-
 identify_sites_internal <- function(
   stop_events,
   event_maps,
@@ -13,9 +12,19 @@ identify_sites_internal <- function(
 
   checkmate::assert_numeric(r2, lower = 0, len = 1, any.missing = FALSE)
   checkmate::assert_logical(label_singleton, len = 1, any.missing = FALSE)
-  checkmate::assert_numeric(min_spacial_resolution, lower = 0, len = 1, any.missing = FALSE)
+  checkmate::assert_numeric(
+    min_spacial_resolution,
+    lower = 0,
+    len = 1,
+    any.missing = FALSE
+  )
   checkmate::assert_logical(weighted, len = 1, any.missing = FALSE)
-  checkmate::assert_numeric(weight_exponent, lower = 0, len = 1, any.missing = FALSE)
+  checkmate::assert_numeric(
+    weight_exponent,
+    lower = 0,
+    len = 1,
+    any.missing = FALSE
+  )
 
   distance_metric <- match.arg(distance_metric)
 
@@ -144,7 +153,6 @@ identify_sites.sf <- function(
 ) {
   is_longlat <- sf::st_is_longlat(data)
   if (isTRUE(is_longlat)) {
-
     # use trackframe package to identify id and time columns
     # easting/northing columns of tf are not meaningful
     data_no_crs <- data
@@ -162,11 +170,11 @@ identify_sites.sf <- function(
 
     # put together
     stops <- prep_stops(
-        # infostop python program expects lat long, not long lat
-        x = coords[, 1],
-        y = coords[, 2],
-        if(is.null(id(tf))) '' else id(tf),
-        data[[stop_id_col]]
+      # infostop python program expects lat long, not long lat
+      x = coords[, 1],
+      y = coords[, 2],
+      if (is.null(id(tf))) '' else id(tf),
+      data[[stop_id_col]]
     )
     site_map <- identify_sites_internal(
       stops$stop_events,

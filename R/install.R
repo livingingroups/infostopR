@@ -63,7 +63,12 @@ virtualenv_install_infostop <- function(
   ...
 ) {
   if (!isTRUE(envname %in% virtualenv_list())) {
-    virtualenv_create(envname = envname, python = python, packages = packages, ...)
+    virtualenv_create(
+      envname = envname,
+      python = python,
+      packages = packages,
+      ...
+    )
   } else {
     virtualenv_install(envname = envname, packages = packages, ...)
   }

@@ -17,8 +17,12 @@ expected <- jsonlite::read_json(
 )
 expected_sites_e <- expected[["tf_mat_default_e"]][["expected_sites"]]
 expected_sites_h <- expected[["tf_mat_default_h"]][["expected_sites"]]
-expected_label_medians_e <- expected[["tf_mat_default_e"]][["expected_label_medians"]]
-expected_label_medians_h <- expected[["tf_mat_default_h"]][["expected_label_medians"]]
+expected_label_medians_e <- expected[["tf_mat_default_e"]][[
+  "expected_label_medians"
+]]
+expected_label_medians_h <- expected[["tf_mat_default_h"]][[
+  "expected_label_medians"
+]]
 
 # FIXME: Add function with arg coerce_to?
 
@@ -59,7 +63,11 @@ expect_error(infostop(
 # Vector input euclidean
 #
 coords <- c("longitude", "latitude")
-data_sf <- sf::st_as_sf(x = as.data.frame(path_matrix), crs = 4326, coords = coords)
+data_sf <- sf::st_as_sf(
+  x = as.data.frame(path_matrix),
+  crs = 4326,
+  coords = coords
+)
 new_data_sf <- sf::st_transform(data_sf, 32633)
 x_y <- st_coordinates(new_data_sf[[attr(new_data_sf, "sf_column")]])
 colnames(x_y) <- c("easting", "northing")
@@ -103,7 +111,10 @@ expect_silent(infostop(data = path_data_frame, crs = NA))
 
 infostop_df_e <- infostop(data = path_data_frame, crs = NA)
 expect_equal(infostop_df_e$labels, expected_sites_e)
-expect_equivalent(infostop_df_e$compute_label_medians(), expected_label_medians_e)
+expect_equivalent(
+  infostop_df_e$compute_label_medians(),
+  expected_label_medians_e
+)
 
 #
 # trackframe
@@ -120,12 +131,18 @@ expect_equivalent(infostop_tf$compute_label_medians(), expected_label_medians_e)
 infostop_sftrack_h <- infostop(data = path_sftrack)
 
 expect_equal(infostop_sftrack_h$labels, expected_sites_h)
-expect_equivalent(infostop_sftrack_h$compute_label_medians(), expected_label_medians_h)
+expect_equivalent(
+  infostop_sftrack_h$compute_label_medians(),
+  expected_label_medians_h
+)
 
 path_sftrack_e <- sf::st_transform(path_sftrack, 32633)
 infostop_sftrack_e <- infostop(data = path_sftrack_e)
 expect_equal(infostop_sftrack_e$labels, expected_sites_e)
-expect_equivalent(infostop_sftrack_e$compute_label_medians(), expected_label_medians_e)
+expect_equivalent(
+  infostop_sftrack_e$compute_label_medians(),
+  expected_label_medians_e
+)
 
 path_sftrack_n <- path_sftrack_e
 path_sftrack_n <- st_set_crs(path_sftrack_n, NA_crs_)
@@ -139,7 +156,10 @@ expect_equal(infostop_sftrack_n$labels, expected_sites_e)
 infostop_move2_h <- infostop(data = path_move2)
 
 expect_equal(infostop_move2_h$labels, expected_sites_h)
-expect_equivalent(infostop_move2_h$compute_label_medians(), expected_label_medians_h)
+expect_equivalent(
+  infostop_move2_h$compute_label_medians(),
+  expected_label_medians_h
+)
 
 
 #
@@ -148,14 +168,16 @@ expect_equivalent(infostop_move2_h$compute_label_medians(), expected_label_media
 #
 #
 expected_sites_e_multi <- expected[["tf_default_e"]][["expected_sites"]]
-expected_label_medians_e_multi <- expected[["tf_default_e"]][["expected_label_medians"]]
+expected_label_medians_e_multi <- expected[["tf_default_e"]][[
+  "expected_label_medians"
+]]
 
 #
 # data.frame
 #
 
 # data frame + no crs = error
-df <- as.data.frame(paths_trackframe[,c('easting', 'northing', 'id', 'time')])
+df <- as.data.frame(paths_trackframe[, c('easting', 'northing', 'id', 'time')])
 expect_error(infostop(data = df))
 
 infostop_df <- infostop(data = df, crs = NA)
@@ -195,6 +217,9 @@ infostop_msftrack <- infostop(data = paths_sftrack)
 paths_sftrack_e <- sf::st_transform(paths_sftrack, 32633)
 infostop_msftrack_e <- infostop(data = paths_sftrack_e)
 expect_equal(unlist(infostop_msftrack_e$labels), expected_sites_e_multi)
-expect_equivalent(infostop_msftrack_e$compute_label_medians(), expected_label_medians_e_multi)
+expect_equivalent(
+  infostop_msftrack_e$compute_label_medians(),
+  expected_label_medians_e_multi
+)
 # correct number of tracks
 expect_equal(length(infostop_msftrack$labels), length(unique(paths_sftrack$id)))

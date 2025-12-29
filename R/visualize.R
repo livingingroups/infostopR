@@ -82,15 +82,49 @@ plot_map <- function(
   checkmate::assert_logical(scatter, len = 1, any.missing = FALSE)
   checkmate::assert_logical(heatmap, len = 1, any.missing = FALSE)
   checkmate::assert_character(polygons_color, len = 1, any.missing = FALSE)
-  checkmate::assert_numeric(polygons_opacity, lower = 0, upper = 1, len = 1, any.missing = FALSE)
+  checkmate::assert_numeric(
+    polygons_opacity,
+    lower = 0,
+    upper = 1,
+    len = 1,
+    any.missing = FALSE
+  )
   checkmate::assert_character(scatter_color, len = 1, any.missing = FALSE)
-  checkmate::assert_numeric(scatter_opacity, lower = 0, upper = 1, len = 1, any.missing = FALSE)
-  checkmate::assert_numeric(scatter_subsampling, lower = 0, upper = 1, len = 1, any.missing = FALSE)
-  checkmate::assert_numeric(heatmap_radius, lower = 0, len = 1, any.missing = FALSE)
-  checkmate::assert_numeric(heatmap_subsampling, lower = 0, upper = 1, len = 1, any.missing = FALSE)
+  checkmate::assert_numeric(
+    scatter_opacity,
+    lower = 0,
+    upper = 1,
+    len = 1,
+    any.missing = FALSE
+  )
+  checkmate::assert_numeric(
+    scatter_subsampling,
+    lower = 0,
+    upper = 1,
+    len = 1,
+    any.missing = FALSE
+  )
+  checkmate::assert_numeric(
+    heatmap_radius,
+    lower = 0,
+    len = 1,
+    any.missing = FALSE
+  )
+  checkmate::assert_numeric(
+    heatmap_subsampling,
+    lower = 0,
+    upper = 1,
+    len = 1,
+    any.missing = FALSE
+  )
   checkmate::assert_numeric(zoom_start, lower = 0, len = 1, any.missing = FALSE)
   checkmate::assert_character(tiles, len = 1, any.missing = FALSE)
-  checkmate::assert_character(api_key, len = 1, any.missing = FALSE, null.ok = TRUE)
+  checkmate::assert_character(
+    api_key,
+    len = 1,
+    any.missing = FALSE,
+    null.ok = TRUE
+  )
 
   map <- py_infostop$plot_map(
     model$model,
