@@ -157,7 +157,8 @@ identify_sites.sf <- function(
     # easting/northing columns of tf are not meaningful
     data_no_crs <- data
     sf::st_crs(data_no_crs) <- sf::st_crs(NA)
-    tf <- as.trackframe(data_no_crs, sort = FALSE)
+    class(data_no_crs) <- class(data)
+    tf <- as.trackframe(data_no_crs, sort = FALSE, ...)
     ids <- if (is.null(id(tf))) '' else id(tf)
 
     # reorder
