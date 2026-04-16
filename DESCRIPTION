@@ -30,7 +30,7 @@ License: GPL-3
 Encoding: UTF-8
 Depends: sf
 Imports: 
-    reticulate, checkmate, trackframe
+    reticulate, checkmate, trackframe (>= 0.1.6)
 Suggests: 
     rmarkdown, knitr, markdown, sftrack, move2, tinytest
 SystemRequirements: Python (>=3.10) with the 'infostop' package installed
