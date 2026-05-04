@@ -524,12 +524,13 @@ infostop.trackframe <- function(
   verbose = FALSE,
   ...
 ) {
+  data <- sort(data)
   # create data input of infostop_internal from track.frame
   ids <- id(data)
 
   time(data) <- as.integer(time(data))
   cols <- c(easting_col(data), northing_col(data), time_col(data))
-  data <- as.matrix(data[, cols])
+  data <- as.matrix(data[, cols, with = FALSE, silent = TRUE])
 
   infostop_internal(
     data = split_mat_by_id(data, ids),
