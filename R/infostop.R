@@ -530,7 +530,7 @@ infostop.trackframe <- function(
 
   time(data) <- as.integer(time(data))
   cols <- c(easting_col(data), northing_col(data), time_col(data))
-  data <- as.matrix(data[, cols, with = FALSE, silent = TRUE])
+  data <- as.matrix(data[, cols, with = FALSE])
 
   infostop_internal(
     data = split_mat_by_id(data, ids),
