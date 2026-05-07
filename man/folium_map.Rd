@@ -75,7 +75,8 @@ providing access to its methods for interactive map visualization.
 \examples{
 if (is_infostop_initialized()) {
   data("path_move2", package = "trackframe")
-  model <- infostop(sf::st_transform(path_move2, 4326), r1 = 10, r2 = 10)
+  model <- infostop(sf::st_transform(path_move2, 4326), r1 = 10, r2 = 10,
+    time_col = "time", id_col = "id")
   map <- plot_map(model, scatter = TRUE)
   \dontrun{
     map$save("my_map.html")

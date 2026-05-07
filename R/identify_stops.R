@@ -51,12 +51,14 @@ identify_stops_internal <- function(
 
 
 add_stop_ids <- function(data, event_map, stop_id_col = "stop_id") {
+  class_input <- class(data)
   ids <- make_unique_id(data[[get_id_column(data)]])
   uids <- unique(ids)
   data[[stop_id_col]] <- NA_integer_
   for (i in seq_along(event_map)) {
     data[[stop_id_col]][ids %in% uids[i]] <- refine_labels(event_map[[i]])
   }
+  class(data) <- class_input
   data
 }
 
@@ -309,12 +311,15 @@ identify_stops.sf <- function(
     # easting/northing columns of tf are not meaningful
     data_no_crs <- data
     sf::st_crs(data_no_crs) <- sf::st_crs(NA)
-    tf <- as.trackframe(data_no_crs, sort = FALSE)
+    class_input <- class(data)
+    class(data_no_crs) <- class_input
+    tf <- as.trackframe(data_no_crs, sort = FALSE, ...)
     ids <- if (is.null(id(tf))) '' else id(tf)
 
     # reorder
     idx <- order(ids, time(tf))
     data <- data[idx, ]
+    class(data) <- class_input
     tf <- tf[idx, ]
 
     # use custom coords function to identify lat and long
