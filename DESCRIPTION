@@ -31,6 +31,7 @@ Encoding: UTF-8
 Depends: sf
 Imports: 
     reticulate, checkmate, trackframe (>= 0.1.7)
+Remotes: livingingroups/trackframe
 Suggests: 
     rmarkdown, knitr, markdown, sftrack, move2, tinytest
 SystemRequirements: Python (>=3.10) with the 'infostop' package installed
