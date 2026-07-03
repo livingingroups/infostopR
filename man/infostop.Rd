@@ -194,9 +194,9 @@ The returned object provides the following methods and properties:
   }
 }
 \examples{
-library(trackframe)
 # with trackframe
-if (is_infostop_initialized()) {
+if (requireNamespace("trackframe", quietly = TRUE)) {
+  library(trackframe)
   data("path_matrix", package = "trackframe")
   tf <- as.trackframe(path_matrix, crs = NA)
   infostop_tf <- infostop(tf)

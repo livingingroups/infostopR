@@ -136,6 +136,7 @@ Find based on distance and time threshold
 Find based on distance and time threshold
 }
 \examples{
+if (requireNamespace("trackframe", quietly = TRUE)) {
 library(trackframe)
 data("path_trackframe", package = "trackframe")
 stops <- identify_stops(data = path_trackframe)
@@ -144,6 +145,7 @@ stops <- identify_stops(data = path_trackframe)
 data("path_data_frame", package = "trackframe")
 tf <- as.trackframe(path_data_frame, crs = NA)
 stops <- identify_stops(data = tf)
+}
 
 # with sftrack
 data("path_sftrack", package = "trackframe")

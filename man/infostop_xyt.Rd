@@ -134,7 +134,7 @@ Objects of class \code{sftrack}, \code{move2} and \code{trackframe} are supporte
 in \code{\link{infostop}}.
 }
 \examples{
-if (is_infostop_initialized()) {
+if (requireNamespace("trackframe", quietly = TRUE)) {
   data("path_matrix", package = "trackframe")
     model <- infostop_xyt(
     x = path_matrix[, "easting"],

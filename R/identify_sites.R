@@ -8,8 +8,6 @@ identify_sites_internal <- function(
   weighted = FALSE,
   weight_exponent = 1
 ) {
-  check_infostop_initialized()
-
   checkmate::assert_numeric(r2, lower = 0, len = 1, any.missing = FALSE)
   checkmate::assert_logical(label_singleton, len = 1, any.missing = FALSE)
   checkmate::assert_numeric(
@@ -28,8 +26,7 @@ identify_sites_internal <- function(
 
   distance_metric <- match.arg(distance_metric)
 
-  pyfun <- rpy("identify_sites")
-  ret <- pyfun(
+  ret <- native_identify_sites_backend(
     stop_events,
     event_maps,
     r2 = r2,
@@ -67,13 +64,13 @@ identify_sites_internal <- function(
 #'   considered non-stationary.
 #'
 #' @examples
-#' if (is_infostop_initialized()) {
-#' dat <- infostop:::example_data_move2()
-#' stops <- identify_stops(dat, r1 = 100, min_staying_time = 300,
+#' if (requireNamespace("trackframe", quietly = TRUE)) {
+#'   data("path_trackframe", package = "trackframe")
+#'   stops <- identify_stops(path_trackframe, r1 = 100, min_staying_time = 300,
 #'                         max_time_between = 86400, min_size = 2)
-#' head(stops[["stop_id"]], 30)
-#' clusters <- identify_sites(stops, r2 = 50)
-#' head(clusters[["site_id"]], 30)
+#'   head(stops[["stop_id"]], 30)
+#'   clusters <- identify_sites(stops, r2 = 50)
+#'   head(clusters[["site_id"]], 30)
 #' }
 #' @export
 #' @rdname identify_sites

@@ -16,3 +16,5 @@ infostop_*.tar.gz
 ^CONTRIBUTING.md$
 ^requirements.txt$
 ^data-raw$
+work
+vignettes

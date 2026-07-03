@@ -1,52 +1,80 @@
+
+
+get_stationary_events <- function(
+  lon,  # x
+  lat,  # y
+  time, # t
+  r1,
+  min_size,
+  min_staying_time,
+  max_time_between,
+  distance_metric = "euclidean"
+) {
+  vec_len <- length(lon)
+  checkmate::assert_numeric(lon, min.len = 3L, any.missing = FALSE)
+  checkmate::assert_numeric(lat, len = vec_len, any.missing = FALSE)
+  if (length(time) > 0) {
+    checkmate::assert_numeric(time, len = vec_len, any.missing = FALSE)
+  } else {
+    time <- numeric(0)
+  }
+  # Python Infostop r1 > 0
+  checkmate::assert_number(r1, lower = 0, finite = TRUE)
+  # Python Infostop min_size > 1
+  checkmate::assert_int(min_size, lower = 2)
+  # Python Infostop min_staying_time > 0
+  checkmate::assert_number(min_staying_time, lower = 0, finite = TRUE)
+  # Python Infostop max_time_between > 0
+  checkmate::assert_number(max_time_between, lower = 0, finite = TRUE)
+  distance_metric <- match.arg(distance_metric, c("haversine", "euclidean"))
+
+  if (distance_metric == "haversine") {
+    checkmate::assert_numeric(lon, lower = -180, upper = 180)
+    checkmate::assert_numeric(lat, lower = -90, upper = 90)
+  }
+
+  .get_stationary_events_cpp(
+    lon,
+    lat,
+    time,
+    r1,
+    as.integer(min_size),
+    min_staying_time,
+    max_time_between, # at C++ it is named max_staying_time
+    distance_metric
+  )
+}
+
+
 identify_stops_internal <- function(
   data,
   r1 = 10,
   min_size = 2L,
   min_staying_time = 300L,
   max_time_between = 86400L,
-  distance_metric = c("haversine", "euclidean")
+  distance_metric = c("haversine", "euclidean"),
+  stop_id_col = "stop_id"
 ) {
-  check_infostop_initialized()
-  checkmate::assert_numeric(
-    r1,
-    lower = 0,
-    len = 1,
-    finite = TRUE,
-    any.missing = FALSE
-  )
-  checkmate::assert_integerish(
-    min_staying_time,
-    lower = 0,
-    len = 1,
-    any.missing = FALSE
-  )
-  checkmate::assert_integerish(
-    max_time_between,
-    lower = 0,
-    len = 1,
-    any.missing = FALSE
-  )
-  checkmate::assert_integerish(
-    min_size,
-    lower = 0,
-    len = 1,
-    any.missing = FALSE
-  )
-
   distance_metric <- match.arg(distance_metric)
   min_size <- as.integer(min_size)
-
-  py_identify_stops <- rpy("identify_stops")
-  ret <- py_identify_stops(
-    data,
-    r1,
-    min_size,
-    min_staying_time,
-    max_time_between,
-    distance_metric
-  )
-  names(ret) <- c("stop_events", "event_map")
-  ret
+  data[[stop_id_col]] <- NA_integer_
+  ids <- if (is.null(id(data))) '' else id(data)
+  unique_ids <- unique(ids)
+  for (uid in unique_ids) {
+    idx <- which(uid == ids)
+    res <- get_stationary_events(
+      easting(data)[idx],
+      northing(data)[idx],
+      time(data)[idx],
+      r1 = r1,
+      min_size = min_size,
+      min_staying_time = min_staying_time,
+      max_time_between = max_time_between,
+      distance_metric = distance_metric
+    )
+    data[[stop_id_col]][idx] <- infostop:::refine_labels(res$event_map)
+  }
+  data
 }
 
 
@@ -92,23 +120,12 @@ identify_stops_xyt <- function(
   min_staying_time = 300L,
   max_time_between = 86400L
 ) {
-  check_infostop_initialized()
-
-  checkmate::assert_numeric(x, min.len = 3L, any.missing = FALSE)
-  checkmate::assert_numeric(y, len = length(x), any.missing = FALSE)
-  checkmate::assert_numeric(
-    t,
-    len = length(x),
-    any.missing = FALSE,
-    null.ok = TRUE
-  )
-  data <- cbind(x = x, y = y, t = t)
-  stops <- identify_stops_internal(
-    data = data,
+  stops <- get_stationary_events(
+    x, y, t,
     r1 = r1,
+    min_size = min_size,
     min_staying_time = min_staying_time,
     max_time_between = max_time_between,
-    min_size = min_size,
     distance_metric = "euclidean"
   )
   stops
@@ -125,8 +142,6 @@ identify_stops_longlatt <- function(
   min_staying_time = 300L,
   max_time_between = 86400L
 ) {
-  check_infostop_initialized()
-
   checkmate::assert_numeric(longitude, min.len = 3L, any.missing = FALSE)
   checkmate::assert_numeric(
     latitude,
@@ -141,9 +156,8 @@ identify_stops_longlatt <- function(
   )
   assert_lonlat(longitude, latitude)
   # infostop python program expects lat long, not long lat
-  data <- cbind(x = latitude, y = longitude, t = t)
-  stops <- identify_stops_internal(
-    data = data,
+  stops <- get_stationary_events(
+    longitude, latitude, t,
     r1 = r1,
     min_staying_time = min_staying_time,
     max_time_between = max_time_between,
@@ -171,6 +185,7 @@ identify_stops_longlatt <- function(
 #'   the stop identifiers. Default is "stop_id".
 #' @param ... other arguments passed to `as.trackframe()`
 #' @examples
+#' if (requireNamespace("trackframe", quietly = TRUE)) {
 #' library(trackframe)
 #' data("path_trackframe", package = "trackframe")
 #' stops <- identify_stops(data = path_trackframe)
@@ -179,6 +194,7 @@ identify_stops_longlatt <- function(
 #' data("path_data_frame", package = "trackframe")
 #' tf <- as.trackframe(path_data_frame, crs = NA)
 #' stops <- identify_stops(data = tf)
+#' }
 #'
 #' # with sftrack
 #' data("path_sftrack", package = "trackframe")
@@ -275,22 +291,14 @@ identify_stops.trackframe <- function(
   stop_id_col = "stop_id",
   ...
 ) {
-  stops <- identify_stops_internal(
-    data = split_mat_by_id(
-      cbind(
-        easting(data),
-        northing(data),
-        as.integer(time(data))
-      ),
-      id(data)
-    ),
+  identify_stops_internal(
+    data,
     r1 = r1,
     min_size = min_size,
     min_staying_time = min_staying_time,
     max_time_between = max_time_between,
     distance_metric = "euclidean"
   )
-  add_stop_ids(data, stops$event_map, stop_id_col = stop_id_col)
 }
 
 #' @importFrom trackframe id
@@ -326,6 +334,8 @@ identify_stops.sf <- function(
     coords <- st_coordinates_lat_lon(data)
 
     # put together
+    # FIXME: This is gona fail for now.
+    #        Need to have a more careful look how we can solve this nicely.
     stops <- identify_stops_internal(
       data = split_mat_by_id(
         as.matrix(data.frame(

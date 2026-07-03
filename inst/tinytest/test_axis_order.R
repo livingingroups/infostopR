@@ -2,7 +2,8 @@ library("tinytest")
 library("infostop")
 library("trackframe")
 
-infostop_initialize()
+has_move2 <- requireNamespace("move2", quietly = TRUE)
+has_sftrack <- requireNamespace("sftrack", quietly = TRUE)
 
 unique_non_na <- function(v) {
   length(unique(v[!is.na(v)]))
@@ -23,7 +24,7 @@ expect_n_labels <- function(is, n) {
 #
 # set up data
 #
-m <- .4
+m <- 0.4
 n <- 8
 lat <- 1 +
   c(
@@ -40,12 +41,17 @@ df <- data.frame(
   time = seq(1, length.out = length(lat), by = 301L)
 )
 
-# Correct lat long results in 3 stops
+# Correct lat / lon results in 3 stops
 expected_stops <- list(
   c(1, long),
   c(1 + m, long),
   c(1 + 2 * m, long)
 )
+
+matrix(
+  c(long, long, long, 1, 1 + m, 1 + 2 * m), ncol = 2
+)
+
 # Flipped lat long results in 1 stop
 stops_incorrect_axis_order <- list(
   c(long, 1 + m)

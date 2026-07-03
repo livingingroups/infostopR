@@ -1,7 +1,0 @@
-infostop==0.1.9
-infomap==1.0.6
-pybind11
-folium
-numpy
-tqdm
-scikit-learn

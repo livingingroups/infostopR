@@ -12,7 +12,7 @@
 #' @return A data frame with columns for label, start time, end time, and duration of each interval.
 #'
 #' @examples
-#' if (is_infostop_initialized()) {
+#' if (requireNamespace("trackframe", quietly = TRUE)) {
 #' data("path_trackframe", package = "trackframe")
 #' model <- infostop(path_trackframe, r1 = 10, r2 = 10)
 #' times <- as.integer(path_trackframe[["time"]])
@@ -20,8 +20,6 @@
 #' }
 #' @export
 compute_intervals <- function(labels, times, max_time_between = 86400) {
-  check_infostop_initialized()
-
   checkmate::assert_integerish(labels, any.missing = TRUE) #FIXME: are NAs ok?
   checkmate::assert_integerish(times, len = length(labels), any.missing = FALSE)
   checkmate::assert_numeric(
@@ -31,7 +29,7 @@ compute_intervals <- function(labels, times, max_time_between = 86400) {
     any.missing = FALSE
   )
 
-  result <- py_infostop$compute_intervals(
+  result <- native_compute_intervals(
     as.matrix(as.integer(labels)),
     as.matrix(as.integer(times)),
     max_time_between

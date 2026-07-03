@@ -12,8 +12,6 @@ infostop_internal <- function(
   weight_exponent = 1,
   verbose = FALSE
 ) {
-  check_infostop_initialized()
-
   if (is.list(data)) {
     for (i in seq_along(data)) {
       checkmate::assert_matrix(
@@ -221,7 +219,7 @@ infostop_internal <- function(
 #' @seealso \code{\link{infostop}}
 #'
 #' @examples
-#' if (is_infostop_initialized()) {
+#' if (requireNamespace("trackframe", quietly = TRUE)) {
 #'   data("path_matrix", package = "trackframe")
 #'     model <- infostop_xyt(
 #'     x = path_matrix[, "easting"],
@@ -246,8 +244,6 @@ infostop_xyt <- function(
   weight_exponent = 1,
   verbose = FALSE
 ) {
-  check_infostop_initialized()
-
   checkmate::assert_numeric(x, min.len = 3L, any.missing = FALSE)
   checkmate::assert_numeric(y, len = length(x), any.missing = FALSE)
   checkmate::assert_numeric(time, len = length(x), any.missing = FALSE)
@@ -286,8 +282,6 @@ infostop_lonlatt <- function(
   weight_exponent = 1,
   verbose = FALSE
 ) {
-  check_infostop_initialized()
-
   assert_lonlat(longitude, latitude)
   checkmate::assert_numeric(time, len = length(longitude), any.missing = FALSE)
 
@@ -385,9 +379,9 @@ infostop_lonlatt <- function(
 #'   }
 #'
 #' @examples
-#' library(trackframe)
 #' # with trackframe
-#' if (is_infostop_initialized()) {
+#' if (requireNamespace("trackframe", quietly = TRUE)) {
+#'   library(trackframe)
 #'   data("path_matrix", package = "trackframe")
 #'   tf <- as.trackframe(path_matrix, crs = NA)
 #'   infostop_tf <- infostop(tf)

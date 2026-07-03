@@ -23,7 +23,7 @@ This function computes time intervals for each unique label in the mobility data
 It identifies continuous periods when a user was at the same location (same label).
 }
 \examples{
-if (is_infostop_initialized()) {
+if (requireNamespace("trackframe", quietly = TRUE)) {
 data("path_trackframe", package = "trackframe")
 model <- infostop(path_trackframe, r1 = 10, r2 = 10)
 times <- as.integer(path_trackframe[["time"]])

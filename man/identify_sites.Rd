@@ -75,12 +75,12 @@ This function applies the SpatialInfomap algorithm to cluster a collection of po
 It directly returns the cluster labels rather than a model object.
 }
 \examples{
-if (is_infostop_initialized()) {
-dat <- infostop:::example_data_move2()
-stops <- identify_stops(dat, r1 = 100, min_staying_time = 300,
+if (requireNamespace("trackframe", quietly = TRUE)) {
+  data("path_trackframe", package = "trackframe")
+  stops <- identify_stops(path_trackframe, r1 = 100, min_staying_time = 300,
                         max_time_between = 86400, min_size = 2)
-head(stops[["stop_id"]], 30)
-clusters <- identify_sites(stops, r2 = 50)
-head(clusters[["site_id"]], 30)
+  head(stops[["stop_id"]], 30)
+  clusters <- identify_sites(stops, r2 = 50)
+  head(clusters[["site_id"]], 30)
 }
 }
