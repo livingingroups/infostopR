@@ -23,7 +23,7 @@ expect_n_labels <- function(is, n) {
 #
 # set up data
 #
-m <- .4
+m <- 0.4
 n <- 8
 lat <- 1 +
   c(
@@ -94,9 +94,8 @@ expect_n_stops(
 
 
 #
-# identify_stops_xyt
+# identify_stops_longlatt
 #
-
 stops_xyt <- identify_stops_longlatt(
   df[, "long"],
   df[, "lat"],

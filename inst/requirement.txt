@@ -1,2 +1,9 @@
-infostop
-numpy
+setuptools<81
+numpy>=1.26,<1.27
+pandas>=2.3,<2.4
+infostop==0.1.9
+infomap==1.0.6
+pybind11
+folium
+tqdm
+scikit-learn
