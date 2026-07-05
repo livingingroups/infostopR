@@ -114,14 +114,14 @@ identify_sites.trackframe <- function(
   ...
 ) {
   stops <- prep_stops(
-    easting(data),
-    northing(data),
-    id(data),
-    data[[stop_id_col]]
+    x = easting(data),
+    y = northing(data),
+    id = id(data),
+    stop_id = data[[stop_id_col]]
   )
   site_map <- identify_sites_internal(
-    stops$stop_events,
-    stops$event_maps,
+    stop_events = stops$stop_events,
+    event_maps = stops$event_maps,
     r2 = r2,
     label_singleton = label_singleton,
     min_spacial_resolution = min_spacial_resolution,
@@ -171,8 +171,8 @@ identify_sites.sf <- function(
       # infostop python program expects lat long, not long lat
       x = coords[, 1],
       y = coords[, 2],
-      if (is.null(id(tf))) '' else id(tf),
-      data[[stop_id_col]]
+      id = if (is.null(id(tf))) '' else id(tf),
+      stop_id = data[[stop_id_col]]
     )
     site_map <- identify_sites_internal(
       stops$stop_events,

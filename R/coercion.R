@@ -7,7 +7,7 @@ split_mat_by_id <- function(x, ids) {
   if (!is.null(ids) && length(unique(ids)) > 1) {
     lapply(
       unname(split(seq_len(NROW(x)), f = ids)),
-      function(i) unname(x[i, ])
+      function(i) unname(x[i, , drop = FALSE])
     )
   } else {
     x
@@ -42,7 +42,7 @@ prep_stops <- function(x, y, id, stop_id) {
     as.matrix(
       stop_events[idx, c("x", "y")]
     ),
-    stop_events[idx, ][["id"]]
+    stop_events[["id"]][idx]
   )
 
   # In the case of only one id

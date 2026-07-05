@@ -12,7 +12,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 
 // dist_haversine_double
 double dist_haversine_double(double lon1, double lat1, double lon2, double lat2, double radius);
-RcppExport SEXP _infostopR_dist_haversine_double(SEXP lon1SEXP, SEXP lat1SEXP, SEXP lon2SEXP, SEXP lat2SEXP, SEXP radiusSEXP) {
+RcppExport SEXP _infostop_dist_haversine_double(SEXP lon1SEXP, SEXP lat1SEXP, SEXP lon2SEXP, SEXP lat2SEXP, SEXP radiusSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -27,7 +27,7 @@ END_RCPP
 }
 // dist_haversine_cpp
 NumericVector dist_haversine_cpp(NumericVector lon1, NumericVector lat1, NumericVector lon2, NumericVector lat2, double radius);
-RcppExport SEXP _infostopR_dist_haversine_cpp(SEXP lon1SEXP, SEXP lat1SEXP, SEXP lon2SEXP, SEXP lat2SEXP, SEXP radiusSEXP) {
+RcppExport SEXP _infostop_dist_haversine_cpp(SEXP lon1SEXP, SEXP lat1SEXP, SEXP lon2SEXP, SEXP lat2SEXP, SEXP radiusSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -42,7 +42,7 @@ END_RCPP
 }
 // get_stationary_events
 Rcpp::List get_stationary_events(Rcpp::NumericVector lon, Rcpp::NumericVector lat, Rcpp::NumericVector time, double r_C, size_t min_size, double min_staying_time, double max_staying_time, std::string distance_metric);
-RcppExport SEXP _infostopR_get_stationary_events(SEXP lonSEXP, SEXP latSEXP, SEXP timeSEXP, SEXP r_CSEXP, SEXP min_sizeSEXP, SEXP min_staying_timeSEXP, SEXP max_staying_timeSEXP, SEXP distance_metricSEXP) {
+RcppExport SEXP _infostop_get_stationary_events(SEXP lonSEXP, SEXP latSEXP, SEXP timeSEXP, SEXP r_CSEXP, SEXP min_sizeSEXP, SEXP min_staying_timeSEXP, SEXP max_staying_timeSEXP, SEXP distance_metricSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -60,13 +60,13 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_infostopR_dist_haversine_double", (DL_FUNC) &_infostopR_dist_haversine_double, 5},
-    {"_infostopR_dist_haversine_cpp", (DL_FUNC) &_infostopR_dist_haversine_cpp, 5},
-    {"_infostopR_get_stationary_events", (DL_FUNC) &_infostopR_get_stationary_events, 8},
+    {"_infostop_dist_haversine_double", (DL_FUNC) &_infostop_dist_haversine_double, 5},
+    {"_infostop_dist_haversine_cpp", (DL_FUNC) &_infostop_dist_haversine_cpp, 5},
+    {"_infostop_get_stationary_events", (DL_FUNC) &_infostop_get_stationary_events, 8},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_infostopR(DllInfo *dll) {
+RcppExport void R_init_infostop(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

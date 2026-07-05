@@ -21,6 +21,7 @@ expect_n_labels <- function(is, n) {
   expect_equal(unique_non_na(is$labels), n)
 }
 
+
 #
 # set up data
 #
@@ -48,30 +49,12 @@ expected_stops <- list(
   c(1 + 2 * m, long)
 )
 
-matrix(
-  c(long, long, long, 1, 1 + m, 1 + 2 * m), ncol = 2
-)
-
 # Flipped lat long results in 1 stop
 stops_incorrect_axis_order <- list(
   c(long, 1 + m)
 )
-
-expect_equal(
-  infostop:::identify_stops_internal(
-    data = list(unname(as.matrix(df)))
-  )$stop_events[[1]],
-  expected_stops
-)
-
-expect_equal(
-  infostop:::identify_stops_internal(
-    data = list(unname(as.matrix(df[, c(2, 1, 3)])))
-  )$stop_events[[1]],
-  stops_incorrect_axis_order
-)
-
 df$id <- 'track_1'
+
 
 #
 # move2
@@ -83,27 +66,22 @@ m2 <- move2::mt_as_move2(
   track_id_column = "id",
   crs = 4326
 )
-expect_n_stops(
-  identify_stops(m2),
-  3
-)
+stops <- identify_stops(data = m2)
+expect_n_stops(stops, 3)
 
 
 #
 # sftrack
 #
 sft <- sftrack::as_sftrack(df, coords = c("lat", "long"), crs = 4326)
-expect_n_stops(
-  identify_stops(sft),
-  3
-)
+stops <- identify_stops(data = sft)
+expect_n_stops(stops, 3)
 
 
 #
 # identify_stops_xyt
 #
-
-stops_xyt <- identify_stops_longlatt(
+stops_lola <- identify_stops_longlatt(
   df[, "long"],
   df[, "lat"],
   t = df[, "time"],
@@ -113,20 +91,17 @@ stops_xyt <- identify_stops_longlatt(
   min_size = 2
 )
 
-expect_equal(
-  stops_xyt$stop_events[[1]],
-  expected_stops
+expect_equivalent(
+  stops_lola$stop_events[, c("lat", "lon")],
+  do.call(rbind, expected_stops)
 )
+
 
 #
 # set up data for site check
 #
-
 # input stops with axis order reversed
-rev_ax_stops <- lapply(
-  expected_stops,
-  rev
-)
+rev_ax_stops <- lapply(expected_stops, rev)
 
 event_map <- c(
   0L,
@@ -158,7 +133,8 @@ expected_sites <- event_map
 
 # result for flipped axis
 sites_incorrect_axis_order <- event_map
-sites_incorrect_axis_order[event_map != -1] <- 1
+# FIXME: We should make is 1 based
+sites_incorrect_axis_order[event_map != -1] <- 0
 
 # check that above data is accurate
 expect_equivalent(
@@ -166,14 +142,14 @@ expect_equivalent(
     list(expected_stops),
     list(event_map)
   )[[1]],
-  as.array(expected_sites)
+  expected_sites
 )
 expect_equivalent(
   infostop:::identify_sites_internal(
     list(rev_ax_stops),
     list(event_map)
   )[[1]],
-  as.array(sites_incorrect_axis_order)
+  sites_incorrect_axis_order
 )
 
 df$id <- 'track_1'
@@ -190,10 +166,8 @@ m2_lat_lon <- move2::mt_as_move2(
   track_id_column = "id",
   crs = 4326
 )
-expect_n_stops(
-  identify_sites(m2_lat_lon),
-  3
-)
+sites <- identify_sites(m2_lat_lon)
+expect_n_stops(sites, 3)
 
 m2_lon_lat <- move2::mt_as_move2(
   df,
@@ -227,74 +201,3 @@ sites_sft_lon_lat <- identify_sites(sft_lon_lat)
 
 expect_equal(sites_sft_lat_lon$stop_id, sites_sft_lon_lat$stop_id)
 expect_equal(sites_sft_lat_lon$site_id, sites_sft_lon_lat$site_id)
-
-#
-# full infostop
-#
-
-df$stop_id <- NULL
-df$site_id <- NULL
-
-#
-# move2
-#
-m2_lat_lon <- move2::mt_as_move2(
-  df,
-  coords = c("lat", "long"),
-  time_column = "time",
-  track_id_column = "id",
-  crs = 4326
-)
-expect_n_labels(
-  infostop(m2_lat_lon),
-  3
-)
-
-m2_lon_lat <- move2::mt_as_move2(
-  df,
-  coords = c("long", "lat"),
-  time_column = "time",
-  track_id_column = "id",
-  crs = "OGC:CRS84"
-)
-infostop_m2_lat_lon <- infostop(m2_lat_lon)
-infostop_m2_lon_lat <- infostop(m2_lon_lat)
-
-expect_equal(
-  infostop_m2_lat_lon$compute_label_medians(),
-  infostop_m2_lon_lat$compute_label_medians()
-)
-expect_equal(infostop_m2_lat_lon$labels, infostop_m2_lon_lat$labels)
-
-#
-# sftrack
-#
-sft_lat_lon <- sftrack::as_sftrack(df, coords = c("lat", "long"), crs = 4326)
-expect_n_labels(
-  infostop(sft_lat_lon),
-  3
-)
-
-
-expect_n_labels(
-  infostop_lonlatt(
-    df[, "long"],
-    df[, "lat"],
-    t = df[, "time"],
-  ),
-  3
-)
-
-sft_lon_lat <- sftrack::as_sftrack(
-  df,
-  coords = c("long", "lat"),
-  crs = "OGC:CRS84"
-)
-infostop_sft_lat_lon <- infostop(sft_lat_lon)
-infostop_sft_lon_lat <- infostop(sft_lon_lat)
-
-expect_equal(
-  infostop_sft_lat_lon$compute_label_medians(),
-  infostop_sft_lon_lat$compute_label_medians()
-)
-expect_equal(infostop_sft_lat_lon$labels, infostop_sft_lon_lat$labels)

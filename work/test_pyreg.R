@@ -1,11 +1,11 @@
 library("jsonlite")
 library("trackframe")
 library("infostop")
-library("infostopR")
+library("infostop")
 
 
 load_test_data <- function(name) {
-  folder <- system.file("test_data/data", package = "infostopR")
+  folder <- system.file("test_data/data", package = "infostop")
   if (missing(name)) {
     return(dir(folder))
   }
@@ -17,7 +17,7 @@ load_test_data <- function(name) {
 
 
 load_parameters <- function(name) {
-  folder <- system.file("test_data/reference", package = "infostopR")
+  folder <- system.file("test_data/reference", package = "infostop")
   if (missing(name)) {
     return(dir(folder, pattern = "*.json$"))
   }
@@ -30,7 +30,7 @@ load_parameters <- function(name) {
 
 load_reference <- function(name, type = c("stops", "sites")) {
   type <- match.arg(type)
-  folder <- system.file("test_data/reference", package = "infostopR")
+  folder <- system.file("test_data/reference", package = "infostop")
   if (missing(name)) {
     return(dir(folder, pattern = "*.csv$"))
   }
@@ -66,7 +66,7 @@ infostop::identify_stops_longlatt(
   d$lon, d$lat, d$time, r1 = 20, min_size = 10L, min_staying_time = 1
 )
 # returns x: lon, y: lat
-infostopR::identify_stops_longlatt(
+infostop::identify_stops_longlatt(
   d$lon, d$lat, d$time, r1 = 20, min_size = 10L, min_staying_time = 1
 )
 load_reference(name)
@@ -84,7 +84,7 @@ stops1 <- infostop::identify_stops_longlatt(
   d$lon, d$lat, d$time, r1 = 20, min_size = 10L, min_staying_time = 1
 )
 # returns x: lon, y: lat
-stops2 <- infostopR::identify_stops_longlatt(
+stops2 <- infostop::identify_stops_longlatt(
   d$lon, d$lat, d$time, r1 = 20, min_size = 10L, min_staying_time = 1
 )
 stops_ref <- load_reference(name)
@@ -102,7 +102,7 @@ stops1 <- infostop::identify_stops_longlatt(
   d$lon, d$lat, d$time, r1 = 100, min_size = 2L, min_staying_time = 1
 )
 # returns x: lon, y: lat
-stops2 <- infostopR::identify_stops_longlatt(
+stops2 <- infostop::identify_stops_longlatt(
   d$lon, d$lat, d$time, r1 = 100, min_size = 2L, min_staying_time = 1
 )
 stops_ref <- load_reference(name)
@@ -111,7 +111,7 @@ tinytest::expect_equivalent(stops2$stop_events, stops_ref$stop_events[, c(2, 1)]
 
 
 
-?infostopR::identify_stops_longlatt
+?infostop::identify_stops_longlatt
 
 
 name <- "easting-northing_01"
@@ -132,19 +132,19 @@ infostop::identify_stops(xy1)
 identify_stops_longlatt()
 
 infostop::identify_stops_xyt(xy1$x, xy1$y, xy1$t)
-infostopR::identify_stops_xyt(xy1$x, xy1$y, xy1$t)
+infostop::identify_stops_xyt(xy1$x, xy1$y, xy1$t)
 
 
 dat <- load_test_data("easting-northing_01")
 data <- as.trackframe(dat, crs = NA)
 stops1 <- infostop::identify_stops(data)
-stops2 <- infostopR::identify_stops(data)
+stops2 <- infostop::identify_stops(data)
 all(stops2 == stops1)
 
 
 sites_ref <- load_reference("easting-northing_01", "site")
 sites <- infostop::identify_sites(stops1)
-infostopR::identify_sites(stops1)
+infostop::identify_sites(stops1)
 tinytest::expect_equivalent(sites$site_id - 1L, sites_ref$event_map)
 
 
@@ -161,7 +161,7 @@ stops_list <- infostop:::prep_stops(
   stops1$stop_id
 )
 
-site_ids <- infostopR:::identify_sites_internal(stops_list$stop_events, stops_list$event_maps)
+site_ids <- infostop:::identify_sites_internal(stops_list$stop_events, stops_list$event_maps)
 all(sites$site_id == site_ids[[1]] + 1L)
 
 
@@ -173,7 +173,7 @@ stops <- infostop::identify_stops(data)
 
 
 sites1 <- infostop::identify_sites(stops)
-sites2 <- infostopR::identify_sites(stops)
+sites2 <- infostop::identify_sites(stops)
 
 head(sites1, 60)
 head(sites2, 60)

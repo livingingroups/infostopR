@@ -18,3 +18,4 @@ infostop_*.tar.gz
 ^data-raw$
 work
 vignettes
+R/visualize.R

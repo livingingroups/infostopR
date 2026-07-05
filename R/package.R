@@ -1,4 +1,4 @@
-#' @useDynLib infostopR, .registration = TRUE
+#' @useDynLib infostop, .registration = TRUE
 #' @importFrom Rcpp evalCpp
 #' @importFrom checkmate check_list check_character check_logical
 #' @importFrom checkmate assert assert_choice assert_numeric assert_character

@@ -47,34 +47,50 @@ get_stationary_events <- function(
 
 
 identify_stops_internal <- function(
-  data,
+  lon,  # x
+  lat,  # y
+  time, # t
+  ids = NULL,
   r1 = 10,
   min_size = 2L,
   min_staying_time = 300L,
   max_time_between = 86400L,
-  distance_metric = c("haversine", "euclidean"),
-  stop_id_col = "stop_id"
+  distance_metric = c("haversine", "euclidean")
 ) {
   distance_metric <- match.arg(distance_metric)
   min_size <- as.integer(min_size)
-  data[[stop_id_col]] <- NA_integer_
-  ids <- if (is.null(id(data))) '' else id(data)
-  unique_ids <- unique(ids)
-  for (uid in unique_ids) {
-    idx <- which(uid == ids)
+  stop_ids <- rep.int(NA_integer_, length(time))
+  if (is.null(ids)) {
     res <- get_stationary_events(
-      easting(data)[idx],
-      northing(data)[idx],
-      time(data)[idx],
+      lon,
+      lat,
+      time,
       r1 = r1,
       min_size = min_size,
       min_staying_time = min_staying_time,
       max_time_between = max_time_between,
       distance_metric = distance_metric
     )
-    data[[stop_id_col]][idx] <- infostop:::refine_labels(res$event_map)
+    stop_ids <- unname(refine_labels(res$event_map))
+  } else {
+    names(stop_ids) <- ids
+    unique_ids <- unique(ids)
+    for (uid in unique_ids) {
+      idx <- which(uid == ids)
+      res <- get_stationary_events(
+        lon[idx],
+        lat[idx],
+        time[idx],
+        r1 = r1,
+        min_size = min_size,
+        min_staying_time = min_staying_time,
+        max_time_between = max_time_between,
+        distance_metric = distance_metric
+      )
+      stop_ids[idx] <- refine_labels(res$event_map)
+    }
   }
-  data
+  stop_ids
 }
 
 
@@ -164,6 +180,7 @@ identify_stops_longlatt <- function(
     min_size = min_size,
     distance_metric = "haversine"
   )
+  colnames(stops[["stop_events"]]) <- c("lon", "lat")
   stops
 }
 
@@ -291,16 +308,25 @@ identify_stops.trackframe <- function(
   stop_id_col = "stop_id",
   ...
 ) {
-  identify_stops_internal(
-    data,
+  stop_ids <- identify_stops_internal(
+    easting(data),
+    northing(data),
+    time(data),
+    id(data),
     r1 = r1,
     min_size = min_size,
     min_staying_time = min_staying_time,
     max_time_between = max_time_between,
     distance_metric = "euclidean"
   )
+  data[[stop_id_col]] <- unname(stop_ids)
+  data
 }
 
+
+#
+#  Used for move2 and sftrack
+#
 #' @importFrom trackframe id
 #' @export
 #' @rdname identify_stops
@@ -336,23 +362,19 @@ identify_stops.sf <- function(
     # put together
     # FIXME: This is gona fail for now.
     #        Need to have a more careful look how we can solve this nicely.
-    stops <- identify_stops_internal(
-      data = split_mat_by_id(
-        as.matrix(data.frame(
-          # infostop python program expects lat long, not long lat
-          x = coords[, 1],
-          y = coords[, 2],
-          time = as.integer(time(tf))
-        )),
-        ids = if (is.null(id(tf))) '' else id(tf)
-      ),
+    stop_ids <- identify_stops_internal(
+      lon = coords[, 2],
+      lat = coords[, 1],
+      time = as.numeric(time(tf)),
+      ids = ids,
       r1 = r1,
       min_size = min_size,
       min_staying_time = min_staying_time,
       max_time_between = max_time_between,
       distance_metric = 'haversine'
     )
-    add_stop_ids(data, stops$event_map, stop_id_col = stop_id_col)
+    data[[stop_id_col]] <- unname(stop_ids)
+    data
   } else {
     identify_stops.trackframe(
       as.trackframe(data, ...),
