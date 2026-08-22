@@ -86,3 +86,7 @@ tasks:
   tinytest-infostop:
     cmds:
       - R -e "tinytest::run_test_file('inst/tinytest/test_infostop.R')"
+
+  test_infostop-py:
+    cmds:
+      - R -e "tinytest::run_test_file('inst/tinytest/test_infostop-py.R')"

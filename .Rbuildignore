@@ -19,3 +19,4 @@ infostop_*.tar.gz
 work
 vignettes
 R/visualize.R
+.venv

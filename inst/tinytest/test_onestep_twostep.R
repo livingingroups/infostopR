@@ -21,7 +21,7 @@ expected <- read_expected()
 # trackframe
 #
 stops_tf <- identify_stops(paths_trackframe)
-sites_tf <- identify_sites(stops_tf, r2 = 50)
+sites_tf <- identify_sites(stops_tf, r2 = 50, seed = 14L)
 expect_equal(min(stops_tf[["stop_id"]], na.rm = TRUE), 1)
 expect_equal(
   stops_tf[["stop_id"]],

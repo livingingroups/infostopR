@@ -1,8 +1,6 @@
-
-
 get_stationary_events <- function(
-  lon,  # x
-  lat,  # y
+  lon, # x
+  lat, # y
   time, # t
   r1,
   min_size,
@@ -47,8 +45,8 @@ get_stationary_events <- function(
 
 
 identify_stops_internal <- function(
-  lon,  # x
-  lat,  # y
+  lon, # x
+  lat, # y
   time, # t
   ids = NULL,
   r1 = 10,
@@ -137,7 +135,9 @@ identify_stops_xyt <- function(
   max_time_between = 86400L
 ) {
   stops <- get_stationary_events(
-    x, y, t,
+    x,
+    y,
+    t,
     r1 = r1,
     min_size = min_size,
     min_staying_time = min_staying_time,
@@ -173,7 +173,9 @@ identify_stops_longlatt <- function(
   assert_lonlat(longitude, latitude)
   # infostop python program expects lat long, not long lat
   stops <- get_stationary_events(
-    longitude, latitude, t,
+    longitude,
+    latitude,
+    t,
     r1 = r1,
     min_staying_time = min_staying_time,
     max_time_between = max_time_between,
@@ -341,42 +343,28 @@ identify_stops.sf <- function(
 ) {
   is_longlat <- sf::st_is_longlat(data)
   if (isTRUE(is_longlat)) {
-    # use trackframe package to identify id and time columns
-    # easting/northing columns of tf are not meaningful
-    data_no_crs <- data
-    sf::st_crs(data_no_crs) <- sf::st_crs(NA)
-    class_input <- class(data)
-    class(data_no_crs) <- class_input
-    tf <- as.trackframe(data_no_crs, sort = FALSE, ...)
-    ids <- if (is.null(id(tf))) '' else id(tf)
-
-    # reorder
-    idx <- order(ids, time(tf))
-    data <- data[idx, ]
-    class(data) <- class_input
-    tf <- tf[idx, ]
+    ids <- get_ids_sf(data)
+    time <- get_time_sf(data)
+    idx <- if (is.null(ids)) order(time) else order(ids, time)
 
     # use custom coords function to identify lat and long
-    coords <- st_coordinates_lat_lon(data)
-
-    # put together
-    # FIXME: This is gona fail for now.
-    #        Need to have a more careful look how we can solve this nicely.
+    coords <- trackframe:::st_coordinates_lat_lon(data)
     stop_ids <- identify_stops_internal(
-      lon = coords[, 2],
-      lat = coords[, 1],
-      time = as.numeric(time(tf)),
-      ids = ids,
+      lon = coords[idx, 2],
+      lat = coords[idx, 1],
+      time = as.numeric(time)[idx],
+      ids = if (is.null(ids)) ids else ids[idx],
       r1 = r1,
       min_size = min_size,
       min_staying_time = min_staying_time,
       max_time_between = max_time_between,
       distance_metric = 'haversine'
     )
-    data[[stop_id_col]] <- unname(stop_ids)
+    data[[stop_id_col]][order(idx)] <- unname(stop_ids)
     data
   } else {
     identify_stops.trackframe(
+      # NOTE: as.trackframe sort=TRUE by default.
       as.trackframe(data, ...),
       r1 = r1,
       min_size = min_size,

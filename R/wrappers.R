@@ -6,7 +6,8 @@ native_identify_sites_backend <- function(
   min_spacial_resolution = 0,
   distance_metric = c("haversine", "euclidean"),
   weighted = FALSE,
-  weight_exponent = 1
+  weight_exponent = 1,
+  seed = 123L
 ) {
   distance_metric <- match.arg(distance_metric)
   n_id <- length(event_maps)
@@ -38,7 +39,8 @@ native_identify_sites_backend <- function(
     weighted = weighted,
     weight_exponent = weight_exponent,
     label_singleton = label_singleton,
-    min_spacial_resolution = min_spacial_resolution
+    min_spacial_resolution = min_spacial_resolution,
+    seed = seed
   )
 
   ends <- cumsum(n_per_id)

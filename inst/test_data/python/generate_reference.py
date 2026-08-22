@@ -68,38 +68,34 @@ def load(path: Path) -> tuple[list[np.ndarray], list[np.ndarray], list[str]]:
 
 def identify_stops(
     tracks: list[np.ndarray],
-    indices: list[np.ndarray],
-    n_rows: int,
     p: Params,
     metric: str,
 ) -> tuple[np.ndarray, np.ndarray]:
-    stop_id = np.full(n_rows, -1, dtype=np.int64)
-    centroids: list = []
-    offset = 0
-    for coords_u, idx in zip(tracks, indices):
-        stop_events, event_map = cpputils.get_stationary_events(
+    stop_events = []
+    event_maps = []
+    col_names = ["x", "y"] if metric == "euclidean" else ["lat", "lon"]
+    for k, coords_u in enumerate(tracks):
+        stop_events_i, event_map_i = cpputils.get_stationary_events(
             coords_u, p.r1, int(p.min_size),
             float(p.min_staying_time), float(p.max_time_between), metric,
         )
-        event_map = np.asarray(event_map, dtype=np.int64)
-        n_ev = len(stop_events)
-        # event_map indexes into stop_events; values outside [0, n_ev) are the
-        # outlier sentinel and map back to -1.
-        keep = (event_map >= 0) & (event_map < n_ev)
-        stop_id[idx] = np.where(keep, event_map + offset, -1)
-        centroids.extend(stop_events)
-        offset += n_ev
-    stop_centers = np.asarray(centroids, dtype=float).reshape(-1, 2)
-    return stop_id, stop_centers
+        stop_events_i = pd.DataFrame(stop_events_i)
+        stop_events_i.columns = col_names
+        stop_events_i["id"] = f"track_{k + 1}"
+        stop_events.append(stop_events_i)
+        event_map_i = pd.DataFrame({"id": f"track_{k + 1}", "stop_id": event_map_i})
+        event_maps.append(event_map_i)
+    stop_events = pd.concat(stop_events)
+    event_maps = pd.concat(event_maps)
+    return (stop_events, event_maps)
 
 
 def identify_sites(
     tracks: list[np.ndarray],
-    indices: list[np.ndarray],
-    n_rows: int,
     p: Params,
     metric: str,
 ) -> tuple[np.ndarray, dict]:
+    col_names = ["x", "y"] if metric == "euclidean" else ["lat", "lon"]
     model = Infostop(
         r1=p.r1, r2=p.r2, label_singleton=p.label_singleton,
         min_staying_time=p.min_staying_time, max_time_between=p.max_time_between,
@@ -107,15 +103,17 @@ def identify_sites(
         distance_metric=metric, weighted=p.weighted,
         weight_exponent=p.weight_exponent, verbose=False,
     )
-    data = tracks if len(tracks) > 1 else tracks[0]
-    site_id = np.full(n_rows, -1, dtype=np.int64)
-    site_centers: dict = {}
-    result = model.fit_predict(data)
-    labels = result if isinstance(result, list) else [result]
-    for labels_u, idx in zip(labels, indices):
-        site_id[idx] = np.asarray(labels_u, dtype=np.int64)
-    site_centers = model.compute_label_medians()
-    return site_id, site_centers
+    pred = model.fit_predict(tracks)
+    site_ids = []
+    for k, labels in enumerate(pred):
+        df = pd.DataFrame({"id": f"track_{k + 1}", "site_id": labels.tolist()})
+        site_ids.append(df)
+    site_ids = pd.concat(site_ids)
+
+    site_centers = pd.DataFrame(model.compute_label_medians().values())
+    site_centers.columns = col_names
+
+    return site_ids, site_centers
 
 
 def run(
@@ -128,26 +126,18 @@ def run(
     p = PARAMS[key]
 
     tracks, indices, coord_cols = load(csv_file)
-    n_rows = sum(len(i) for i in indices)
-    c0, c1 = coord_cols
 
-    stop_id, event_cen = identify_stops(tracks, indices, n_rows, p, metric)
-    if event_cen.shape[0] == 0:
+    stop_centers, stop_ids = identify_stops(tracks, p, metric)
+    if stop_centers.shape[0] == 0:
         raise "No centers found!"
-    site_id, site_centers = identify_sites(tracks, indices, n_rows, p, metric)
+    site_ids, site_centers = identify_sites(tracks, p, metric)
 
     out = out_dir / stem
-    pd.DataFrame({"stop_id": stop_id}).to_csv(f"{out}_stops.csv", index=False)
-    pd.DataFrame({c0: event_cen[:, 0], c1: event_cen[:, 1]}).to_csv(f"{out}_stop_centers.csv", index=False)
-    pd.DataFrame({"site_id": site_id}).to_csv(f"{out}_sites.csv", index=False)
-    if site_centers:
-        loc = pd.DataFrame(
-            [{"site_id": int(k), c0: v[0], c1: v[1]}
-             for k, v in sorted(site_centers.items())]
-        )
-    else:
-        loc = pd.DataFrame(columns=["site_id", c0, c1])
-    loc.to_csv(f"{out}_site_centers.csv", index=False)
+    stop_ids.to_csv(f"{out}_stops.csv", index=False)
+    stop_centers.to_csv(f"{out}_stop_centers.csv", index=False)
+
+    site_ids.to_csv(f"{out}_sites.csv", index=False)
+    site_centers.to_csv(f"{out}_site_centers.csv", index=False)
 
     params = {**asdict(p), "distance_metric": metric}
     Path(f"{out}_params.json").write_text(json.dumps(params, indent=2) + "\n")

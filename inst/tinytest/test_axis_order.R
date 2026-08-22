@@ -59,6 +59,7 @@ df$id <- 'track_1'
 #
 # move2
 #
+if (has_move2) {
 m2 <- move2::mt_as_move2(
   df,
   coords = c("lat", "long"),
@@ -68,14 +69,17 @@ m2 <- move2::mt_as_move2(
 )
 stops <- identify_stops(data = m2)
 expect_n_stops(stops, 3)
+}
 
 
 #
 # sftrack
 #
+if (has_sftrack) {
 sft <- sftrack::as_sftrack(df, coords = c("lat", "long"), crs = 4326)
 stops <- identify_stops(data = sft)
 expect_n_stops(stops, 3)
+}
 
 
 #
@@ -129,12 +133,11 @@ event_map <- c(
 )
 
 # expected result
-expected_sites <- event_map
+expected_sites <- infostop:::refine_labels(event_map)
 
 # result for flipped axis
-sites_incorrect_axis_order <- event_map
-# FIXME: We should make is 1 based
-sites_incorrect_axis_order[event_map != -1] <- 0
+sites_incorrect_axis_order <- expected_sites
+sites_incorrect_axis_order[!is.na(sites_incorrect_axis_order)] <- 1L
 
 # check that above data is accurate
 expect_equivalent(
@@ -159,6 +162,7 @@ df$stop_id[event_map != -1] <- event_map[event_map != -1] + 1
 #
 # move2
 #
+if (has_move2) {
 m2_lat_lon <- move2::mt_as_move2(
   df,
   coords = c("lat", "long"),
@@ -181,10 +185,12 @@ sites_m2_lon_lat <- identify_sites(m2_lon_lat)
 
 expect_equal(sites_m2_lat_lon$stop_id, sites_m2_lon_lat$stop_id)
 expect_equal(sites_m2_lat_lon$site_id, sites_m2_lon_lat$site_id)
+}
 
 #
 # sftrack
 #
+if (has_sftrack) {
 sft_lat_lon <- sftrack::as_sftrack(df, coords = c("lat", "long"), crs = 4326)
 expect_n_stops(
   identify_sites(sft_lat_lon),
@@ -201,3 +207,4 @@ sites_sft_lon_lat <- identify_sites(sft_lon_lat)
 
 expect_equal(sites_sft_lat_lon$stop_id, sites_sft_lon_lat$stop_id)
 expect_equal(sites_sft_lat_lon$site_id, sites_sft_lon_lat$site_id)
+}

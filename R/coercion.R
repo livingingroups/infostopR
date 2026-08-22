@@ -23,18 +23,21 @@ convert_labels_to_python <- function(event_maps) {
 }
 
 prep_stops <- function(x, y, id, stop_id) {
-  checkmate::assert_false(is.null(id))
-  event_maps <- split(stop_id, id)
-  stop_events <- aggregate(
-    as.formula("cbind(x, y) ~ stop_id + id"),
-    data = data.frame(
-      x = x,
-      y = y,
-      id = id,
-      stop_id = stop_id
-    ),
-    FUN = median
-  )
+  if (is.null(id)) {
+    stop("in function 'prep_stops' id can not be NULL!")
+  } else {
+    event_maps <- split(stop_id, id)
+    stop_events <- aggregate(
+      as.formula("cbind(x, y) ~ stop_id + id"),
+      data = data.frame(
+        x = x,
+        y = y,
+        id = id,
+        stop_id = stop_id
+      ),
+      FUN = median
+    )
+  }
   uids <- names(event_maps)
 
   idx <- order(match(stop_events[["id"]], uids), stop_events[["stop_id"]])

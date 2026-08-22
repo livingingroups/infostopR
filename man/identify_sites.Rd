@@ -13,6 +13,7 @@ identify_sites(
   min_spacial_resolution = 0,
   weighted = FALSE,
   weight_exponent = 1,
+  seed = 123L,
   stop_id_col = "stop_id",
   site_id_col = "site_id",
   ...
@@ -25,6 +26,7 @@ identify_sites(
   min_spacial_resolution = 0,
   weighted = FALSE,
   weight_exponent = 1,
+  seed = 123L,
   stop_id_col = "stop_id",
   site_id_col = "site_id",
   ...
@@ -37,6 +39,7 @@ identify_sites(
   min_spacial_resolution = 0,
   weighted = FALSE,
   weight_exponent = 1,
+  seed = 123L,
   stop_id_col = "stop_id",
   site_id_col = "site_id",
   ...
@@ -57,6 +60,9 @@ they are considered the same points.}
 \item{weighted}{Logical. Weight edges in the network representation by distance.}
 
 \item{weight_exponent}{Numeric. Exponent used when weighting edges in the network.}
+
+\item{seed}{an integer passed as seed to \code{\link[infomap]{cluster_infomap}}
+(default is `123L`).}
 
 \item{stop_id_col}{A character string specifying the name of the column to be used for
 the stop identifiers. Default is "stop_id".}

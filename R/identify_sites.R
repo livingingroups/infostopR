@@ -6,7 +6,8 @@ identify_sites_internal <- function(
   min_spacial_resolution = 0,
   distance_metric = c("haversine", "euclidean"),
   weighted = FALSE,
-  weight_exponent = 1
+  weight_exponent = 1,
+  seed = 123L
 ) {
   checkmate::assert_numeric(r2, lower = 0, len = 1, any.missing = FALSE)
   checkmate::assert_logical(label_singleton, len = 1, any.missing = FALSE)
@@ -26,7 +27,7 @@ identify_sites_internal <- function(
 
   distance_metric <- match.arg(distance_metric)
 
-  ret <- native_identify_sites_backend(
+  site_map <- native_identify_sites_backend(
     stop_events,
     event_maps,
     r2 = r2,
@@ -34,9 +35,12 @@ identify_sites_internal <- function(
     min_spacial_resolution = min_spacial_resolution,
     distance_metric = distance_metric,
     weighted = weighted,
-    weight_exponent = weight_exponent
+    weight_exponent = weight_exponent,
+    seed = seed
   )
-  ret
+
+  all_labels <- refine_labels(unlist(site_map, use.names = FALSE))
+  split(all_labels, rep(seq_along(site_map), lengths(site_map)))
 }
 
 
@@ -54,6 +58,8 @@ identify_sites_internal <- function(
 #'   they are considered the same points.
 #' @param weighted Logical. Weight edges in the network representation by distance.
 #' @param weight_exponent Numeric. Exponent used when weighting edges in the network.
+#' @param seed an integer passed as seed to \code{\link[infomap]{cluster_infomap}}
+#'   (default is `123L`).
 #' @param stop_id_col A character string specifying the name of the column to be used for
 #'   the stop identifiers. Default is "stop_id".
 #' @param site_id_col A character string specifying the name of the column to be used for
@@ -81,6 +87,7 @@ identify_sites <- function(
   min_spacial_resolution = 0,
   weighted = FALSE,
   weight_exponent = 1,
+  seed = 123L,
   stop_id_col = "stop_id",
   site_id_col = "site_id",
   ...
@@ -92,9 +99,10 @@ identify_sites <- function(
 add_site_ids <- function(data, site_map, site_id_col = "site_id") {
   ids <- make_unique_id(data[[get_id_column(data)]])
   uids <- unique(ids)
+
   data[[site_id_col]] <- NA_integer_
   for (i in seq_along(site_map)) {
-    data[[site_id_col]][ids %in% uids[i]] <- refine_labels(site_map[[i]])
+    data[[site_id_col]][ids %in% uids[i]] <- site_map[[i]]
   }
   data
 }
@@ -109,6 +117,7 @@ identify_sites.trackframe <- function(
   min_spacial_resolution = 0,
   weighted = FALSE,
   weight_exponent = 1,
+  seed = 123L,
   stop_id_col = "stop_id",
   site_id_col = "site_id",
   ...
@@ -127,7 +136,8 @@ identify_sites.trackframe <- function(
     min_spacial_resolution = min_spacial_resolution,
     distance_metric = "euclidean",
     weighted = weighted,
-    weight_exponent = weight_exponent
+    weight_exponent = weight_exponent,
+    seed = seed
   )
   add_site_ids(data, site_map = site_map, site_id_col = site_id_col)
 }
@@ -144,35 +154,27 @@ identify_sites.sf <- function(
   min_spacial_resolution = 0,
   weighted = FALSE,
   weight_exponent = 1,
+  seed = 123L,
   stop_id_col = "stop_id",
   site_id_col = "site_id",
   ...
 ) {
   is_longlat <- sf::st_is_longlat(data)
   if (isTRUE(is_longlat)) {
-    # use trackframe package to identify id and time columns
-    # easting/northing columns of tf are not meaningful
-    data_no_crs <- data
-    sf::st_crs(data_no_crs) <- sf::st_crs(NA)
-    class(data_no_crs) <- class(data)
-    tf <- as.trackframe(data_no_crs, sort = FALSE, ...)
-    ids <- if (is.null(id(tf))) '' else id(tf)
-
-    # reorder
-    idx <- order(ids, time(tf))
-    data <- data[idx, ]
-    tf <- tf[idx, ]
+    ids <- get_ids_sf(data)
+    time <- get_time_sf(data)
+    idx <- if (is.null(ids)) order(time) else order(ids, time)
 
     # use custom coords function to identify lat and long
-    coords <- st_coordinates_lat_lon(data)
+    coords <- trackframe:::st_coordinates_lat_lon(data)
 
     # put together
     stops <- prep_stops(
       # infostop python program expects lat long, not long lat
-      x = coords[, 1],
-      y = coords[, 2],
-      id = if (is.null(id(tf))) '' else id(tf),
-      stop_id = data[[stop_id_col]]
+      x = coords[idx, 1],
+      y = coords[idx, 2],
+      id = ids[idx],
+      stop_id = data[[stop_id_col]][idx]
     )
     site_map <- identify_sites_internal(
       stops$stop_events,
@@ -182,7 +184,8 @@ identify_sites.sf <- function(
       min_spacial_resolution = min_spacial_resolution,
       distance_metric = "haversine",
       weighted = weighted,
-      weight_exponent = weight_exponent
+      weight_exponent = weight_exponent,
+      seed = seed
     )
     add_site_ids(data, site_map = site_map, site_id_col = site_id_col)
   } else {
@@ -193,6 +196,7 @@ identify_sites.sf <- function(
       min_spacial_resolution = min_spacial_resolution,
       weighted = weighted,
       weight_exponent = weight_exponent,
+      seed = seed,
       stop_id_col = stop_id_col,
       site_id_col = site_id_col
     )

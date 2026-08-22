@@ -260,8 +260,8 @@ build_infomap_edges <- function(neighbors, distances, counts, weight_exponent = 
 # or marked as `-1` (`label_singleton = FALSE`).
 #
 # Uses the mapequation `infomap` R package. For Python-reference
-# compatibility, the network is passed through Infomap's link-list parser
-# with compact 0-based node ids, a fixed seed, and stable weight formatting.
+# compatibility, the network is passed with compact 0-based node ids and an
+# explicit seed.
 #
 # @param neighbors,distances list output from [query_neighbors_r2()].
 #   Pass `distances = NULL` for unweighted edges.
@@ -270,6 +270,9 @@ build_infomap_edges <- function(neighbors, distances, counts, weight_exponent = 
 # @param label_singleton logical; see description.
 # @param nb_trials Infomap `--num-trials` value. The default `1` matches
 #   the Python reference.
+# @param seed Infomap random seed. The bundled Python-reference fixtures were
+#   generated with infomap-py 1.0.6; with the current R binding, seed 1 matches
+#   the haversine fixture and seed 29 matches the euclidean fixture.
 #
 # @return Integer vector of labels of length `length(neighbors)`.
 infomap_communities_r <- function(
@@ -278,7 +281,8 @@ infomap_communities_r <- function(
   counts,
   weight_exponent = 1,
   label_singleton = TRUE,
-  nb_trials = 1L
+  nb_trials = 1L,
+  seed = 1L
 ) {
   built <- build_infomap_edges(neighbors, distances, counts, weight_exponent = weight_exponent)
   edges <- built$edges
@@ -297,7 +301,9 @@ infomap_communities_r <- function(
     )
 
     control <- infomap::infomap_options(
-      two_level = TRUE, silent = TRUE, seed = 14L, num_trials = as.integer(nb_trials)
+      two_level = TRUE, silent = TRUE,
+      seed = as.integer(seed),
+      num_trials = as.integer(nb_trials)
     )
     im <- infomap::cluster_infomap(compact_edges, opts = control)
 
@@ -313,14 +319,6 @@ infomap_communities_r <- function(
     labels[singletons] <- seq.int(from = next_label, length.out = length(singletons))
   }
 
-  # Infomap numbers modules from 1, shift the non-noise ids down so they are
-  # 0-based, matching the Python reference convention that the copied upstream
-  # layer (refine_labels, add_labels) assumes. Without this the +1 those helpers
-  # apply double-shifts native ids, making public labels/site_ids start at 2.
-  nz <- labels != -1L
-  if (any(nz)) {
-    labels[nz] <- labels[nz] - min(labels[nz])
-  }
   labels
 }
 
@@ -380,7 +378,8 @@ cluster_centroids <- function(
   weighted = FALSE,
   weight_exponent = 1,
   label_singleton = TRUE,
-  min_spacial_resolution = 0
+  min_spacial_resolution = 0,
+  seed = 123L
 ) {
   distance_metric <- match.arg(distance_metric)
   d <- dedup_stat_coords(coords, min_spacial_resolution, distance_metric = distance_metric)
@@ -390,7 +389,8 @@ cluster_centroids <- function(
     distances = nb$distances,
     counts = d$counts,
     weight_exponent = weight_exponent,
-    label_singleton = label_singleton
+    label_singleton = label_singleton,
+    seed = seed
   )
   labels_unique[d$inverse]
 }
