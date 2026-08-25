@@ -58,7 +58,7 @@ data_set_02 <- function() {
 
 data_set_03 <- function() {
   data("paths_data_frame", package = "trackframe")
-  d <- paths_data_frame[, c("northing", "easting", "time", "id")]
+  d <- trackframe::paths_data_frame[, c("northing", "easting", "time", "id")]
   colnames(d)[1:2] <- c("lat", "lon")
   d
 }
@@ -73,7 +73,7 @@ write_csv <- function(x, file) {
 }
 
 
-# Latitude / Longitude
+# Latitude / Longitude                              # nolint: commented_code_linter
 write_csv(data_set_01(), file = file.path(data_dir, "lon-lat_01.csv"))
 write_csv(data_set_02(), file = file.path(data_dir, "lon-lat_02.csv"))
 write_csv(data_set_03(), file = file.path(data_dir, "lon-lat_03.csv"))
@@ -85,7 +85,7 @@ to_xy <- function(x) {
   data.frame(x = coords[, 1], y = coords[, 2], time = xy$time, id = xy$id)
 }
 
-# X / Y (Easting / Northing)
+# X / Y (Easting / Northing)                        # nolint: commented_code_linter
 write_csv(to_xy(data_set_01()), file = file.path(data_dir, "easting-northing_01.csv"))
 write_csv(to_xy(data_set_02()), file = file.path(data_dir, "easting-northing_02.csv"))
 write_csv(to_xy(data_set_03()), file = file.path(data_dir, "easting-northing_03.csv"))

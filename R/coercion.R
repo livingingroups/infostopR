@@ -28,8 +28,8 @@ prep_stops <- function(x, y, id, stop_id) {
   } else {
     event_maps <- split(stop_id, id)
     stop_events <- aggregate_stop_centers(
-        x = x,
-        y = y,
+      x = x,
+      y = y,
       ids = id,
       stop_ids = stop_id,
       coord_cols = c("x", "y")

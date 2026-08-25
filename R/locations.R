@@ -1,5 +1,5 @@
 # Earth radius used by the Python reference.
-.EARTH_RADIUS_M <- 6371000
+.earth_radius_m <- 6371000
 
 
 # Collapse duplicate event centroids
@@ -29,10 +29,7 @@ dedup_stat_coords <- function(
   distance_metric = c("haversine", "euclidean")
 ) {
   distance_metric <- match.arg(distance_metric)
-  checkmate::assert_matrix(stat_coords,
-    mode = "numeric", min.rows = 0L,
-    ncols = 2L
-  )
+  checkmate::assert_matrix(stat_coords, mode = "numeric", min.rows = 0L, ncols = 2L)
   checkmate::assert_number(min_spacial_resolution, lower = 0)
 
   if (min_spacial_resolution > 0) {
@@ -54,10 +51,13 @@ dedup_stat_coords <- function(
   uniq <- matrix(uniq, ncol = ncol(stat_coords))
 
   sort_cols <- if (distance_metric == "haversine") c(2L, 1L) else c(1L, 2L)
-  sort_idx <- do.call(order, list(
-    uniq[, sort_cols[1L]],
-    uniq[, sort_cols[2L]]
-  ))
+  sort_idx <- do.call(
+    order,
+    list(
+      uniq[, sort_cols[1L]],
+      uniq[, sort_cols[2L]]
+    )
+  )
   inverse <- match(inverse, sort_idx)
   uniq <- uniq[sort_idx, , drop = FALSE]
   counts <- tabulate(inverse, nbins = nrow(uniq))
@@ -109,7 +109,7 @@ query_neighbors_r2 <- function(
         rep_len(lat[i], n),
         lon,
         lat,
-        radius = .EARTH_RADIUS_M
+        radius = .earth_radius_m
       )
     } else {
       d <- sqrt((lon - lon[i])^2 + (lat - lat[i])^2)
@@ -200,9 +200,9 @@ build_infomap_edges <- function(neighbors, distances, counts, weight_exponent = 
     k <- k + m
   }
 
-    from <- from[seq_len(k)]
-    to <- to[seq_len(k)]
-    weight <- weight[seq_len(k)]
+  from <- from[seq_len(k)]
+  to <- to[seq_len(k)]
+  weight <- weight[seq_len(k)]
 
   list(
     edges = data.frame(from = from, to = to, weight = weight),
@@ -258,7 +258,8 @@ infomap_communities_r <- function(
     )
 
     control <- infomap::infomap_options(
-      two_level = TRUE, silent = TRUE,
+      two_level = TRUE,
+      silent = TRUE,
       seed = as.integer(seed),
       num_trials = as.integer(nb_trials)
     )

@@ -60,15 +60,15 @@ df$id <- 'track_1'
 # move2
 #
 if (has_move2) {
-m2 <- move2::mt_as_move2(
-  df,
-  coords = c("lat", "long"),
-  time_column = "time",
-  track_id_column = "id",
-  crs = 4326
-)
-stops <- identify_stops(data = m2)
-expect_n_stops(stops, 3)
+  m2 <- move2::mt_as_move2(
+    df,
+    coords = c("lat", "long"),
+    time_column = "time",
+    track_id_column = "id",
+    crs = 4326
+  )
+  stops <- identify_stops(data = m2)
+  expect_n_stops(stops, 3)
 }
 
 
@@ -76,9 +76,9 @@ expect_n_stops(stops, 3)
 # sftrack
 #
 if (has_sftrack) {
-sft <- sftrack::as_sftrack(df, coords = c("lat", "long"), crs = 4326)
-stops <- identify_stops(data = sft)
-expect_n_stops(stops, 3)
+  sft <- sftrack::as_sftrack(df, coords = c("lat", "long"), crs = 4326)
+  stops <- identify_stops(data = sft)
+  expect_n_stops(stops, 3)
 }
 
 
@@ -163,48 +163,48 @@ df$stop_id[event_map != -1] <- event_map[event_map != -1] + 1
 # move2
 #
 if (has_move2) {
-m2_lat_lon <- move2::mt_as_move2(
-  df,
-  coords = c("lat", "long"),
-  time_column = "time",
-  track_id_column = "id",
-  crs = 4326
-)
-sites <- identify_sites(m2_lat_lon)
-expect_n_stops(sites, 3)
+  m2_lat_lon <- move2::mt_as_move2(
+    df,
+    coords = c("lat", "long"),
+    time_column = "time",
+    track_id_column = "id",
+    crs = 4326
+  )
+  sites <- identify_sites(m2_lat_lon)
+  expect_n_stops(sites, 3)
 
-m2_lon_lat <- move2::mt_as_move2(
-  df,
-  coords = c("long", "lat"),
-  time_column = "time",
-  track_id_column = "id",
-  crs = "OGC:CRS84"
-)
-sites_m2_lat_lon <- identify_sites(m2_lat_lon)
-sites_m2_lon_lat <- identify_sites(m2_lon_lat)
+  m2_lon_lat <- move2::mt_as_move2(
+    df,
+    coords = c("long", "lat"),
+    time_column = "time",
+    track_id_column = "id",
+    crs = "OGC:CRS84"
+  )
+  sites_m2_lat_lon <- identify_sites(m2_lat_lon)
+  sites_m2_lon_lat <- identify_sites(m2_lon_lat)
 
-expect_equal(sites_m2_lat_lon$stop_id, sites_m2_lon_lat$stop_id)
-expect_equal(sites_m2_lat_lon$site_id, sites_m2_lon_lat$site_id)
+  expect_equal(sites_m2_lat_lon$stop_id, sites_m2_lon_lat$stop_id)
+  expect_equal(sites_m2_lat_lon$site_id, sites_m2_lon_lat$site_id)
 }
 
 #
 # sftrack
 #
 if (has_sftrack) {
-sft_lat_lon <- sftrack::as_sftrack(df, coords = c("lat", "long"), crs = 4326)
-expect_n_stops(
-  identify_sites(sft_lat_lon),
-  3
-)
+  sft_lat_lon <- sftrack::as_sftrack(df, coords = c("lat", "long"), crs = 4326)
+  expect_n_stops(
+    identify_sites(sft_lat_lon),
+    3
+  )
 
-sft_lon_lat <- sftrack::as_sftrack(
-  df,
-  coords = c("long", "lat"),
-  crs = "OGC:CRS84"
-)
-sites_sft_lat_lon <- identify_sites(sft_lat_lon)
-sites_sft_lon_lat <- identify_sites(sft_lon_lat)
+  sft_lon_lat <- sftrack::as_sftrack(
+    df,
+    coords = c("long", "lat"),
+    crs = "OGC:CRS84"
+  )
+  sites_sft_lat_lon <- identify_sites(sft_lat_lon)
+  sites_sft_lon_lat <- identify_sites(sft_lon_lat)
 
-expect_equal(sites_sft_lat_lon$stop_id, sites_sft_lon_lat$stop_id)
-expect_equal(sites_sft_lat_lon$site_id, sites_sft_lon_lat$site_id)
+  expect_equal(sites_sft_lat_lon$stop_id, sites_sft_lon_lat$stop_id)
+  expect_equal(sites_sft_lat_lon$site_id, sites_sft_lon_lat$site_id)
 }

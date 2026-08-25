@@ -42,7 +42,7 @@ compute_intervals <- function(labels, times, max_time_between = 86400) {
   if (n == 1L) {
     starts <- 1L
     ends <- 1L
-      } else {
+  } else {
     same_label <- ifelse(
       is.na(labels[-1L]) | is.na(labels[-n]),
       is.na(labels[-1L]) & is.na(labels[-n]),

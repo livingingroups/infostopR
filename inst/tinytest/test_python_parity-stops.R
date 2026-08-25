@@ -12,6 +12,14 @@ is_move2_avail <- require("move2", quietly = TRUE)
 is_sftrack_avail <- require("sftrack", quietly = TRUE)
 
 
+# nolint start: object_usage_linter
+arg_names <- arg_names
+load_parameters <- load_parameters
+load_test_data <- load_test_data
+load_reference <- load_reference
+# nolint end
+
+
 #
 # Test identify_stops_longlatt
 #
@@ -30,7 +38,6 @@ test__identify_stops_longlatt(name = "lon-lat_01")
 test__identify_stops_longlatt(name = "lon-lat_02")
 # "lon-lat_03" does not work since identify_stops_longlatt is single track
 
-
 #
 # Test identify_stops_xyt
 #
@@ -48,7 +55,6 @@ test__identify_stops_xyt <- function(name) {
 test__identify_stops_xyt(name = "easting-northing_01")
 test__identify_stops_xyt(name = "easting-northing_02")
 # "lon-lat_03" does not work since identify_stops_xyt is single track
-
 
 #
 # Test identify stops

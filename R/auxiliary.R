@@ -1,5 +1,7 @@
 refine_labels <- function(labels) {
-  if (length(labels) == 0) return(labels)
+  if (length(labels) == 0) {
+    return(labels)
+  }
   labels <- as.integer(labels)
   labels[which(labels == -1L)] <- NA_integer_
 

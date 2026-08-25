@@ -12,6 +12,14 @@ is_move2_avail <- require("move2", quietly = TRUE)
 is_sftrack_avail <- require("sftrack", quietly = TRUE)
 
 
+# nolint start: object_usage_linter
+arg_names <- arg_names
+load_parameters <- load_parameters
+load_test_data <- load_test_data
+load_reference <- load_reference
+# nolint end
+
+
 #
 # Test identify sites
 #

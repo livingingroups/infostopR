@@ -1,5 +1,3 @@
-
-
 arg_names <- function(fun) {
   x <- names(as.list(args(fun)))
   x[nchar(x) > 0]

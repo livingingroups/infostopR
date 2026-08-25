@@ -10,135 +10,90 @@ editor_options:
   chunk_output_type: console
 ---
 
-# Infostop Vignette
+# Infostop
 
-This vignette demonstrates how to use `infostop`.
+This vignette demonstrates the two-stage Infostop workflow in R. The first
+stage identifies stationary events (`identify_stops()`), and the second stage
+groups nearby events into recurring sites (`identify_sites()`).
 
-# Load package and initialize infostop
+## Setup
 
 ```{r setup}
 library("trackframe")
 library("infostop")
 
-infostop_initialize()
+data("path_trackframe", package = "trackframe")
+head(path_trackframe)
 ```
 
 
-## sftrack
+## Identify stops and sites
 
-### Onestep approach
+```{r identify}
+stops <- identify_stops(path_trackframe)
+sites <- identify_sites(stops)
 
-```{r sftrack-onestep}
-data("path_sftrack", package = "trackframe")
-head(path_sftrack)
-class(path_sftrack)
-
-infostop <- infostop(data = path_sftrack)
-
-head(infostop$labels, n = 20)
-head(infostop$compute_label_medians())
+head(stops$stop_id)
+head(sites$site_id)
 ```
 
-### Twostep approach
+`NA` labels represent points that are not assigned to a stop or site.
 
-```{r sftrack-twostep}
-data("path_sftrack", package = "trackframe")
+The main parameters can be changed independently for the two stages:
 
-dat <- identify_stops(data = path_sftrack)
-dat <- identify_sites(dat)
+```{r parameters}
+stops <- identify_stops(
+  path_trackframe,
+  r1 = 10,
+  min_size = 2L,
+  min_staying_time = 300
+)
 
-# compare with onestep approach
-infostop_sftrack <- infostop(data = path_sftrack)
-all.equal(dat[["site_id"]], infostop_sftrack$labels)
-```
-
-## move2
-
-```{r move2-example}
-data("path_move2", package = "trackframe")
-head(path_move2)
-class(path_move2)
-
-infostop <- infostop(data = path_move2)
-
-head(infostop$labels, n = 20)
-head(infostop$compute_label_medians())
-```
-
-
-## `matrix` or `data.frame`
-
-When applying infostop to `matrix` or `data.frame` objects, one has two options:
-
-- Coerce to an object of class `trackframe` by applying `as.trackframe()`
-- specify `x`, `y` and `t` column explicitly in `infostop_xyt()`
-
-### Coerce to `trackframe`
-
-As objects of class `trackframe` always have easting/northing coordinates, `distance_metric` needs to be `"euclidean"`.
-
-```{r dataframe-to-trackframe}
-data("path_data_frame", package = "trackframe")
-head(path_data_frame)
-class(path_data_frame)
-projected_crs <- "EPSG:32632"
-path_tf <- as.trackframe(path_data_frame, crs = projected_crs)
-class(path_tf)
-head(path_tf)
-attr(path_tf, "easting")
-attr(path_tf, "northing")
-# need to use euclidean distance as coordinates were transformed to easting/northing
-infostop_df <- infostop(data = path_tf)
-```
-
-
-### `infostop_xyt()`
-
-
-```{r infostop-xyt-matrix}
-data("path_matrix", package = "trackframe")
-head(path_matrix)
-class(path_matrix)
-infostop_xyt <- infostop_xyt(x = path_matrix[, "easting"],
-  y = path_matrix[, "northing"],
-  t = path_matrix[, "time"]
+sites <- identify_sites(
+  stops,
+  r2 = 10,
+  label_singleton = TRUE,
+  weighted = FALSE
 )
 ```
 
+## Centers
 
-## Run `infostop` with objects of class `trackframe`
+Stop centers are median coordinates of the points belonging to each stop.
+Site centers are computed from the stop centers belonging to each site.
 
-As objects of class `trackframe` always have easting/northing coordinates, `distance_metric` needs to be `"euclidean"`.
-
-```{r trackframe-example}
-data("path_trackframe", package = "trackframe")
-head(path_trackframe)
-
-infostop <- infostop(data = path_trackframe)
+```{r centers}
+stop_centers(stops)
+site_centers(sites)
 ```
 
-To obtain the labels of the stop locations,
-```{r labels-output}
-head(infostop$labels, n = 20)
+## Intervals
+
+`compute_intervals()` summarizes consecutive periods with the same site label.
+The time column is converted to integer seconds for this example.
+
+```{r intervals}
+intervals <- compute_intervals(
+  labels = sites$site_id,
+  times = as.integer(sites[["time"]]),
+  max_time_between = 86400
+)
+
+head(intervals)
 ```
-can be used.
-For each stop location (identified by a label), we can compute the median coordinates using
-the `compute_label_medians()` method:
-```{r medians-output}
-head(infostop$compute_label_medians())
-```
 
+## Multiple tracks
 
-### multiple IDs
+The same workflow can process multiple track IDs. Each track is clustered
+independently and the resulting labels are returned in the original track
+order.
 
-```{r multiple-ids}
+```{r multiple-tracks}
 data("paths_trackframe", package = "trackframe")
-head(paths_trackframe)
-unique(paths_trackframe$id)
 
-infostop <- infostop(data = paths_trackframe)
-length(infostop$labels)
+stops_multiple <- identify_stops(paths_trackframe)
+sites_multiple <- identify_sites(stops_multiple)
 
-tf1 <- split_by_id(paths_trackframe)[[1]]
-infostop_mtf1 <- infostop(data = tf1)
+length(sites_multiple$site_id)
+head(sites_multiple$site_id)
 ```
