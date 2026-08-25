@@ -2,4 +2,4 @@
 
 ### All vignettes
 
-- [Infostop](infostop.md):
+- [Infostop](https://livingingroups.github.io/infostop/articles/infostop.md):

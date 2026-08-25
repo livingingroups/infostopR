@@ -4,9 +4,9 @@
 
 This vignette demonstrates the two-stage Infostop workflow in R. The
 first stage identifies stationary events
-([`identify_stops()`](../reference/identify_stops.md)), and the second
-stage groups nearby events into recurring sites
-([`identify_sites()`](../reference/identify_sites.md)).
+([`identify_stops()`](https://livingingroups.github.io/infostop/reference/identify_stops.md)),
+and the second stage groups nearby events into recurring sites
+([`identify_sites()`](https://livingingroups.github.io/infostop/reference/identify_sites.md)).
 
 ### Setup
 
@@ -98,9 +98,9 @@ site_centers(sites)
 
 ### Intervals
 
-[`compute_intervals()`](../reference/compute_intervals.md) summarizes
-consecutive periods with the same site label. The time column is
-converted to integer seconds for this example.
+[`compute_intervals()`](https://livingingroups.github.io/infostop/reference/compute_intervals.md)
+summarizes consecutive periods with the same site label. The time column
+is converted to integer seconds for this example.
 
 ``` r
 
