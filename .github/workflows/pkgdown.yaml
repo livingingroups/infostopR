@@ -3,7 +3,7 @@
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, cpp]
   pull_request:
   release:
     types: [published]

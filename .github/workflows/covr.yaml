@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - infra 
+      - cpp
   pull_request:
 
 # multiple workflows might try to write to covr2gh-storage at the same time
