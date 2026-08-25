@@ -1,15 +1,3 @@
-# x <- c(0, 2, 10, 12, 100)
-# y <- c(0, 2, 10, 12, 100)
-# ids <- c("a", "a", "a", "a", "a")
-# stop_ids <- c(1, 1, 2, 2, NA)
-#
-# aggregate_stop_centers(
-#   x = x,
-#   y = y,
-#   ids = ids,
-#   stop_ids = stop_ids,
-#   coord_cols = c("x", "y")
-# )
 aggregate_stop_centers <- function(x, y, ids, stop_ids, coord_cols, stop_id_col = "stop_id") {
   df <- data.frame(
     id = if (is.null(ids)) "" else make_unique_id(ids),

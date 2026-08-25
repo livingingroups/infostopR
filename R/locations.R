@@ -18,11 +18,6 @@
 #     index in `unique` for each input row.
 #   * `counts`: integer vector of length `nrow(unique)`.
 #
-# @examples
-# unique_coords <- matrix(round(rnorm(20, 50, 20), 2), nrow = 10, ncol = 2)
-# stat_coords <- unique_coords[sample.int(10, 30, TRUE), ]
-# colnames(stat_coords) <- c("x", "y")
-# dedup_stat_coords(stat_coords, distance_metric = "euclidean")
 dedup_stat_coords <- function(
   stat_coords,
   min_spacial_resolution = 0,
