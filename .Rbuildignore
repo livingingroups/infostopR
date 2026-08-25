@@ -14,8 +14,7 @@ infostop_*.tar.gz
 ^doc$
 ^Meta$
 ^CONTRIBUTING.md$
-^requirements.txt$
-^data-raw$
+^inst/test_data/R$
 work
 vignettes
 R/visualize.R
