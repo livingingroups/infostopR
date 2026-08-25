@@ -31,7 +31,7 @@ Description: Detects stationary events (stops) and recurrent stop locations in
 License: GPL-3
 Encoding: UTF-8
 Depends: R (>= 4.4.0), sf
-Imports: Rcpp (>= 1.1.0), checkmate, infomap, trackframe (>= 0.1.7),
+Imports: Rcpp (>= 1.1.0), checkmate, infomap, mgcv, trackframe (>= 0.1.7),
     stats
 LinkingTo: Rcpp
 Suggests: tinytest, knitr, rmarkdown, jsonlite, leaflet, leaflet.extras,

@@ -22,3 +22,8 @@ A data frame with columns for label, start time, end time, and duration of each 
 This function computes time intervals for each unique label in the mobility data.
 It identifies continuous periods when a user was at the same location (same label).
 }
+\examples{
+labels <- c(NA, 1L, 1L, NA, 2L, 2L, 2L, NA, 1L, NA)
+times <- seq(0, 90, by = 10)
+compute_intervals(labels, times, max_time_between = 15)
+}

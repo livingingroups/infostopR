@@ -170,7 +170,7 @@ identify_stops_longlatt <- function(
     any.missing = FALSE,
     null.ok = TRUE
   )
-  assert_lonlat(longitude, latitude)
+  trackframe:::assert_latlon(latitude, longitude)
   # infostop python program expects lat long, not long lat
   stops <- get_stationary_events(
     longitude,

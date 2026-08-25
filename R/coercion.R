@@ -27,24 +27,19 @@ prep_stops <- function(x, y, id, stop_id) {
     stop("in function 'prep_stops' id can not be NULL!")
   } else {
     event_maps <- split(stop_id, id)
-    stop_events <- aggregate(
-      as.formula("cbind(x, y) ~ stop_id + id"),
-      data = data.frame(
+    stop_events <- aggregate_stop_centers(
         x = x,
         y = y,
-        id = id,
-        stop_id = stop_id
-      ),
-      FUN = median
+      ids = id,
+      stop_ids = stop_id,
+      coord_cols = c("x", "y")
     )
   }
   uids <- names(event_maps)
 
   idx <- order(match(stop_events[["id"]], uids), stop_events[["stop_id"]])
   stop_events <- split_mat_by_id(
-    as.matrix(
-      stop_events[idx, c("x", "y")]
-    ),
+    as.matrix(stop_events[idx, c("x", "y")]),
     stop_events[["id"]][idx]
   )
 

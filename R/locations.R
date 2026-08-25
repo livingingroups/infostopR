@@ -2,22 +2,6 @@
 .EARTH_RADIUS_M <- 6371000
 
 
-# Vectorised pairwise haversine distance
-#
-# @param lon1,lat1,lon2,lat2 numeric vectors of equal length, decimal degrees.
-# @param radius Earth radius in metres.
-#
-# @return numeric vector of distances in metres.
-haversine_pairwise <- function(lon1, lat1, lon2, lat2, radius = .EARTH_RADIUS_M) {
-  d_lat <- (lat2 - lat1) * pi / 180
-  d_lon <- (lon2 - lon1) * pi / 180
-  lat1r <- lat1 * pi / 180
-  lat2r <- lat2 * pi / 180
-  a <- sin(d_lat / 2)^2 + sin(d_lon / 2)^2 * cos(lat1r) * cos(lat2r)
-  2 * radius * asin(pmin(1, sqrt(a)))
-}
-
-
 # Collapse duplicate event centroids
 #
 # Mirrors `np.unique(stat_coords, return_inverse=True, return_counts=True)`
@@ -64,52 +48,27 @@ dedup_stat_coords <- function(
     ))
   }
 
-  key <- paste(stat_coords[, 1L], stat_coords[, 2L], sep = "\r")
-  unique_idx <- which(!duplicated(key))
+  uniq <- mgcv::uniquecombs(stat_coords)
+  inverse <- attr(uniq, "index")
+  attr(uniq, "index") <- NULL
+  uniq <- matrix(uniq, ncol = ncol(stat_coords))
+
   sort_cols <- if (distance_metric == "haversine") c(2L, 1L) else c(1L, 2L)
-  unique_idx <- unique_idx[do.call(order, list(
-    stat_coords[unique_idx, sort_cols[1L]],
-    stat_coords[unique_idx, sort_cols[2L]]
-  ))]
-  uniq <- stat_coords[unique_idx, , drop = FALSE]
-  inverse <- match(key, key[unique_idx])
+  sort_idx <- do.call(order, list(
+    uniq[, sort_cols[1L]],
+    uniq[, sort_cols[2L]]
+  ))
+  inverse <- match(inverse, sort_idx)
+  uniq <- uniq[sort_idx, , drop = FALSE]
   counts <- tabulate(inverse, nbins = nrow(uniq))
 
   list(unique = uniq, inverse = inverse, counts = counts)
 }
 
 
-dedup_stat_coords_fixme <- function(
-  stat_coords,
-  min_spacial_resolution = 0,
-  distance_metric = c("haversine", "euclidean")
-) {
-  distance_metric <- match.arg(distance_metric)
-  checkmate::assert_matrix(stat_coords, mode = "numeric", min.rows = 0L, ncols = 2L)
-  checkmate::assert_number(min_spacial_resolution, lower = 0)
-
-  if (nrow(stat_coords) == 0L) {
-    return(list(unique = stat_coords, inverse = integer(), counts = integer()))
-  }
-
-  if (min_spacial_resolution > 0) {
-    stat_coords <- round(stat_coords / min_spacial_resolution) * min_spacial_resolution
-  }
-
-  # TODO: Did give an error se we turned back to the more complicated version.
-  uniquecombs <- getNamespace("mgcv")$uniquecombs
-  unique <- uniquecombs(stat_coords)
-  inverse <- attr(unique, "index")
-  attr(unique, "index") <- NULL
-  counts <- tabulate(inverse, nbins = nrow(unique))
-
-  list(unique = unique, inverse = inverse, counts = counts)
-}
-
-
 # Radius neighbour query on event centroids
 #
-# R reimplementaion of `infostop.utils.query_neighbors`
+# R reimplementation of `infostop.utils.query_neighbors`
 #
 # @param coords matrix `n x 2` with columns `longitude`, `latitude` or `x`, `y`.
 # @param r2 radius in metres for `"haversine"` and raw units for `"euclidean"`.
@@ -140,16 +99,18 @@ query_neighbors_r2 <- function(
   neighbors <- vector("list", n)
   distances <- if (weighted) vector("list", n) else NULL
 
-  if (n == 0L) {
-    return(list(neighbors = neighbors, distances = distances))
-  }
-
   lon <- coords[, 1L]
   lat <- coords[, 2L]
 
   for (i in seq_len(n)) {
     if (distance_metric == "haversine") {
-      d <- haversine_pairwise(lon[i], lat[i], lon, lat)
+      d <- dist_haversine_cpp(
+        rep_len(lon[i], n),
+        rep_len(lat[i], n),
+        lon,
+        lat,
+        radius = .EARTH_RADIUS_M
+      )
     } else {
       d <- sqrt((lon - lon[i])^2 + (lat - lat[i])^2)
     }
@@ -239,11 +200,9 @@ build_infomap_edges <- function(neighbors, distances, counts, weight_exponent = 
     k <- k + m
   }
 
-  if (k < length(from)) {
     from <- from[seq_len(k)]
     to <- to[seq_len(k)]
     weight <- weight[seq_len(k)]
-  }
 
   list(
     edges = data.frame(from = from, to = to, weight = weight),
@@ -292,11 +251,9 @@ infomap_communities_r <- function(
   labels <- rep(-1L, n)
   if (nrow(edges) > 0L) {
     non_singletons <- setdiff(seq_len(n), singletons)
-    compact_id <- seq_along(non_singletons) - 1L
-    names(compact_id) <- as.character(non_singletons)
     compact_edges <- data.frame(
-      from = unname(compact_id[as.character(edges$from)]),
-      to = unname(compact_id[as.character(edges$to)]),
+      from = match(edges$from, non_singletons) - 1L,
+      to = match(edges$to, non_singletons) - 1L,
       weight = edges$weight
     )
 
@@ -320,39 +277,6 @@ infomap_communities_r <- function(
   }
 
   labels
-}
-
-
-# Canonicalise a label vector by first occurrence
-#
-# Maps the first non-`-1` label encountered to `0`, the next new label to
-# `1`, and so on. `-1` is preserved. Useful for comparing partitions
-# between implementations.
-#
-# @param labels integer vector. `NA` values are treated as `-1`.
-#
-# @return integer vector of the same length.
-canonicalise_labels <- function(labels) {
-  # FIXME: This can be simplified by something like.
-  # match(labels, unique(labels[labels >= 0]))
-  labels <- as.integer(labels)
-  labels[is.na(labels)] <- -1L
-  out <- rep(-1L, length(labels))
-  next_id <- 0L
-  remap <- integer()
-  for (i in seq_along(labels)) {
-    lab <- labels[i]
-    if (lab == -1L) {
-      next
-    }
-    key <- as.character(lab)
-    if (is.na(remap[key])) {
-      remap[key] <- next_id
-      next_id <- next_id + 1L
-    }
-    out[i] <- remap[key]
-  }
-  out
 }
 
 
@@ -382,8 +306,17 @@ cluster_centroids <- function(
   seed = 123L
 ) {
   distance_metric <- match.arg(distance_metric)
-  d <- dedup_stat_coords(coords, min_spacial_resolution, distance_metric = distance_metric)
-  nb <- query_neighbors_r2(d$unique, r2, distance_metric = distance_metric, weighted = weighted)
+  d <- dedup_stat_coords(
+    coords,
+    min_spacial_resolution,
+    distance_metric = distance_metric
+  )
+  nb <- query_neighbors_r2(
+    d$unique,
+    r2,
+    distance_metric = distance_metric,
+    weighted = weighted
+  )
   labels_unique <- infomap_communities_r(
     neighbors = nb$neighbors,
     distances = nb$distances,

@@ -27,17 +27,46 @@ identify_sites_internal <- function(
 
   distance_metric <- match.arg(distance_metric)
 
-  site_map <- native_identify_sites_backend(
-    stop_events,
-    event_maps,
-    r2 = r2,
-    label_singleton = label_singleton,
-    min_spacial_resolution = min_spacial_resolution,
-    distance_metric = distance_metric,
-    weighted = weighted,
-    weight_exponent = weight_exponent,
-    seed = seed
-  )
+  coordinate_order <- if (distance_metric == "haversine") c(2L, 1L) else c(1L, 2L)
+  coords <- lapply(stop_events, function(event) {
+    event <- if (is.list(event)) do.call(rbind, event) else as.matrix(event)
+    if (is.null(event) || nrow(event) == 0L) {
+      return(matrix(numeric(0), nrow = 0L, ncol = 2L))
+    }
+    event[, coordinate_order, drop = FALSE]
+  })
+  n_per_id <- vapply(coords, nrow, integer(1))
+
+  if (!any(n_per_id > 0L)) {
+    site_map <- lapply(event_maps, function(event_map) {
+      rep.int(-1L, length(event_map))
+    })
+  } else {
+    site_labels <- cluster_centroids(
+      do.call(rbind, coords),
+      r2,
+      distance_metric = distance_metric,
+      weighted = weighted,
+      weight_exponent = weight_exponent,
+      label_singleton = label_singleton,
+      min_spacial_resolution = min_spacial_resolution,
+      seed = seed
+    )
+
+    offsets <- c(0L, cumsum(n_per_id))
+    site_map <- lapply(seq_along(event_maps), function(i) {
+      event_map <- as.integer(event_maps[[i]])
+      if (n_per_id[i] == 0L) {
+        return(rep.int(-1L, length(event_map)))
+      }
+
+      site_of_stop <- site_labels[seq.int(offsets[i] + 1L, offsets[i + 1L])]
+      site_of_stop <- c(site_of_stop, -1L)
+      index <- event_map + 1L
+      index[event_map == -1L] <- length(site_of_stop)
+      site_of_stop[index]
+    })
+  }
 
   all_labels <- refine_labels(unlist(site_map, use.names = FALSE))
   split(all_labels, rep(seq_along(site_map), lengths(site_map)))
