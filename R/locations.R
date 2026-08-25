@@ -286,11 +286,6 @@ infomap_communities_r <- function(
 #
 # @return Integer vector of length `nrow(coords)`, giving the location id per input
 #   centroid.
-#
-# @examples
-# coords <- matrix(round(rnorm(20, 50, 2), 2), nrow = 10, ncol = 2)
-# coords <- coords[sample.int(nrow(coords), 2 * nrow(coords), TRUE), ]
-# cluster_centroids(coords, 1, "euclidean")
 cluster_centroids <- function(
   coords,
   r2,
