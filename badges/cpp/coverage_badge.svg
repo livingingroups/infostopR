@@ -2,10 +2,10 @@
         width="95"
         height="20"
         role="img"
-        aria-label="coverage: 71%">
+        aria-label="coverage: 80%">
 
     <title>
-        coverage: 71%
+        coverage: 80%
     </title>
 
     <defs>
@@ -74,7 +74,7 @@
                 fill="#010101"
                 fill-opacity="0.3"
                 textLength="26">
-          71%
+          80%
         </text>
 
         <!-- value text -->
@@ -82,7 +82,7 @@
                 y="14"
                 fill="#fff"
                 textLength="26">
-          71%
+          80%
         </text>
     </g>
 </svg>
