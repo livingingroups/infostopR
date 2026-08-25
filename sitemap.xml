@@ -1,0 +1,16 @@
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/CONTRIBUTING.html</loc></url>
+<url><loc>/articles/index.html</loc></url>
+<url><loc>/articles/infostop.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/reference/compute_intervals.html</loc></url>
+<url><loc>/reference/dist_haversine.html</loc></url>
+<url><loc>/reference/identify_sites.html</loc></url>
+<url><loc>/reference/identify_stops.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/site_centers.html</loc></url>
+<url><loc>/reference/stop_centers.html</loc></url>
+</urlset>
+

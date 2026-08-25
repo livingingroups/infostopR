@@ -1,0 +1,99 @@
+# infostop
+
+## R Interface to the Python ‘infostop’ Package for Detecting Stop Locations in Mobility Data
+
+This package provides an R wrapper for the Python ‘infostop’ package,
+which implements algorithms for detecting stop locations in time-ordered
+location data. The package is useful for anyone who wishes to detect
+stationary events in location coordinate streams, simplifying dense and
+rich location time-series into sequences of events.
+
+The underlying algorithm is described in [Aslak et
+al. (2020)](https://arxiv.org/pdf/2003.14370.pdf).
+
+## Installation
+
+You can install the development version of infostop from GitHub:
+
+``` r
+
+devtools::install_github("yourusername/infostop")
+```
+
+This package requires the Python ‘infostop’ package. You can install it
+using:
+
+``` r
+
+library(infostop)
+install_infostop()
+```
+
+## Usage
+
+``` r
+
+library(infostop)
+
+# Create a model
+model <- infostop(r1 = 10, r2 = 10)
+
+# Example data (latitude, longitude, timestamp)
+data <- matrix(c(
+  55.75259295, 12.34353885, 1581401760,
+  55.7525908, 12.34353145, 1581402760,
+  55.7525876, 12.3435386, 1581403760,
+  63.40379175, 10.40477095, 1583401760,
+  63.4037841, 10.40480265, 1583402760,
+  63.403787, 10.4047871, 1583403760
+), ncol = 3, byrow = TRUE)
+
+# Fit the model and predict labels
+labels <- model$fit_predict_r(data)
+
+# Plot the map (if you have folium installed in Python)
+map <- plot_map(model)
+```
+
+## Features
+
+- **Simplicity**: At its core, the method works by two steps. (1)
+  Reducing the location trace to the medians of each stationary event
+  and (2) embedding the resulting locations into a network that connects
+  locations that are within a user-defined distance and clustering that
+  network.
+- **Multi-trace support**: Supports clustering multiple traces at once
+  to find global stop locations.
+- **Flow based**: Spatial clusters correspond to collections of location
+  points that contain large amounts of flow when represented as a
+  network. This enables the recovery of locations where traces slightly
+  overlap.
+- **Speed**: First the point space is reduced to the median of
+  stationary points, then spatially neighboring points connected using a
+  Ball search tree algorithm, and finally the network is clustered using
+  the C++ based Infomap program.
+
+## License
+
+This project is licensed under the MIT License.
+
+# Package index
+
+## All functions
+
+- [`compute_intervals()`](compute_intervals.md) : Compute Intervals
+- [`dist_haversine()`](dist_haversine.md) : Haversine distance
+- [`identify_sites()`](identify_sites.md) : Spatial Infomap Cluster a
+  Collection of Points Using Infomap
+- [`identify_stops_xyt()`](identify_stops.md)
+  [`identify_stops_longlatt()`](identify_stops.md)
+  [`identify_stops()`](identify_stops.md) : Find based on distance and
+  time threshold
+- [`site_centers()`](site_centers.md) : Calculate site centers
+- [`stop_centers()`](stop_centers.md) : Calculate stop centers
+
+# Articles
+
+### All vignettes
+
+- [Infostop](infostop.md):
