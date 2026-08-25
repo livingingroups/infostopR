@@ -39,6 +39,7 @@ jobs:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
+          extra-repositories: "https://mapequation.r-universe.dev"
 
       - name: Setup Python
         uses: actions/setup-python@v4
