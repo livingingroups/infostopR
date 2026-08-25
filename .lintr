@@ -1,11 +1,12 @@
 linters: linters_with_defaults(
+        commented_code_linter = NULL,
         quotes_linter = NULL,
         return_linter = NULL,
-        brace_linter(function_bodies =  "not_inline"),
-        indentation_linter(hanging_indent_style = "never"),
-        object_length_linter(length = 50L),
-        line_length_linter(100),
-        object_name_linter(
+        brace_linter = brace_linter(function_bodies =  "not_inline"),
+        indentation_linter = indentation_linter(hanging_indent_style = "never"),
+        object_length_linter = object_length_linter(length = 50L),
+        line_length_linter = line_length_linter(100),
+        object_name_linter = object_name_linter(
             styles = c("snake_case", "symbols"),
             regexes = c("^as\\.[a-z]*$", "^is\\.[a-z]*$")
         )
