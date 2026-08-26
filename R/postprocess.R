@@ -3,13 +3,18 @@
 #' This function computes time intervals for each unique label in the mobility data.
 #' It identifies continuous periods when a user was at the same location (same label).
 #'
-#' @param labels A vector of integer labels for each point in the mobility trace.
-#' @param times A vector of integer timestamps corresponding to each point in the mobility trace.
-#' @param max_time_between Maximum time (in seconds) between consecutive points to consider
-#'   them part of the same interval. If the time between points exceeds this value,
-#'   a new interval is created.
+#' @param labels a vector of integer labels for each point in the mobility
+#'   trace. `NA` identifies noise points.
+#' @param times a vector of integer timestamps corresponding to each point in
+#'   the mobility trace.
+#' @param max_time_between a numeric giving the maximum time in seconds between
+#'   consecutive points to consider them part of the same interval. If the
+#'   time between points is equal to or greater than this value, a new interval
+#'   is created.
 #'
-#' @return A data frame with columns for label, start time, end time, and duration of each interval.
+#' @return A data frame with columns `label`, `start_time`, and `end_time`.
+#'   The trailing interval is returned only when its label identifies noise
+#'   (`NA` or `-1L`).
 #'
 #' @examples
 #' labels <- c(NA, 1L, 1L, NA, 2L, 2L, 2L, NA, 1L, NA)
@@ -39,19 +44,14 @@ compute_intervals <- function(labels, times, max_time_between = 86400) {
     return(empty)
   }
 
-  if (n == 1L) {
-    starts <- 1L
-    ends <- 1L
-  } else {
-    same_label <- ifelse(
-      is.na(labels[-1L]) | is.na(labels[-n]),
-      is.na(labels[-1L]) & is.na(labels[-n]),
-      labels[-1L] == labels[-n]
-    )
-    new_interval <- !same_label | diff(times) >= max_time_between
-    starts <- c(1L, which(new_interval) + 1L)
-    ends <- c(starts[-1L] - 1L, n)
-  }
+  same_label <- ifelse(
+    is.na(labels[-1L]) | is.na(labels[-n]),
+    is.na(labels[-1L]) & is.na(labels[-n]),
+    labels[-1L] == labels[-n]
+  )
+  new_interval <- !same_label | diff(times) >= max_time_between
+  starts <- c(1L, which(new_interval) + 1L)
+  ends <- c(starts[-1L] - 1L, n)
 
   intervals <- data.frame(
     label = labels[starts],

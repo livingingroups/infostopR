@@ -77,8 +77,10 @@ dedup_stat_coords <- function(
 #     `NULL` when `weighted = FALSE`.
 #
 # @examples
+# nolint start: commented_code_linter
 # coords <- matrix(round(rnorm(20, 50, 2), 2), nrow = 10, ncol = 2)
 # str(query_neighbors_r2(coords, 2, "euclidean"))
+# nolint end
 query_neighbors_r2 <- function(
   coords,
   r2,

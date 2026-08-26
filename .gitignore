@@ -22,4 +22,5 @@ inst/doc
 infostop_*.tar.gz
 infostop.Rcheck
 docs
+.vscode/
 __pycache__

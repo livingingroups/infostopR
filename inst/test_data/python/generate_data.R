@@ -7,7 +7,6 @@ jitter_around <- function(n, lat, lon, s = 1e-5) {
 }
 
 
-
 to_infostop <- function(x, time_col, lon_col, lat_col, id_col = NULL) {
   cols <- c(lat_col, lon_col, time_col)
   x[[time_col]] <- as.numeric(x[[time_col]])
@@ -37,7 +36,7 @@ data_set_01 <- function() {
 data_set_02 <- function() {
   stop_a <- jitter_around(50, 55.7500, 12.3400)
   stop_b <- jitter_around(30, 55.7600, 12.3500)
-  stop_c <- jitter_around(8,  55.7700, 12.3600)
+  stop_c <- jitter_around(8, 55.7700, 12.3600)
   transit <- cbind(runif(5, 55.74, 55.78), runif(5, 12.33, 12.37))
   d <- rbind(
     stop_a,

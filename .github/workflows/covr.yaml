@@ -43,6 +43,7 @@ jobs:
           extra-packages: |
             any::covr
             any::lintr
+            github::livingingroups/trackframe
             local::.
             dragosmg/covr2gh
           needs: coverage

@@ -53,7 +53,7 @@ expected_stops <- list(
 stops_incorrect_axis_order <- list(
   c(long, 1 + m)
 )
-df$id <- 'track_1'
+df$id <- "track_1"
 
 
 #
@@ -142,14 +142,14 @@ sites_incorrect_axis_order[!is.na(sites_incorrect_axis_order)] <- 1L
 # check that above data is accurate
 expect_equivalent(
   infostop:::identify_sites_internal(
-    list(expected_stops),
+    list(rev_ax_stops),
     list(event_map)
   )[[1]],
   expected_sites
 )
 expect_equivalent(
   infostop:::identify_sites_internal(
-    list(rev_ax_stops),
+    list(expected_stops),
     list(event_map)
   )[[1]],
   sites_incorrect_axis_order

@@ -1,5 +1,4 @@
 linters: linters_with_defaults(
-        commented_code_linter = NULL,
         quotes_linter = NULL,
         return_linter = NULL,
         brace_linter = brace_linter(function_bodies =  "not_inline"),

@@ -105,26 +105,35 @@ add_stop_ids <- function(data, event_map, stop_id_col = "stop_id") {
 }
 
 
-#' Find based on distance and time threshold
+#' Identify stationary periods from coordinate vectors
 #'
-#' @param x a numeric vector of x-coordinates in cartesian coordinate system
-#'   (e.g. projected coordinates).
-#' @param y a numeric vector of y-coordinates in cartesian coordinate system
-#'   (e.g. projected coordinates).
-#' @param longitude numeric vector of longitude coordinates
-#' @param latitude numeric vector of latitude coordinates
-#' @param t a vecor inheriting from \code{numeric} or \code{POSIXt} or \code{Date}
-#'        containing the timestamps corresponding to the x and y coordinates.
-#' @param r1 A numeric vector giving the maximum distance between time-consecutive points to label
-#'   them as stationary. Higher values will result in more points being considered stationary.
-#' @param min_size An integer giving the minimum number of points required to consider a group
-#'   stationary.
-#' @param min_staying_time An integer giving the minimum duration (in seconds) that can constitute
-#'   a stop. Only relevant if timestamps are provided in the data.
-#' @param max_time_between An integer giving the maximum duration (in seconds) between consecutive
-#'   points to consider them part of the same stop. Only relevant if timestamps are provided.
+#' Identify stops in time-ordered coordinate data. A stop is a sequence of
+#' points that remains within a spatial radius for a minimum duration.
+#'
+#' @param x a numeric vector of x-coordinates in a Cartesian coordinate system.
+#' @param y a numeric vector of y-coordinates in a Cartesian coordinate system.
+#' @param longitude a numeric vector of longitude coordinates in decimal degrees.
+#' @param latitude a numeric vector of latitude coordinates in decimal degrees.
+#' @param t an optional numeric vector, or an object inheriting from `POSIXt`
+#'   or `Date`, containing the timestamps corresponding to the coordinates.
+#'   The default is `NULL`.
+#' @param r1 a numeric giving the maximum distance between time-consecutive
+#'   points to label them as stationary. Higher values result in more points
+#'   being considered stationary.
+#' @param min_size an integer giving the minimum number of points required to
+#'   consider a group stationary.
+#' @param min_staying_time a numeric giving the minimum duration in seconds
+#'   required to constitute a stop. Only relevant if timestamps are provided.
+#' @param max_time_between a numeric giving the maximum duration in seconds
+#'   between consecutive points to consider them part of the same stop. Only
+#'   relevant if timestamps are provided.
+#'
+#' @return A list with `stop_events`, the median coordinates of detected stops,
+#'   and `event_map`, the stop label assigned to each input point. Non-stop
+#'   points have label `-1`.
+#'
 #' @export
-#' @rdname identify_stops
+#' @rdname identify_stops_xyt
 identify_stops_xyt <- function(
   x,
   y,
@@ -148,7 +157,7 @@ identify_stops_xyt <- function(
 }
 
 #' @export
-#' @rdname identify_stops
+#' @rdname identify_stops_xyt
 identify_stops_longlatt <- function(
   longitude,
   latitude,
@@ -187,43 +196,48 @@ identify_stops_longlatt <- function(
 }
 
 
-#' Find based on distance and time threshold
+#' Identify stops in a trajectory
 #'
-#' @param data A numeric matrix with 2 or 3 columns. Columns 1 and 2 are spatial coordinates.
-#'   Column 3 is optional and represents time.
-#' @param r1 A numeric vector giving the maximum distance between time-consecutive points
-#'   to label them as stationary. Higher values will result in more points being considered
-#'   stationary.
-#' @param min_size An integer giving the minimum number of points required to consider a group
-#'   stationary.
-#' @param min_staying_time An integer giving the minimum duration (in seconds) that can constitute
-#'   a stop. Only relevant if timestamps are provided in the data.
-#' @param max_time_between An integer giving the maximum duration (in seconds) between consecutive
-#'   points to consider them part of the same stop. Only relevant if timestamps are provided.
-#' @param stop_id_col A character string specifying the name of the column to be used for
-#'   the stop identifiers. Default is "stop_id".
-#' @param ... other arguments passed to `as.trackframe()`
+#' Identify stationary periods in time-ordered coordinate data. A stop is a
+#' sequence of points that remains within a spatial radius for a minimum
+#' duration. Stop labels are added to the input data.
+#'
+#' @param data a `trackframe`, `sf`, `sftrack`, `move2`, or data frame.
+#' @param r1 a numeric giving the maximum distance between time-consecutive
+#'   points to label them as stationary. Higher values result in more points
+#'   being considered stationary.
+#' @param min_size an integer giving the minimum number of points required to
+#'   consider a group stationary.
+#' @param min_staying_time a numeric giving the minimum duration in seconds
+#'   required to constitute a stop.
+#' @param max_time_between a numeric giving the maximum duration in seconds
+#'   between consecutive points to consider them part of the same stop.
+#' @param stop_id_col a character string specifying the name of the new
+#'   column to which the detected stop labels are assigned. The default is
+#'   `"stop_id"`.
+#' @param ... additional arguments passed when coercing a data frame to a
+#'   `trackframe`.
+#'
+#' @return `data` with a new column containing the detected stop labels.
+#'   `NA` identifies points that are not assigned to a stop.
+#'
 #' @examples
-#' if (requireNamespace("trackframe", quietly = TRUE)) {
-#' library(trackframe)
 #' data("path_trackframe", package = "trackframe")
-#' stops <- identify_stops(data = path_trackframe)
+#' stops <- identify_stops(path_trackframe)
+#' head(stops[["stop_id"]])
 #'
-#' # data.frame
 #' data("path_data_frame", package = "trackframe")
-#' tf <- as.trackframe(path_data_frame, crs = NA)
-#' stops <- identify_stops(data = tf)
+#' stops_df <- identify_stops(path_data_frame, crs = NA)
+#'
+#' if (requireNamespace("sftrack", quietly = TRUE)) {
+#' data("path_sftrack", package = "trackframe")
+#' stops_sftrack <- identify_stops(path_sftrack)
 #' }
 #'
-#' # with sftrack
-#' data("path_sftrack", package = "trackframe")
-#' class(path_sftrack)
-#' stops_sftrack <- identify_stops(path_sftrack)
-#'
-#' # with move2
+#' if (requireNamespace("move2", quietly = TRUE)) {
 #' data("path_move2", package = "trackframe")
-#' class(path_move2)
 #' stops_move2 <- identify_stops(path_move2)
+#' }
 #'
 #' @export
 #' @rdname identify_stops
@@ -281,25 +295,34 @@ identify_stops.data.frame <- function(
       "3) project coordinates"
     ))
   }
-  tf <- as.trackframe(data, time_col, easting_col, northing_col, id_col, crs)
+  tf <- as.trackframe(
+    data = data,
+    time_col = time_col,
+    easting_col = easting_col,
+    northing_col = northing_col,
+    id_col = id_col,
+    crs = crs
+  )
 
   if (!is.null(trackframe::id(tf)) && length(trackframe::unique_ids(tf)) > 1) {
     stop(
       "Multiple tracks are not supported. Please use infostop() instead in case of multiple tracks."
     )
   }
-  trackframe::tf_backtransform(identify_stops.trackframe(
+  result <- trackframe::tf_backtransform(identify_stops.trackframe(
     data = tf,
     r1 = r1,
     min_size = min_size,
     min_staying_time = min_staying_time,
-    max_time_between = max_time_between
+    max_time_between = max_time_between,
+    stop_id_col = stop_id_col
   ))
+  names(result)[is.na(names(result))] <- stop_id_col
+  result
 }
 
 
 #' @export
-#' @importFrom trackframe northing easting id
 #' @rdname identify_stops
 identify_stops.trackframe <- function(
   data,
@@ -329,7 +352,6 @@ identify_stops.trackframe <- function(
 #
 #  Used for move2 and sftrack
 #
-#' @importFrom trackframe id
 #' @export
 #' @rdname identify_stops
 identify_stops.sf <- function(

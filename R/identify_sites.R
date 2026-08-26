@@ -27,13 +27,12 @@ identify_sites_internal <- function(
 
   distance_metric <- match.arg(distance_metric)
 
-  coordinate_order <- if (distance_metric == "haversine") c(2L, 1L) else c(1L, 2L)
   coords <- lapply(stop_events, function(event) {
     event <- if (is.list(event)) do.call(rbind, event) else as.matrix(event)
-    if (is.null(event) || nrow(event) == 0L) {
+    if (NROW(event) == 0L) {
       return(matrix(numeric(0), nrow = 0L, ncol = 2L))
     }
-    event[, coordinate_order, drop = FALSE]
+    event
   })
   n_per_id <- vapply(coords, nrow, integer(1))
 
@@ -73,39 +72,49 @@ identify_sites_internal <- function(
 }
 
 
-#' Spatial Infomap Cluster a Collection of Points Using Infomap
+#' Assign site labels to detected stops
 #'
-#' This function applies the SpatialInfomap algorithm to cluster a collection of points.
-#' It directly returns the cluster labels rather than a model object.
+#' This is the second step of Infostop. It treats stop centers as nodes in a
+#' spatial network, connects nodes within `r2`, and uses Infomap to identify
+#' communities. A community is a site shared by the stops assigned to it.
 #'
-#' @param data A numeric matrix with 2 or 3 columns. Columns 1 and 2 are spatial coordinates.
-#'   Column 3 is optional and represents time.
-#' @param r2 Numeric. Max distance between stationary points to form an edge.
-#' @param label_singleton Logical. If TRUE, give stationary locations that were only visited
-#'   once their own label. If FALSE, label them as non-stationary (-1).
-#' @param min_spacial_resolution Numeric. The minimal difference allowed between points before
-#'   they are considered the same points.
-#' @param weighted Logical. Weight edges in the network representation by distance.
-#' @param weight_exponent Numeric. Exponent used when weighting edges in the network.
-#' @param seed an integer passed as seed to \code{\link[infomap]{cluster_infomap}}
-#'   (default is `123L`).
-#' @param stop_id_col A character string specifying the name of the column to be used for
-#'   the stop identifiers. Default is "stop_id".
-#' @param site_id_col A character string specifying the name of the column to be used for
-#'   the site identifiers. Default is "site_id".
-#' @param ... other arguments passed to `as.trackframe()`
+#' @param data a `trackframe`, `sf`, `sftrack`, or `move2` object containing
+#'   stop labels.
+#' @param r2 a numeric giving the maximum distance between stop centers in the
+#'   same network neighborhood. It is measured in the coordinate units for
+#'   projected data and in metres for geographic data.
+#' @param label_singleton a logical. If `TRUE`, give stationary locations that
+#'   were only visited once their own label. If `FALSE`, leave isolated stops as
+#'   `NA`.
+#' @param min_spacial_resolution a numeric giving the minimum spatial
+#'   resolution. Points that round to the same coordinates at this resolution
+#'   are considered the same point. The default is `0`.
+#' @param weighted a logical. If `TRUE`, weight network edges by distance.
+#' @param weight_exponent a numeric giving the exponent used for
+#'   distance-based edge weights.
+#' @param seed an integer passed as the random seed to
+#'   \code{\link[infomap]{cluster_infomap}}. Defaults to `123L`.
+#' @param stop_id_col a character string specifying the name of the column
+#'   containing stop identifiers. The default is `"stop_id"`.
+#' @param site_id_col a character string specifying the name of the new
+#'   column to which the detected site labels are assigned. The default is
+#'   `"site_id"`.
+#' @param ... additional arguments passed when coercing data to a
+#'   `trackframe`.
 #'
-#' @return A numeric vector of cluster labels for each input point. Points labeled -1 are
-#'   considered non-stationary.
+#' @return `data` with a site-label column added. `NA` identifies points that
+#'   are not assigned to a site.
+#'
+#' @references
+#' Aslak, U. and Alessandretti, L. (2020). Infostop: Scalable stop-location
+#' detection in multi-user mobility data. doi:10.48550/arXiv.2003.14370
 #'
 #' @examples
 #' if (requireNamespace("trackframe", quietly = TRUE)) {
 #'   data("path_trackframe", package = "trackframe")
-#'   stops <- identify_stops(path_trackframe, r1 = 100, min_staying_time = 300,
-#'                         max_time_between = 86400, min_size = 2)
-#'   head(stops[["stop_id"]], 30)
-#'   clusters <- identify_sites(stops, r2 = 50)
-#'   head(clusters[["site_id"]], 30)
+#'   stops <- identify_stops(path_trackframe)
+#'   sites <- identify_sites(stops)
+#'   head(sites[["site_id"]])
 #' }
 #' @export
 #' @rdname identify_sites
@@ -173,8 +182,6 @@ identify_sites.trackframe <- function(
 
 
 #' @export
-#' @importFrom stats time
-#' @importFrom trackframe id
 #' @rdname identify_sites
 identify_sites.sf <- function(
   data,
@@ -197,11 +204,9 @@ identify_sites.sf <- function(
     # use custom coords function to identify lat and long
     coords <- trackframe:::st_coordinates_lat_lon(data)
 
-    # put together
     stops <- prep_stops(
-      # infostop python program expects lat long, not long lat
-      x = coords[idx, 1],
-      y = coords[idx, 2],
+      x = coords[idx, 2],
+      y = coords[idx, 1],
       id = ids[idx],
       stop_id = data[[stop_id_col]][idx]
     )

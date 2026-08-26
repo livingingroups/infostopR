@@ -1,4 +1,3 @@
-
 #include <Rcpp.h>
 using namespace Rcpp;
 
@@ -56,9 +55,11 @@ double dist_haversine_double(
     double dLon = lon2_rad - lon1_rad;
     
     // Haversine formula
-    double a = std::min(sin(dLat / 2) * sin(dLat / 2) + 
-                        cos(lat1_rad) * cos(lat2_rad) * 
-                        sin(dLon / 2) * sin(dLon / 2), 1.0);
+    // The max / min is so we don't fall out of the domain due to numerical issues.
+    double a = std::max(0.0, std::min(1.0,
+        sin(dLat / 2) * sin(dLat / 2) +
+        cos(lat1_rad) * cos(lat2_rad) * sin(dLon / 2) * sin(dLon / 2)
+    ));
     
     double c = 2 * atan2(sqrt(a), sqrt(1-a));
     double dist = radius * c;

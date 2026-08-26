@@ -21,7 +21,7 @@ make_unique_id <- function(id_col) {
   unique_id
 }
 
-#' @importFrom trackframe id_col
+
 get_id_column <- function(x) {
   if (inherits(x, "trackframe")) {
     id_col(x)

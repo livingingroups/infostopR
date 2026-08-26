@@ -19,7 +19,6 @@ load_test_data <- load_test_data
 load_reference <- load_reference
 # nolint end
 
-
 #
 # Test identify_stops_longlatt
 #

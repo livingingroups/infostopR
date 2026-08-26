@@ -4,7 +4,7 @@
 \alias{identify_sites}
 \alias{identify_sites.trackframe}
 \alias{identify_sites.sf}
-\title{Spatial Infomap Cluster a Collection of Points Using Infomap}
+\title{Assign site labels to detected stops}
 \usage{
 identify_sites(
   data,
@@ -46,47 +46,57 @@ identify_sites(
 )
 }
 \arguments{
-\item{data}{A numeric matrix with 2 or 3 columns. Columns 1 and 2 are spatial coordinates.
-Column 3 is optional and represents time.}
+\item{data}{a `trackframe`, `sf`, `sftrack`, or `move2` object containing
+stop labels.}
 
-\item{r2}{Numeric. Max distance between stationary points to form an edge.}
+\item{r2}{a numeric giving the maximum distance between stop centers in the
+same network neighborhood. It is measured in the coordinate units for
+projected data and in metres for geographic data.}
 
-\item{label_singleton}{Logical. If TRUE, give stationary locations that were only visited
-once their own label. If FALSE, label them as non-stationary (-1).}
+\item{label_singleton}{a logical. If `TRUE`, give stationary locations that
+were only visited once their own label. If `FALSE`, leave isolated stops as
+`NA`.}
 
-\item{min_spacial_resolution}{Numeric. The minimal difference allowed between points before
-they are considered the same points.}
+\item{min_spacial_resolution}{a numeric giving the minimum spatial
+resolution. Points that round to the same coordinates at this resolution
+are considered the same point. The default is `0`.}
 
-\item{weighted}{Logical. Weight edges in the network representation by distance.}
+\item{weighted}{a logical. If `TRUE`, weight network edges by distance.}
 
-\item{weight_exponent}{Numeric. Exponent used when weighting edges in the network.}
+\item{weight_exponent}{a numeric giving the exponent used for
+distance-based edge weights.}
 
-\item{seed}{an integer passed as seed to \code{\link[infomap]{cluster_infomap}}
-(default is `123L`).}
+\item{seed}{an integer passed as the random seed to
+\code{\link[infomap]{cluster_infomap}}. Defaults to `123L`.}
 
-\item{stop_id_col}{A character string specifying the name of the column to be used for
-the stop identifiers. Default is "stop_id".}
+\item{stop_id_col}{a character string specifying the name of the column
+containing stop identifiers. The default is `"stop_id"`.}
 
-\item{site_id_col}{A character string specifying the name of the column to be used for
-the site identifiers. Default is "site_id".}
+\item{site_id_col}{a character string specifying the name of the new
+column to which the detected site labels are assigned. The default is
+`"site_id"`.}
 
-\item{...}{other arguments passed to `as.trackframe()`}
+\item{...}{additional arguments passed when coercing data to a
+`trackframe`.}
 }
 \value{
-A numeric vector of cluster labels for each input point. Points labeled -1 are
-  considered non-stationary.
+`data` with a site-label column added. `NA` identifies points that
+  are not assigned to a site.
 }
 \description{
-This function applies the SpatialInfomap algorithm to cluster a collection of points.
-It directly returns the cluster labels rather than a model object.
+This is the second step of Infostop. It treats stop centers as nodes in a
+spatial network, connects nodes within `r2`, and uses Infomap to identify
+communities. A community is a site shared by the stops assigned to it.
 }
 \examples{
 if (requireNamespace("trackframe", quietly = TRUE)) {
   data("path_trackframe", package = "trackframe")
-  stops <- identify_stops(path_trackframe, r1 = 100, min_staying_time = 300,
-                        max_time_between = 86400, min_size = 2)
-  head(stops[["stop_id"]], 30)
-  clusters <- identify_sites(stops, r2 = 50)
-  head(clusters[["site_id"]], 30)
+  stops <- identify_stops(path_trackframe)
+  sites <- identify_sites(stops)
+  head(sites[["site_id"]])
 }
+}
+\references{
+Aslak, U. and Alessandretti, L. (2020). Infostop: Scalable stop-location
+detection in multi-user mobility data. doi:10.48550/arXiv.2003.14370
 }
