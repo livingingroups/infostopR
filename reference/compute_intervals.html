@@ -49,22 +49,27 @@ It identifies continuous periods when a user was at the same location (same labe
 
 
 <dl><dt id="arg-labels">labels<a class="anchor" aria-label="anchor" href="#arg-labels"></a></dt>
-<dd><p>A vector of integer labels for each point in the mobility trace.</p></dd>
+<dd><p>a vector of integer labels for each point in the mobility
+trace. `NA` identifies noise points.</p></dd>
 
 
 <dt id="arg-times">times<a class="anchor" aria-label="anchor" href="#arg-times"></a></dt>
-<dd><p>A vector of integer timestamps corresponding to each point in the mobility trace.</p></dd>
+<dd><p>a vector of integer timestamps corresponding to each point in
+the mobility trace.</p></dd>
 
 
 <dt id="arg-max-time-between">max_time_between<a class="anchor" aria-label="anchor" href="#arg-max-time-between"></a></dt>
-<dd><p>Maximum time (in seconds) between consecutive points to consider
-them part of the same interval. If the time between points exceeds this value,
-a new interval is created.</p></dd>
+<dd><p>a numeric giving the maximum time in seconds between
+consecutive points to consider them part of the same interval. If the
+time between points is equal to or greater than this value, a new interval
+is created.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A data frame with columns for label, start time, end time, and duration of each interval.</p>
+    <p>A data frame with columns `label`, `start_time`, and `end_time`.
+  The trailing interval is returned only when its label identifies noise
+  (`NA` or `-1L`).</p>
     </div>
 
     <div class="section level2">

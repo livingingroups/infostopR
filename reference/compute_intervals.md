@@ -14,23 +14,26 @@ compute_intervals(labels, times, max_time_between = 86400)
 
 - labels:
 
-  A vector of integer labels for each point in the mobility trace.
+  a vector of integer labels for each point in the mobility trace.
+  \`NA\` identifies noise points.
 
 - times:
 
-  A vector of integer timestamps corresponding to each point in the
+  a vector of integer timestamps corresponding to each point in the
   mobility trace.
 
 - max_time_between:
 
-  Maximum time (in seconds) between consecutive points to consider them
-  part of the same interval. If the time between points exceeds this
-  value, a new interval is created.
+  a numeric giving the maximum time in seconds between consecutive
+  points to consider them part of the same interval. If the time between
+  points is equal to or greater than this value, a new interval is
+  created.
 
 ## Value
 
-A data frame with columns for label, start time, end time, and duration
-of each interval.
+A data frame with columns \`label\`, \`start_time\`, and \`end_time\`.
+The trailing interval is returned only when its label identifies noise
+(\`NA\` or \`-1L\`).
 
 ## Examples
 

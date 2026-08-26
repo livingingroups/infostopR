@@ -1,32 +1,12 @@
-# Find based on distance and time threshold
+# Identify stops in a trajectory
 
-Find based on distance and time threshold
-
-Find based on distance and time threshold
+Identify stationary periods in time-ordered coordinate data. A stop is a
+sequence of points that remains within a spatial radius for a minimum
+duration. Stop labels are added to the input data.
 
 ## Usage
 
 ``` r
-identify_stops_xyt(
-  x,
-  y,
-  t = NULL,
-  r1 = 10,
-  min_size = 2L,
-  min_staying_time = 300L,
-  max_time_between = 86400L
-)
-
-identify_stops_longlatt(
-  longitude,
-  latitude,
-  t = NULL,
-  r1 = 10,
-  min_size = 2L,
-  min_staying_time = 300L,
-  max_time_between = 86400L
-)
-
 identify_stops(
   data,
   r1 = 10,
@@ -78,65 +58,40 @@ identify_stops(
 
 ## Arguments
 
-- x:
+- data:
 
-  a numeric vector of x-coordinates in cartesian coordinate system (e.g.
-  projected coordinates).
-
-- y:
-
-  a numeric vector of y-coordinates in cartesian coordinate system (e.g.
-  projected coordinates).
-
-- t:
-
-  a vecor inheriting from `numeric` or `POSIXt` or `Date` containing the
-  timestamps corresponding to the x and y coordinates.
+  a \`trackframe\`, \`sf\`, \`sftrack\`, \`move2\`, or data frame.
 
 - r1:
 
-  A numeric vector giving the maximum distance between time-consecutive
-  points to label them as stationary. Higher values will result in more
-  points being considered stationary.
+  a numeric giving the maximum distance between time-consecutive points
+  to label them as stationary. Higher values result in more points being
+  considered stationary.
 
 - min_size:
 
-  An integer giving the minimum number of points required to consider a
+  an integer giving the minimum number of points required to consider a
   group stationary.
 
 - min_staying_time:
 
-  An integer giving the minimum duration (in seconds) that can
-  constitute a stop. Only relevant if timestamps are provided in the
-  data.
+  a numeric giving the minimum duration in seconds required to
+  constitute a stop.
 
 - max_time_between:
 
-  An integer giving the maximum duration (in seconds) between
-  consecutive points to consider them part of the same stop. Only
-  relevant if timestamps are provided.
-
-- longitude:
-
-  numeric vector of longitude coordinates
-
-- latitude:
-
-  numeric vector of latitude coordinates
-
-- data:
-
-  A numeric matrix with 2 or 3 columns. Columns 1 and 2 are spatial
-  coordinates. Column 3 is optional and represents time.
+  a numeric giving the maximum duration in seconds between consecutive
+  points to consider them part of the same stop.
 
 - stop_id_col:
 
-  A character string specifying the name of the column to be used for
-  the stop identifiers. Default is "stop_id".
+  a character string specifying the name of the new column to which the
+  detected stop labels are assigned. The default is \`"stop_id"\`.
 
 - ...:
 
-  other arguments passed to \`as.trackframe()\`
+  additional arguments passed when coercing a data frame to a
+  \`trackframe\`.
 
 - time_col:
 
@@ -171,29 +126,29 @@ identify_stops(
   required integer or charactor string identifying coordinate reference
   system. Use NA for non-georeferenced cartesian coordinate systems.
 
+## Value
+
+\`data\` with a new column containing the detected stop labels. \`NA\`
+identifies points that are not assigned to a stop.
+
 ## Examples
 
 ``` r
-if (requireNamespace("trackframe", quietly = TRUE)) {
-library(trackframe)
 data("path_trackframe", package = "trackframe")
-stops <- identify_stops(data = path_trackframe)
+stops <- identify_stops(path_trackframe)
+head(stops[["stop_id"]])
+#> [1] 1 1 1 1 1 1
 
-# data.frame
 data("path_data_frame", package = "trackframe")
-tf <- as.trackframe(path_data_frame, crs = NA)
-stops <- identify_stops(data = tf)
+stops_df <- identify_stops(path_data_frame, crs = NA)
+
+if (requireNamespace("sftrack", quietly = TRUE)) {
+data("path_sftrack", package = "trackframe")
+stops_sftrack <- identify_stops(path_sftrack)
 }
 
-# with sftrack
-data("path_sftrack", package = "trackframe")
-class(path_sftrack)
-#> [1] "sftrack"    "sf"         "data.frame"
-stops_sftrack <- identify_stops(path_sftrack)
-
-# with move2
+if (requireNamespace("move2", quietly = TRUE)) {
 data("path_move2", package = "trackframe")
-class(path_move2)
-#> [1] "move2"      "sf"         "data.frame"
 stops_move2 <- identify_stops(path_move2)
+}
 ```

@@ -1,8 +1,9 @@
-# Spatial Infomap Cluster a Collection of Points Using Infomap
+# Assign site labels to detected stops
 
-This function applies the SpatialInfomap algorithm to cluster a
-collection of points. It directly returns the cluster labels rather than
-a model object.
+This is the second step of Infostop. It treats stop centers as nodes in
+a spatial network, connects nodes within \`r2\`, and uses Infomap to
+identify communities. A community is a site shared by the stops assigned
+to it.
 
 ## Usage
 
@@ -53,66 +54,73 @@ identify_sites(
 
 - data:
 
-  A numeric matrix with 2 or 3 columns. Columns 1 and 2 are spatial
-  coordinates. Column 3 is optional and represents time.
+  a \`trackframe\`, \`sf\`, \`sftrack\`, or \`move2\` object containing
+  stop labels.
 
 - r2:
 
-  Numeric. Max distance between stationary points to form an edge.
+  a numeric giving the maximum distance between stop centers in the same
+  network neighborhood. It is measured in the coordinate units for
+  projected data and in metres for geographic data.
 
 - label_singleton:
 
-  Logical. If TRUE, give stationary locations that were only visited
-  once their own label. If FALSE, label them as non-stationary (-1).
+  a logical. If \`TRUE\`, give stationary locations that were only
+  visited once their own label. If \`FALSE\`, leave isolated stops as
+  \`NA\`.
 
 - min_spacial_resolution:
 
-  Numeric. The minimal difference allowed between points before they are
-  considered the same points.
+  a numeric giving the minimum spatial resolution. Points that round to
+  the same coordinates at this resolution are considered the same point.
+  The default is \`0\`.
 
 - weighted:
 
-  Logical. Weight edges in the network representation by distance.
+  a logical. If \`TRUE\`, weight network edges by distance.
 
 - weight_exponent:
 
-  Numeric. Exponent used when weighting edges in the network.
+  a numeric giving the exponent used for distance-based edge weights.
 
 - seed:
 
-  an integer passed as seed to
-  [`cluster_infomap`](https://mapequation.r-universe.dev/infomap/reference/cluster_infomap.html)
-  (default is \`123L\`).
+  an integer passed as the random seed to
+  [`cluster_infomap`](https://mapequation.r-universe.dev/infomap/reference/cluster_infomap.html).
+  Defaults to \`123L\`.
 
 - stop_id_col:
 
-  A character string specifying the name of the column to be used for
-  the stop identifiers. Default is "stop_id".
+  a character string specifying the name of the column containing stop
+  identifiers. The default is \`"stop_id"\`.
 
 - site_id_col:
 
-  A character string specifying the name of the column to be used for
-  the site identifiers. Default is "site_id".
+  a character string specifying the name of the new column to which the
+  detected site labels are assigned. The default is \`"site_id"\`.
 
 - ...:
 
-  other arguments passed to \`as.trackframe()\`
+  additional arguments passed when coercing data to a \`trackframe\`.
 
 ## Value
 
-A numeric vector of cluster labels for each input point. Points labeled
--1 are considered non-stationary.
+\`data\` with a site-label column added. \`NA\` identifies points that
+are not assigned to a site.
+
+## References
+
+Aslak, U. and Alessandretti, L. (2020). Infostop: Scalable stop-location
+detection in multi-user mobility data. doi:10.48550/arXiv.2003.14370
 
 ## Examples
 
 ``` r
 if (requireNamespace("trackframe", quietly = TRUE)) {
   data("path_trackframe", package = "trackframe")
-  stops <- identify_stops(path_trackframe, r1 = 100, min_staying_time = 300,
-                        max_time_between = 86400, min_size = 2)
-  head(stops[["stop_id"]], 30)
-  clusters <- identify_sites(stops, r2 = 50)
-  head(clusters[["site_id"]], 30)
+  stops <- identify_stops(path_trackframe)
+  sites <- identify_sites(stops)
+  head(sites[["site_id"]])
 }
-#>  [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+#> [1] 1 1 1 1 1 1
 ```
