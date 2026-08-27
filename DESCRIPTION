@@ -34,8 +34,8 @@ Depends: R (>= 4.4.0), sf
 Imports: Rcpp (>= 1.1.0), checkmate, infomap, mgcv, trackframe (>= 0.1.7),
     stats
 LinkingTo: Rcpp
-Suggests: tinytest, knitr, rmarkdown, jsonlite, leaflet, leaflet.extras,
-    htmlwidgets, move2, sftrack, tibble, data.table
+Suggests: tinytest, knitr, rmarkdown, jsonlite, move2, sftrack, tibble,
+    data.table
 Additional_repositories: https://mapequation.r-universe.dev
 VignetteBuilder: knitr
 Config/roxygen2/version: 8.0.0
