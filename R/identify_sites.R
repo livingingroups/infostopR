@@ -134,14 +134,15 @@ identify_sites <- function(
 }
 
 
-add_site_ids <- function(data, site_map, site_id_col = "site_id") {
-  ids <- make_unique_id(data[[get_id_column(data)]])
-  uids <- unique(ids)
-
+add_site_ids <- function(
+  data,
+  site_map,
+  site_id_col = "site_id",
+  idx = seq_len(nrow(data))
+) {
+  site_ids <- unlist(site_map, use.names = FALSE)
   data[[site_id_col]] <- NA_integer_
-  for (i in seq_along(site_map)) {
-    data[[site_id_col]][ids %in% uids[i]] <- site_map[[i]]
-  }
+  data[[site_id_col]][idx] <- site_ids
   data
 }
 
@@ -160,11 +161,13 @@ identify_sites.trackframe <- function(
   site_id_col = "site_id",
   ...
 ) {
+  ids <- id(data)
+  idx <- if (is.null(ids)) order(time(data)) else order(ids, time(data))
   stops <- prep_stops(
-    x = easting(data),
-    y = northing(data),
-    id = id(data),
-    stop_id = data[[stop_id_col]]
+    x = easting(data)[idx],
+    y = northing(data)[idx],
+    id = if (is.null(ids)) ids else ids[idx],
+    stop_id = data[[stop_id_col]][idx]
   )
   site_map <- identify_sites_internal(
     stop_events = stops$stop_events,
@@ -177,7 +180,7 @@ identify_sites.trackframe <- function(
     weight_exponent = weight_exponent,
     seed = seed
   )
-  add_site_ids(data, site_map = site_map, site_id_col = site_id_col)
+  add_site_ids(data, site_map = site_map, site_id_col = site_id_col, idx = idx)
 }
 
 
@@ -221,7 +224,7 @@ identify_sites.sf <- function(
       weight_exponent = weight_exponent,
       seed = seed
     )
-    add_site_ids(data, site_map = site_map, site_id_col = site_id_col)
+    add_site_ids(data, site_map = site_map, site_id_col = site_id_col, idx = idx)
   } else {
     identify_sites(
       as.trackframe(data, ...),

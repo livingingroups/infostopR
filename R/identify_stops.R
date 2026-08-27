@@ -333,18 +333,21 @@ identify_stops.trackframe <- function(
   stop_id_col = "stop_id",
   ...
 ) {
+  ids <- id(data)
+  idx <- if (is.null(ids)) order(time(data)) else order(ids, time(data))
   stop_ids <- identify_stops_internal(
-    easting(data),
-    northing(data),
-    time(data),
-    id(data),
+    easting(data)[idx],
+    northing(data)[idx],
+    time(data)[idx],
+    if (is.null(ids)) ids else ids[idx],
     r1 = r1,
     min_size = min_size,
     min_staying_time = min_staying_time,
     max_time_between = max_time_between,
     distance_metric = "euclidean"
   )
-  data[[stop_id_col]] <- unname(stop_ids)
+  data[[stop_id_col]] <- NA_integer_
+  data[[stop_id_col]][idx] <- unname(stop_ids)
   data
 }
 
@@ -382,7 +385,7 @@ identify_stops.sf <- function(
       max_time_between = max_time_between,
       distance_metric = 'haversine'
     )
-    data[[stop_id_col]][order(idx)] <- unname(stop_ids)
+    data[[stop_id_col]][idx] <- unname(stop_ids)
     data
   } else {
     identify_stops.trackframe(
