@@ -1,6 +1,6 @@
 Package: infostop
-Title: R Interface to the Python 'infostop' Package for Detecting Stop Locations in Mobility Data
-Version: 0.1.2
+Title: Detect Stop Locations in Mobility Data
+Version: 0.1.4
 Authors@R: 
     c(
         person(given = "Florian",
@@ -20,19 +20,22 @@ Authors@R:
                family = "Alessandretti",
                role = c("aut"))
     )
-Description: An R wrapper for the Python 'infostop' package which implements 
-    algorithms for detecting stop locations in time-ordered location data. 
-    The package is useful for anyone who wishes to detect stationary events in 
-    location coordinate streams, simplifying dense and rich location time-series 
-    into sequences of events. The underlying algorithm is described in 
-    Aslak et al. (2020) <arXiv:2003.14370>.
+Description: Detects stationary events (stops) and recurrent stop locations in
+    GPS or cartesian trajectories. The algorithm operates in two stages. First,
+    it identifies stationary events by clustering temporally adjacent points
+    that remain within a specified spatial radius for a minimum duration.
+    Second, it groups these event centroids into reusable location identifiers
+    using two-level Infomap community detection on a radius-neighbour graph.
+    The implementation provides an Rcpp-based port of the 'Infostop'
+    algorithm described in Aslak et al. (2020) <doi:10.48550/arXiv.2003.14370>.
 License: GPL-3
 Encoding: UTF-8
-Depends: sf
-Imports: 
-    reticulate, checkmate, trackframe (>= 0.1.7)
-Remotes: livingingroups/trackframe
-Suggests: 
-    rmarkdown, knitr, markdown, sftrack, move2, tinytest
-SystemRequirements: Python (>=3.10) with the 'infostop' package installed
+Depends: R (>= 4.4.0), sf
+Imports: Rcpp (>= 1.1.0), checkmate, infomap, mgcv, trackframe (>= 0.1.7),
+    stats
+LinkingTo: Rcpp
+Suggests: tinytest, knitr, rmarkdown, jsonlite, move2, sftrack, tibble,
+    data.table
+Additional_repositories: https://mapequation.r-universe.dev
 VignetteBuilder: knitr
+Config/roxygen2/version: 8.0.0

@@ -1,4 +1,4 @@
-.Rproj.user
+.Rproj.user/
 .Rhistory
 .RData
 .Ruserdata
@@ -6,10 +6,21 @@
 *.Rproj
 .Renviron
 .DS_Store
+*.o
+*.so
+*.dll
+*.dylib
+*.tar.gz
+*.Rcheck/
+inst/reference/python/.venv/
+inst/reference/python/__pycache__/
+venv_infostop_patched/
+work/debug/out/
 inst/doc
 /doc/
 /Meta/
 infostop_*.tar.gz
 infostop.Rcheck
 docs
+.vscode/
 __pycache__

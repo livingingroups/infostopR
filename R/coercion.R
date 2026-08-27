@@ -7,7 +7,7 @@ split_mat_by_id <- function(x, ids) {
   if (!is.null(ids) && length(unique(ids)) > 1) {
     lapply(
       unname(split(seq_len(NROW(x)), f = ids)),
-      function(i) unname(x[i, ])
+      function(i) unname(x[i, , drop = FALSE])
     )
   } else {
     x
@@ -23,26 +23,24 @@ convert_labels_to_python <- function(event_maps) {
 }
 
 prep_stops <- function(x, y, id, stop_id) {
-  checkmate::assert_false(is.null(id))
-  event_maps <- split(stop_id, id)
-  stop_events <- aggregate(
-    as.formula("cbind(x, y) ~ stop_id + id"),
-    data = data.frame(
+  if (is.null(id)) {
+    stop("in function 'prep_stops' id can not be NULL!")
+  } else {
+    event_maps <- split(stop_id, id)
+    stop_events <- aggregate_stop_centers(
       x = x,
       y = y,
-      id = id,
-      stop_id = stop_id
-    ),
-    FUN = median
-  )
+      ids = id,
+      stop_ids = stop_id,
+      coord_cols = c("x", "y")
+    )
+  }
   uids <- names(event_maps)
 
   idx <- order(match(stop_events[["id"]], uids), stop_events[["stop_id"]])
   stop_events <- split_mat_by_id(
-    as.matrix(
-      stop_events[idx, c("x", "y")]
-    ),
-    stop_events[idx, ][["id"]]
+    as.matrix(stop_events[idx, c("x", "y")]),
+    stop_events[["id"]][idx]
   )
 
   # In the case of only one id

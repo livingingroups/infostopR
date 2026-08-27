@@ -5,67 +5,46 @@ library("trackframe")
 projected_crs <- "EPSG:32632"
 
 #
-# onestep - single track
+# Single track
 #
-path_df <- as.data.frame(path_trackframe[, c(
-  'easting',
-  'northing',
-  'time',
-  'id'
-)])
+path_df <- as.data.frame(path_trackframe[, c('easting', 'northing', 'time', 'id')])
 tf <- as.trackframe(path_df, crs = projected_crs)
-infostop_tf <- infostop(data = tf, distance_metric = "euclidean")
-
-tf_tibble <- as.trackframe(path_df, crs = projected_crs, coerce_to = "tibble")
-infostop_tibble <- infostop(data = tf, distance_metric = "euclidean")
-
-expect_equal(infostop_tf$labels, infostop_tibble$labels)
-
 tf_dt <- as.trackframe(path_df, crs = projected_crs, coerce_to = "data.table")
-infostop_dt <- infostop(data = tf_dt, distance_metric = "euclidean")
+tf_tbl <- as.trackframe(path_df, crs = projected_crs, coerce_to = "tibble")
 
-expect_equal(infostop_tf$labels, infostop_dt$labels)
 
-#
-# twostep - single track
-#
-identify_stops_tf <- identify_stops(data = tf, distance_metric = "euclidean")
-clusters_tf <- identify_sites(identify_stops_tf, distance_metric = "euclidean")
-expect_equal(clusters_tf[["site_id"]], infostop_tf[["labels"]])
+stops_tf <- identify_stops(data = tf, distance_metric = "euclidean")
+stops_dt <- identify_stops(data = tf_dt, distance_metric = "euclidean")
+stops_tbl <- identify_stops(data = tf_tbl, distance_metric = "euclidean")
+expect_equal(stops_tf[["stop_id"]], stops_dt[["stop_id"]])
+expect_equal(stops_tf[["stop_id"]], stops_tbl[["stop_id"]])
 
-identify_stops_tibble <- identify_stops(
-  data = tf_tibble,
-  distance_metric = "euclidean"
-)
-clusters_tibble <- identify_sites(
-  identify_stops_tibble,
-  distance_metric = "euclidean"
-)
-expect_equal(clusters_tibble[["site_id"]], infostop_tf[["labels"]])
 
-identify_stops_dt <- identify_stops(data = tf_dt, distance_metric = "euclidean")
-clusters_dt <- identify_sites(identify_stops_dt, distance_metric = "euclidean")
-expect_equal(clusters_dt[["site_id"]], infostop_tf[["labels"]])
+clusters_tf <- identify_sites(stops_tf, distance_metric = "euclidean")
+clusters_dt <- identify_sites(stops_dt, distance_metric = "euclidean")
+clusters_tbl <- identify_sites(stops_tbl, distance_metric = "euclidean")
+expect_equal(clusters_tf[["site_id"]], clusters_dt[["site_id"]])
+expect_equal(clusters_tf[["site_id"]], clusters_tbl[["site_id"]])
 
 
 #
-# onestep - multipe tracks
+# Multipe tracks
 #
-paths_df <- as.data.frame(paths_trackframe[, c(
-  'easting',
-  'northing',
-  'id',
-  'time'
-)])
+paths_df <- as.data.frame(paths_trackframe[, c('easting', 'northing', 'id', 'time')])
 tf <- as.trackframe(paths_df, crs = projected_crs)
-infostop_tf <- infostop(data = tf, distance_metric = "euclidean")
-
-tf_tibble <- as.trackframe(paths_df, crs = projected_crs, coerce_to = "tibble")
-infostop_tibble <- infostop(data = tf, distance_metric = "euclidean")
-
-expect_equal(infostop_tf$labels, infostop_tibble$labels)
-
 tf_dt <- as.trackframe(paths_df, crs = projected_crs, coerce_to = "data.table")
-infostop_dt <- infostop(data = tf_dt, distance_metric = "euclidean")
+tf_tbl <- as.trackframe(paths_df, crs = projected_crs, coerce_to = "tibble")
 
-expect_equal(infostop_tf$labels, infostop_dt$labels)
+
+mstops_tf <- identify_stops(data = tf, distance_metric = "euclidean")
+mstops_dt <- identify_stops(data = tf_dt, distance_metric = "euclidean")
+mstops_tbl <- identify_stops(data = tf_tbl, distance_metric = "euclidean")
+expect_equal(mstops_tf[["stop_id"]], mstops_dt[["stop_id"]])
+expect_equal(mstops_tf[["stop_id"]], mstops_tbl[["stop_id"]])
+
+
+clusters_tf <- identify_sites(mstops_tf, distance_metric = "euclidean")
+clusters_dt <- identify_sites(mstops_dt, distance_metric = "euclidean")
+clusters_tbl <- identify_sites(mstops_tbl, distance_metric = "euclidean")
+expect_equal(clusters_tf[["site_id"]], clusters_dt[["site_id"]])
+expect_equal(clusters_tf[["site_id"]], clusters_tbl[["site_id"]])

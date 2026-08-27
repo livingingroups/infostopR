@@ -6,6 +6,11 @@ tasks:
     cmds:
       - task --list
 
+  compileAttributes:
+    desc: Compile Rcpp attributes
+    cmds:
+      - R -e "Rcpp::compileAttributes()"
+
   manual:
     desc: Generate manual
     deps: [docs]
@@ -14,20 +19,32 @@ tasks:
       - R CMD Rd2pdf . -o ../Manual.pdf
 
   docs:
-    desc: Generate documentation with roxygen2
+    desc: Generate package documentation
     cmds:
-      - R -e 'library("roxygen2"); roxygenize(".", c("rd", "namespace"))'
+      - R -e 'roxygen2::roxygenize(".", c("rd", "namespace"))'
       - sed -i '/RoxygenNote:.*/d' DESCRIPTION
 
   build:
     desc: Build the R package
-    deps: [docs]
+    deps: [compileAttributes, docs]
     cmds:
       - R CMD build .
+
+  build-fast:
+    desc: Build the R package
+    deps: [compileAttributes, docs]
+    cmds:
+      - R CMD build --no-build-vignettes .
 
   inst:
     desc: Install the R package
     deps: [build]
+    cmds:
+      - R CMD INSTALL infostop_*.tar.gz
+
+  inst-fast:
+    desc: Install the R package
+    deps: [build-fast]
     cmds:
       - R CMD INSTALL infostop_*.tar.gz
 
@@ -69,3 +86,7 @@ tasks:
   tinytest-infostop:
     cmds:
       - R -e "tinytest::run_test_file('inst/tinytest/test_infostop.R')"
+
+  test_infostop-py:
+    cmds:
+      - R -e "tinytest::run_test_file('inst/tinytest/test_infostop-py.R')"

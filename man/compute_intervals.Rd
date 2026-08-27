@@ -7,26 +7,28 @@
 compute_intervals(labels, times, max_time_between = 86400)
 }
 \arguments{
-\item{labels}{A vector of integer labels for each point in the mobility trace.}
+\item{labels}{a vector of integer labels for each point in the mobility
+trace. `NA` identifies noise points.}
 
-\item{times}{A vector of integer timestamps corresponding to each point in the mobility trace.}
+\item{times}{a vector of integer timestamps corresponding to each point in
+the mobility trace.}
 
-\item{max_time_between}{Maximum time (in seconds) between consecutive points to consider
-them part of the same interval. If the time between points exceeds this value,
-a new interval is created.}
+\item{max_time_between}{a numeric giving the maximum time in seconds between
+consecutive points to consider them part of the same interval. If the
+time between points is equal to or greater than this value, a new interval
+is created.}
 }
 \value{
-A data frame with columns for label, start time, end time, and duration of each interval.
+A data frame with columns `label`, `start_time`, and `end_time`.
+  The trailing interval is returned only when its label identifies noise
+  (`NA` or `-1L`).
 }
 \description{
 This function computes time intervals for each unique label in the mobility data.
 It identifies continuous periods when a user was at the same location (same label).
 }
 \examples{
-if (is_infostop_initialized()) {
-data("path_trackframe", package = "trackframe")
-model <- infostop(path_trackframe, r1 = 10, r2 = 10)
-times <- as.integer(path_trackframe[["time"]])
-intervals <- compute_intervals(model$labels, times)
-}
+labels <- c(NA, 1L, 1L, NA, 2L, 2L, 2L, NA, 1L, NA)
+times <- seq(0, 90, by = 10)
+compute_intervals(labels, times, max_time_between = 15)
 }

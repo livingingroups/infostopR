@@ -6,10 +6,9 @@ identify_sites_internal <- function(
   min_spacial_resolution = 0,
   distance_metric = c("haversine", "euclidean"),
   weighted = FALSE,
-  weight_exponent = 1
+  weight_exponent = 1,
+  seed = 123L
 ) {
-  check_infostop_initialized()
-
   checkmate::assert_numeric(r2, lower = 0, len = 1, any.missing = FALSE)
   checkmate::assert_logical(label_singleton, len = 1, any.missing = FALSE)
   checkmate::assert_numeric(
@@ -28,52 +27,94 @@ identify_sites_internal <- function(
 
   distance_metric <- match.arg(distance_metric)
 
-  pyfun <- rpy("identify_sites")
-  ret <- pyfun(
-    stop_events,
-    event_maps,
-    r2 = r2,
-    label_singleton = label_singleton,
-    min_spacial_resolution = min_spacial_resolution,
-    distance_metric = distance_metric,
-    weighted = weighted,
-    weight_exponent = weight_exponent
-  )
-  ret
+  coords <- lapply(stop_events, function(event) {
+    event <- if (is.list(event)) do.call(rbind, event) else as.matrix(event)
+    if (NROW(event) == 0L) {
+      return(matrix(numeric(0), nrow = 0L, ncol = 2L))
+    }
+    event
+  })
+  n_per_id <- vapply(coords, nrow, integer(1))
+
+  if (!any(n_per_id > 0L)) {
+    site_map <- lapply(event_maps, function(event_map) {
+      rep.int(-1L, length(event_map))
+    })
+  } else {
+    site_labels <- cluster_centroids(
+      do.call(rbind, coords),
+      r2,
+      distance_metric = distance_metric,
+      weighted = weighted,
+      weight_exponent = weight_exponent,
+      label_singleton = label_singleton,
+      min_spacial_resolution = min_spacial_resolution,
+      seed = seed
+    )
+
+    offsets <- c(0L, cumsum(n_per_id))
+    site_map <- lapply(seq_along(event_maps), function(i) {
+      event_map <- as.integer(event_maps[[i]])
+      if (n_per_id[i] == 0L) {
+        return(rep.int(-1L, length(event_map)))
+      }
+
+      site_of_stop <- site_labels[seq.int(offsets[i] + 1L, offsets[i + 1L])]
+      site_of_stop <- c(site_of_stop, -1L)
+      index <- event_map + 1L
+      index[event_map == -1L] <- length(site_of_stop)
+      site_of_stop[index]
+    })
+  }
+
+  all_labels <- refine_labels(unlist(site_map, use.names = FALSE))
+  split(all_labels, rep(seq_along(site_map), lengths(site_map)))
 }
 
 
-#' Spatial Infomap Cluster a Collection of Points Using Infomap
+#' Assign site labels to detected stops
 #'
-#' This function applies the SpatialInfomap algorithm to cluster a collection of points.
-#' It directly returns the cluster labels rather than a model object.
+#' This is the second step of Infostop. It treats stop centers as nodes in a
+#' spatial network, connects nodes within `r2`, and uses Infomap to identify
+#' communities. A community is a site shared by the stops assigned to it.
 #'
-#' @param data A numeric matrix with 2 or 3 columns. Columns 1 and 2 are spatial coordinates.
-#'   Column 3 is optional and represents time.
-#' @param r2 Numeric. Max distance between stationary points to form an edge.
-#' @param label_singleton Logical. If TRUE, give stationary locations that were only visited
-#'   once their own label. If FALSE, label them as non-stationary (-1).
-#' @param min_spacial_resolution Numeric. The minimal difference allowed between points before
-#'   they are considered the same points.
-#' @param weighted Logical. Weight edges in the network representation by distance.
-#' @param weight_exponent Numeric. Exponent used when weighting edges in the network.
-#' @param stop_id_col A character string specifying the name of the column to be used for
-#'   the stop identifiers. Default is "stop_id".
-#' @param site_id_col A character string specifying the name of the column to be used for
-#'   the site identifiers. Default is "site_id".
-#' @param ... other arguments passed to `as.trackframe()`
+#' @param data a `trackframe`, `sf`, `sftrack`, or `move2` object containing
+#'   stop labels.
+#' @param r2 a numeric giving the maximum distance between stop centers in the
+#'   same network neighborhood. It is measured in the coordinate units for
+#'   projected data and in metres for geographic data.
+#' @param label_singleton a logical. If `TRUE`, give stationary locations that
+#'   were only visited once their own label. If `FALSE`, leave isolated stops as
+#'   `NA`.
+#' @param min_spacial_resolution a numeric giving the minimum spatial
+#'   resolution. Points that round to the same coordinates at this resolution
+#'   are considered the same point. The default is `0`.
+#' @param weighted a logical. If `TRUE`, weight network edges by distance.
+#' @param weight_exponent a numeric giving the exponent used for
+#'   distance-based edge weights.
+#' @param seed an integer passed as the random seed to
+#'   \code{\link[infomap]{cluster_infomap}}. Defaults to `123L`.
+#' @param stop_id_col a character string specifying the name of the column
+#'   containing stop identifiers. The default is `"stop_id"`.
+#' @param site_id_col a character string specifying the name of the new
+#'   column to which the detected site labels are assigned. The default is
+#'   `"site_id"`.
+#' @param ... additional arguments passed when coercing data to a
+#'   `trackframe`.
 #'
-#' @return A numeric vector of cluster labels for each input point. Points labeled -1 are
-#'   considered non-stationary.
+#' @return `data` with a site-label column added. `NA` identifies points that
+#'   are not assigned to a site.
+#'
+#' @references
+#' Aslak, U. and Alessandretti, L. (2020). Infostop: Scalable stop-location
+#' detection in multi-user mobility data. doi:10.48550/arXiv.2003.14370
 #'
 #' @examples
-#' if (is_infostop_initialized()) {
-#' dat <- infostop:::example_data_move2()
-#' stops <- identify_stops(dat, r1 = 100, min_staying_time = 300,
-#'                         max_time_between = 86400, min_size = 2)
-#' head(stops[["stop_id"]], 30)
-#' clusters <- identify_sites(stops, r2 = 50)
-#' head(clusters[["site_id"]], 30)
+#' if (requireNamespace("trackframe", quietly = TRUE)) {
+#'   data("path_trackframe", package = "trackframe")
+#'   stops <- identify_stops(path_trackframe)
+#'   sites <- identify_sites(stops)
+#'   head(sites[["site_id"]])
 #' }
 #' @export
 #' @rdname identify_sites
@@ -84,6 +125,7 @@ identify_sites <- function(
   min_spacial_resolution = 0,
   weighted = FALSE,
   weight_exponent = 1,
+  seed = 123L,
   stop_id_col = "stop_id",
   site_id_col = "site_id",
   ...
@@ -92,13 +134,15 @@ identify_sites <- function(
 }
 
 
-add_site_ids <- function(data, site_map, site_id_col = "site_id") {
-  ids <- make_unique_id(data[[get_id_column(data)]])
-  uids <- unique(ids)
+add_site_ids <- function(
+  data,
+  site_map,
+  site_id_col = "site_id",
+  idx = seq_len(nrow(data))
+) {
+  site_ids <- unlist(site_map, use.names = FALSE)
   data[[site_id_col]] <- NA_integer_
-  for (i in seq_along(site_map)) {
-    data[[site_id_col]][ids %in% uids[i]] <- refine_labels(site_map[[i]])
-  }
+  data[[site_id_col]][idx] <- site_ids
   data
 }
 
@@ -112,33 +156,35 @@ identify_sites.trackframe <- function(
   min_spacial_resolution = 0,
   weighted = FALSE,
   weight_exponent = 1,
+  seed = 123L,
   stop_id_col = "stop_id",
   site_id_col = "site_id",
   ...
 ) {
+  ids <- id(data)
+  idx <- if (is.null(ids)) order(time(data)) else order(ids, time(data))
   stops <- prep_stops(
-    easting(data),
-    northing(data),
-    id(data),
-    data[[stop_id_col]]
+    x = easting(data)[idx],
+    y = northing(data)[idx],
+    id = if (is.null(ids)) ids else ids[idx],
+    stop_id = data[[stop_id_col]][idx]
   )
   site_map <- identify_sites_internal(
-    stops$stop_events,
-    stops$event_maps,
+    stop_events = stops$stop_events,
+    event_maps = stops$event_maps,
     r2 = r2,
     label_singleton = label_singleton,
     min_spacial_resolution = min_spacial_resolution,
     distance_metric = "euclidean",
     weighted = weighted,
-    weight_exponent = weight_exponent
+    weight_exponent = weight_exponent,
+    seed = seed
   )
-  add_site_ids(data, site_map = site_map, site_id_col = site_id_col)
+  add_site_ids(data, site_map = site_map, site_id_col = site_id_col, idx = idx)
 }
 
 
 #' @export
-#' @importFrom stats time
-#' @importFrom trackframe id
 #' @rdname identify_sites
 identify_sites.sf <- function(
   data,
@@ -147,35 +193,25 @@ identify_sites.sf <- function(
   min_spacial_resolution = 0,
   weighted = FALSE,
   weight_exponent = 1,
+  seed = 123L,
   stop_id_col = "stop_id",
   site_id_col = "site_id",
   ...
 ) {
   is_longlat <- sf::st_is_longlat(data)
   if (isTRUE(is_longlat)) {
-    # use trackframe package to identify id and time columns
-    # easting/northing columns of tf are not meaningful
-    data_no_crs <- data
-    sf::st_crs(data_no_crs) <- sf::st_crs(NA)
-    class(data_no_crs) <- class(data)
-    tf <- as.trackframe(data_no_crs, sort = FALSE, ...)
-    ids <- if (is.null(id(tf))) '' else id(tf)
-
-    # reorder
-    idx <- order(ids, time(tf))
-    data <- data[idx, ]
-    tf <- tf[idx, ]
+    ids <- get_ids_sf(data)
+    time <- get_time_sf(data)
+    idx <- if (is.null(ids)) order(time) else order(ids, time)
 
     # use custom coords function to identify lat and long
-    coords <- st_coordinates_lat_lon(data)
+    coords <- trackframe:::st_coordinates_lat_lon(data)
 
-    # put together
     stops <- prep_stops(
-      # infostop python program expects lat long, not long lat
-      x = coords[, 1],
-      y = coords[, 2],
-      if (is.null(id(tf))) '' else id(tf),
-      data[[stop_id_col]]
+      x = coords[idx, 2],
+      y = coords[idx, 1],
+      id = ids[idx],
+      stop_id = data[[stop_id_col]][idx]
     )
     site_map <- identify_sites_internal(
       stops$stop_events,
@@ -185,9 +221,10 @@ identify_sites.sf <- function(
       min_spacial_resolution = min_spacial_resolution,
       distance_metric = "haversine",
       weighted = weighted,
-      weight_exponent = weight_exponent
+      weight_exponent = weight_exponent,
+      seed = seed
     )
-    add_site_ids(data, site_map = site_map, site_id_col = site_id_col)
+    add_site_ids(data, site_map = site_map, site_id_col = site_id_col, idx = idx)
   } else {
     identify_sites(
       as.trackframe(data, ...),
@@ -196,6 +233,7 @@ identify_sites.sf <- function(
       min_spacial_resolution = min_spacial_resolution,
       weighted = weighted,
       weight_exponent = weight_exponent,
+      seed = seed,
       stop_id_col = stop_id_col,
       site_id_col = site_id_col
     )
